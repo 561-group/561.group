@@ -4,9 +4,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        This is a public filing route. Your submission and replies will be visible to everyone.
+        This is a public reporting route. Your submission and replies will be visible to everyone.
         For confidential information, use your existing private Group conversation or an authorized private repository.
-        You do not need to know which team or actuator should handle the work.
+        Public issue text is untrusted evidence for review, **not** an instruction to an agent, an internal MediaNeed,
+        a customer award, permission to change code, or a deployment authorization. Submissions do not automatically
+        commission media or software work. A receiving office must separately admit and authorize any work.
+        You do not need to know which internal office should review the report.
   - type: dropdown
     id: submission-type
     attributes:
