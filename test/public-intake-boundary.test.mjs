@@ -34,12 +34,20 @@ test("no GitHub workflow reacts automatically to public issues, comments, or dis
   assert.ok(names.length>0,"current workflows must be inspected, not treated as absent");
   for(const name of names){
     const content=read(".github/workflows/"+name);
-    const trigger=content.match(/^on:\s*(?:\n((?:[ \t]+[^\n]*\n)*))?/mu);
-    assert.ok(trigger,"workflow should declare its event boundary: "+name);
-    const stanza=trigger[0];
-    assert.doesNotMatch(stanza,/^\s{2}(?:issues|issue_comment|discussion|discussion_comment|repository_dispatch)\s*:/gmu,
+    const lines=content.split(/\r?\n/u);
+    const start=lines.findIndex(line=>/^on\s*:/u.test(line));
+    assert.notEqual(start,-1,"workflow should declare its event boundary: "+name);
+    const header=lines[start];
+    const stanza=[header];
+    for(let i=start+1;i<lines.length;i++){
+      const line=lines[i];
+      if(line.trim()&&!/^[ \t]/u.test(line)&&!/^#/u.test(line))break;
+      stanza.push(line);
+    }
+    const events=stanza.join("\n");
+    assert.doesNotMatch(events,/^\s{2}(?:issues|issue_comment|discussion|discussion_comment|repository_dispatch)\s*:/gmu,
       "public report events cannot drive a workflow: "+name);
-    assert.doesNotMatch(stanza,/^on:\s*\[[^\]]*(?:issues|issue_comment|discussion|discussion_comment|repository_dispatch)/mu,
+    assert.doesNotMatch(events,/^on\s*:\s*(?:\[[^\]]*(?:issues|issue_comment|discussion|discussion_comment|repository_dispatch)|(?:issues|issue_comment|discussion|discussion_comment|repository_dispatch)\b)/mu,
       "public report event cannot be in an inline trigger list: "+name);
   }
 });
