@@ -1,0 +1,26 @@
+name: Public intake trust-boundary assay
+on:
+  push:
+    paths:
+      - public/contact/index.html
+      - .github/ISSUE_TEMPLATE/**
+      - .github/workflows/**
+      - test/public-intake-boundary.test.mjs
+  pull_request:
+    paths:
+      - public/contact/index.html
+      - .github/ISSUE_TEMPLATE/**
+      - .github/workflows/**
+      - test/public-intake-boundary.test.mjs
+permissions:
+  contents: read
+jobs:
+  public-report-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Assay public reporting is read-only and production remains separately authorized
+        run: node --test test/public-intake-boundary.test.mjs
