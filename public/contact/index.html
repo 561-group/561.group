@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Issues, complaints, requirements, and ideas · The 561 Group</title>
+    <link rel="canonical" href="https://561.group/contact/">
     <meta name="description" content="Tell the 561 Group what is broken, what you need, or what could improve. Find public and private filing routes.">
     <style>
       :root { color-scheme: light dark; --ink: #0a0a0a; --surface: #f2ead8; }
@@ -30,16 +31,14 @@
     <main>
       <a href="/">The 561 Group</a>
       <h1>What needs attention?</h1>
-      <p>Report a problem, make a complaint, describe a need, suggest an idea, or ask a question about the 561 Group. You do not need to know which team is responsible or use technical language.</p>
-      <h2>Report publicly</h2>
-      <p>Describe what is affected and what happened or what you need. Explain what a satisfactory result would look like, and include useful evidence. Say whether work is blocked or harm is continuing.</p>
+      <p>Report something broken, make a complaint, describe a requirement, suggest an idea, or ask a question. You do not need to know the responsible team or the technical vocabulary.</p>
+      <h2>File publicly</h2>
+      <p>The form asks what is affected, what happened or what you need, and what a satisfactory outcome would look like. You can add evidence and indicate urgency.</p>
       <a class="action" href="https://github.com/561-group/561-group-site/issues/new?template=service-submission.yml">Open the submission form</a>
-      <p>You will need a GitHub account. Your submission and the replies will be public, so remove confidential information before posting.</p>
-      <p>Keep the issue link to follow progress, add evidence, or correct your report. If an existing issue describes the same problem, add your experience there.</p>
-      <h2>Email or use an existing private channel</h2>
-      <p>For confidential information, use an existing private conversation with the Group or a private repository you are authorized to access. Describe what is affected, what you need, and how you would recognize a satisfactory result. Ask for a reference you can use to check progress.</p>
-      <p>You can also email <a href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">emsenn@561.group</a>. Email does not require a GitHub account or Group login. Keep the conversation for follow-up.</p>
-      <p>The form below prepares an email draft. Review it, then send it through your email app or copy the subject and message into your webmail. You can add attachments before sending. Preparing the draft does not send it.</p>
+      <p>A GitHub account is required. The submission and replies are public. The resulting issue URL is your reference: follow it, add corrections or evidence, and use it to check progress. If related work already exists, add to its thread.</p>
+      <h2>File privately</h2>
+      <p>For personal information, private client matters, security details, or other confidential material, use your existing private Group conversation or a private repository you are authorized to access. Say what is affected, what you need, and how you would recognize a satisfactory result. Ask for a reference and the receiving status.</p>
+      <p>You can also file by email at <a href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">emsenn@561.group</a>. No GitHub account or Group login is needed. The CTO reviews this submission queue alongside GitHub. Keep your email conversation as the reference for corrections and follow-up.</p>
       <form id="private-intake" action="mailto:emsenn@561.group" method="post" enctype="text/plain">
         <label for="submission-type">Submission type</label>
         <select id="submission-type" name="submission-type">
@@ -63,7 +62,7 @@
       </form>
       <section id="email-draft" hidden aria-live="polite">
         <h3>Your email draft</h3>
-        <p>Review the subject and message, then open your email app or copy both into your webmail. Send the email to emsenn@561.group.</p>
+        <p>Review the text, then open your email app or copy it into your webmail. Send it to emsenn@561.group.</p>
         <label for="email-subject">Subject</label>
         <input id="email-subject" readonly>
         <label for="email-text">Message</label>
@@ -71,14 +70,11 @@
         <a id="open-email" class="action">Open email app</a>
         <p id="copy-email" hidden>Copy the message above into your email draft; it is too long to include reliably in an email link.</p>
       </section>
-      <noscript><p>You can email emsenn@561.group directly. Describe what is affected, what happened or what you need, and what a satisfactory result would look like. Include useful evidence and say whether work is blocked or harm is continuing.</p></noscript>
-      <p>Other established ways to contact emsenn remain listed on <a href="https://emsenn.net/contact/">the contact page</a>.</p>
+      <noscript><p>You can email the address above directly. Include the submission type, affected service, what you need, your satisfaction conditions, evidence, and urgency.</p></noscript>
       <p>People with access to the Group's service system can also use <a href="https://cold-red-gate.561.group/play">the authenticated work board</a>. Sign in with your own identity.</p>
-      <h2>Follow-up</h2>
-      <p>The Chief Technology Officer reviews the email submission queue alongside GitHub reports.</p>
-      <p>For technical work, the Chief Technology Officer finds the team authorized and able to address your report and follows the work through to a result that can be checked. Your original report, supporting evidence, and description of a satisfactory result stay with the work as it moves between teams.</p>
-      <p>Reporting a need, receiving an acknowledgment, obtaining a commitment to act, and accepting completed work are separate steps. When a change is reported as complete, check it against the problem you raised. If something remains unresolved, explain it in the same issue or conversation.</p>
-      <p>An issue's closure alone does not establish that your problem has been solved.</p>
+      <h2>What happens next</h2>
+      <p>The CTO monitors public submissions and technical work across Group repositories, identifies the capable service and authorized actuator, and carries technical work through to a demonstrated result. Your original submission, evidence, and success conditions remain attached to the work as it moves.</p>
+      <p>Filing records your need. Native receipt, a commitment to act, implementation, and your acceptance of the result are separate steps. An issue being closed alone does not prove the requested effect occurred.</p>
     </main>
     <script>
       const intake = document.getElementById('private-intake');
