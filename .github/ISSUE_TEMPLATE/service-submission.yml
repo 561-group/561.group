@@ -17,7 +17,7 @@ body:
       options:
         - Issue
         - Complaint
-        - Requirement
+        - Suggested change (unverified)
         - Idea
         - Question
     validations:
