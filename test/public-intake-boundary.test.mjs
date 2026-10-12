@@ -26,6 +26,9 @@ test("public form labels submission as untrusted, not an executable requirement"
   assert.match(form,/not.*instruction to an agent/u);
   assert.match(form,/Submissions do not automatically/u);
   assert.doesNotMatch(form,/^\s*- type: [^\n]*media[-_ ]generator/gmu);
+  assert.match(form,/Suggested change \(unverified\)/u);
+  assert.doesNotMatch(form,/^\s*- Requirement\s*$/mu);
+  assert.doesNotMatch(read("public/contact/index.html"),/<option>Requirement<\/option>/u);
 });
 
 test("no GitHub workflow reacts automatically to public issues, comments, or discussions",()=>{
