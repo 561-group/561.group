@@ -6,14 +6,21 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap } from "../src/render.mjs";
 
-import { discoverCatalog } from "../../../../public-services-section/services/public-media-services-section/services/public-games-services-section/services/public-web-games-services-section/sites/play.561.group/src/discover-catalog.mjs";
-import { playUrl, hasBrowser } from "../../../../public-services-section/services/public-media-services-section/services/public-games-services-section/services/public-web-games-services-section/sites/play.561.group/js/catalog.mjs";
+import { discoverCatalog } from "@causeway-services/play/catalog";
+import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
+import { catalogSourcesFromEnvironment, publicationDateFromEnvironment } from "@causeway-services/play/composition";
 
 const root = new URL("../", import.meta.url);
 const read = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 const home = await read("data/home.json");
 const authored = await read("data/estate.json");
-const { catalog } = await discoverCatalog();
+// Bind the same authored catalog through its owning package. Outside the
+// integrated checkout, callers provide explicit source roots; discovery refuses
+// missing sources rather than replacing the games with a static shortlist.
+const sources = catalogSourcesFromEnvironment();
+const date = publicationDateFromEnvironment() ?? new Date();
+const updated = date.toISOString().slice(0, 10);
+const { catalog } = await discoverCatalog({ sources, generatedDate: updated, observePages: false });
 // Keep curated non-game doors; the authored game records own their names and entry paths.
 const knownUrls = new Set(authored.nodes.map((n) => n.url ?? `https://${n.host}/`));
 const games = catalog.games.filter(hasBrowser).filter((game) => !knownUrls.has(playUrl(game)))
@@ -26,7 +33,6 @@ for (const door of estate.doors) if (!hosts.has(door)) throw new Error(`door ${d
 for (const n of estate.nodes) if (!estate.groups.some((g) => g.id === n.group)) throw new Error(`${n.host}: unknown group ${n.group}`);
 if (estate.nodes.length + (estate.machines ?? []).length > 45) throw new Error("estate.json exceeds the Worker's per-request subrequest budget for probing");
 
-const updated = new Date().toISOString().slice(0, 10);
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
   "public/index.html": renderIndex(home, estate),

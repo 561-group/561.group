@@ -36,8 +36,23 @@ No person is named anywhere on this site, and nothing here may link to a person'
 ## Build and deploy
 
 ```sh
-pnpm build    # writes public/ from data/
+pnpm build    # writes public/ from data/ and authored game sources
 pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.group/*)
 ```
 
 After deploying, check three things. `https://561.group/` should answer 200. `https://www.561.group/x` should return a 301 to `https://561.group/x`. `https://561.group/estate.json` should list every node with a `told` value.
+
+## Source composition
+
+The apex consumes `@causeway-services/play` through its declared catalog,
+presentation and composition exports. Bind the actual Public Games and external
+Science Git checkouts with `PLAY_CATALOG_SOURCES` using the supplier's source-array
+contract; `PLAY_CATALOG_DATE` optionally fixes the real UTC publication date.
+Outside the original integrated checkout, missing source bindings fail the build.
+Catalog discovery does not probe public pages during publication. The existing
+Worker's request-time estate readings are unchanged.
+
+This package requires Node >=24.2.0, matching the received play supplier's runtime
+floor. The workspace dependency declares source composition, not a completed
+package-manager installation or release. Source receiving, installed closure,
+provider version and independent public receiving remain separate.
