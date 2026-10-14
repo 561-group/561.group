@@ -8,7 +8,7 @@
   ],
   "doors": ["market.561.group", "koios.news", "farstone.561.group", "play.561.group", "shop.561.group"],
   "nodes": [
-    { "host": "market.561.group", "name": "Market", "group": "markets", "line": "Sixty-one priced operations, from Base chain reads to logic over four truth values, paid per call in USDC over x402. Agents welcome." },
+    { "host": "market.561.group", "name": "Market", "group": "markets", "line": "Discover the seller's priced computations and data, including Base chain readings and FOUR-valued reasoning. Confirm exact current x402 terms before paying; agents welcome." },
     { "host": "solar.561.group", "name": "Solar", "group": "markets", "line": "A paid energy API. The benchmark route is free." },
     { "host": "koios.news", "name": "Koios.News", "group": "press", "line": "General news with systems-analysis depth. Daily, with RSS and JSON feeds." },
     { "host": "shop.561.group", "name": "Books", "group": "press", "line": "Books as EPUB and PDF. Each edition is proofread independently, and its page gives the digests of the exact files you receive." },
@@ -29,7 +29,11 @@
   "machine": [
     { "verb": "GET", "url": "https://561.group/llms.txt", "what": "What this is, in plain text." },
     { "verb": "GET", "url": "https://561.group/estate.json", "what": "Every public node, status re-derived on request and told in four values." },
-    { "verb": "GET", "url": "https://market.561.group/.well-known/agent-card.json", "what": "A2A agent card. Sixty-one skills." },
+    { "verb": "GET", "url": "https://market.561.group/.well-known/agent-card.json", "what": "A2A agent card with machine-readable skills derived from the current seller." },
+    { "verb": "GET", "url": "https://market.561.group/.well-known/x402.json", "what": "Current x402 v2 discovery projected from the merchant's seller catalogue." },
+    { "verb": "GET", "url": "https://market.561.group/.well-known/x402-service.json", "what": "Published x402 service/payment metadata, not evidence of a completed sale." },
+    { "verb": "POST", "url": "https://market.561.group/mcp", "what": "Read-only MCP/JSON-RPC offer lookup; requires explicit protocol metadata." },
+    { "verb": "GET", "url": "https://market.561.group/llms.txt", "what": "The seller's machine-readable current published offers and routes." },
     { "verb": "GET", "url": "https://market.561.group/v1/catalog", "what": "Priced operations, payable per call over x402 on Base." },
     { "verb": "GET", "url": "https://solar.561.group/", "what": "Energy routes and their prices." },
     { "verb": "GET", "url": "https://play.561.group/catalog.json", "what": "Games: seeds, engines, replayable intent logs." },
