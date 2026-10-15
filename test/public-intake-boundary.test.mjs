@@ -6,7 +6,7 @@ import {fileURLToPath} from "node:url";
 
 const root=join(dirname(fileURLToPath(import.meta.url)),"..");
 const read=path=>readFileSync(join(root,path),"utf8");
-const publicIssue="https://github.com/561-group/561-group-site/issues/new?template=service-submission.yml";
+const publicIssue="https://github.com/561-group/561.group/issues/new?template=service-submission.yml";
 
 test("public contact offers reporting, not media commission or executable authority",()=>{
   const page=read("public/contact/index.html");

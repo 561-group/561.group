@@ -19,5 +19,9 @@
   },
   "dependencies": {
     "@causeway-services/play": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/561-group/561.group.git"
   }
 }
