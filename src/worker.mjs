@@ -65,6 +65,25 @@ async function estateReading(request, ctx) {
   return response;
 }
 
+/**
+ * Own only this site's routing decision. ActivityPub paths and protocol
+ * behavior belong to the separately provisioned, site-origin-bound
+ * ACTIVITYPUB_INSTANCE provider, not a second Worker federation codec.
+ *
+ * Serve authored assets first. Missing resources (including POST inbox
+ * targets, for which the assets service may return 405) go to the site's
+ * provider. Its own 404 is not promoted into a public site resource.
+ * An absent binding preserves the previously installed static-site behavior.
+ */
+async function websiteOrFederation(request, env) {
+  const asset = await env.ASSETS.fetch(request);
+  if ((asset.status !== 404 && !(asset.status === 405 && request.method !== "GET" && request.method !== "HEAD"))
+      || typeof env.ACTIVITYPUB_INSTANCE?.fetch !== "function") return asset;
+  const federated = await env.ACTIVITYPUB_INSTANCE.fetch(request);
+  if (!(federated instanceof Response)) throw new TypeError("The site's federation provider must return a Response");
+  return federated.status === 404 ? asset : federated;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -73,6 +92,6 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === "/estate.json") return withHeaders(await estateReading(request, ctx));
-    return withHeaders(await env.ASSETS.fetch(request));
+    return withHeaders(await websiteOrFederation(request, env));
   },
 };
