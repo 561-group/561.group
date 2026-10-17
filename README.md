@@ -33,6 +33,28 @@ No person is named anywhere on this site, and nothing here may link to a person'
 - Before listing a node in `data/estate.json`, read its public pages for personal names, handles, repo paths and workers.dev URLs.
 - Leave out nodes that are broken, behind a login, or infrastructure.
 
+## Site-owned ActivityPub federation
+
+The Worker preserves the site's authored static resources and routes missing
+resources through `ACTIVITYPUB_INSTANCE.fetch(request)` **only when an
+independently configured ActivityPub service binding exists**. It forwards the
+exact origin-bearing request. Static contact/estate pages take precedence;
+provider 404s do not overwrite asset 404s; and public requests for
+`/_private/*` never reach internal delivery or queue handlers.
+
+The provider must be a separately keyed, custodied
+`@red-cup-engineering/activitypub-services-section` instance hosted through
+the upstream [ActivityPub server](https://github.com/red-cup-engineering/activitypub-server).
+It must accept only `https://561.group` as its canonical origin; a
+`science.561.group` or another site's provider is not substitutable.
+Do not publish bearer credentials in Worker source or treat static WebFinger
+JSON as an ActivityPub server.
+
+**Not yet installed:** the current `wrangler.jsonc` does not declare an
+`ACTIVITYPUB_INSTANCE` service binding and no public live federation
+receiving is asserted. Configure and independently receive a real upstream
+provider and Worker binding before advertising an ActivityPub actor.
+
 ## Build and deploy
 
 ```sh
