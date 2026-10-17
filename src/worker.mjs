@@ -76,12 +76,21 @@ async function estateReading(request, ctx) {
  * An absent binding preserves the previously installed static-site behavior.
  */
 async function websiteOrFederation(request, env) {
-  const asset = await env.ASSETS.fetch(request);
-  // Internal delivery/queue endpoints belong on the provider's private host.
-  // Do not make them discoverable by forwarding public site's static 404s.
-  if (new URL(request.url).pathname.startsWith("/_private/")) return asset;
+  const pathname = new URL(request.url).pathname;
+  const hasProvider = typeof env.ACTIVITYPUB_INSTANCE?.fetch === "function";
+  const mayForwardBody = hasProvider && !pathname.startsWith("/_private/")
+    && request.method !== "GET" && request.method !== "HEAD";
+  // Cloudflare static assets cannot accept a non-GET/HEAD request body.
+  // Check their route without consuming the original signed ActivityPub
+  // stream; the original request must reach its federation provider intact.
+  // This is a bodyless static-asset method probe, not a second protocol route.
+  const asset = await env.ASSETS.fetch(mayForwardBody
+    ? new Request(request.url, { method: request.method })
+    : request);
+  // Private delivery/queue endpoints belong on the provider's private host.
+  if (pathname.startsWith("/_private/")) return asset;
   if ((asset.status !== 404 && !(asset.status === 405 && request.method !== "GET" && request.method !== "HEAD"))
-      || typeof env.ACTIVITYPUB_INSTANCE?.fetch !== "function") return asset;
+      || !hasProvider) return asset;
   const federated = await env.ACTIVITYPUB_INSTANCE.fetch(request);
   if (!(federated instanceof Response)) throw new TypeError("The site's federation provider must return a Response");
   return federated.status === 404 ? asset : federated;
