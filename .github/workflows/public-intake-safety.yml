@@ -6,12 +6,18 @@ on:
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
+      - src/worker.mjs
+      - src/told.mjs
+      - test/worker.mjs
   pull_request:
     paths:
       - public/contact/index.html
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
+      - src/worker.mjs
+      - src/told.mjs
+      - test/worker.mjs
 permissions:
   contents: read
 jobs:
@@ -24,3 +30,5 @@ jobs:
           node-version: '24'
       - name: Assay public reporting is read-only and production remains separately authorized
         run: node --test test/public-intake-boundary.test.mjs
+      - name: Exercise the actual Worker, canonical estate and signed federation fallback
+        run: node --experimental-vm-modules test/worker.mjs
