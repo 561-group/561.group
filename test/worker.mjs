@@ -49,7 +49,8 @@ const federatedEnv={
 };
 response=await fetchWorker(new Request('https://561.group/actors/group'),federatedEnv,ctx);
 check('missing static actor route delegates to site-bound ActivityPub instance',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/activity+json');assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
-check('returned ActivityPub actor belongs to exact origin',()=>assert.equal((await response.clone().json()).id,'https://561.group/actors/group'));
+const actorPayload=await response.clone().json();
+check('returned ActivityPub actor belongs to exact origin',()=>assert.equal(actorPayload.id,'https://561.group/actors/group'));
 response=await fetchWorker(new Request('https://561.group/actors/group/inbox',{method:'POST'}),federatedEnv,ctx);
 check('POST inbox reaches the real provider after assets 405',()=>assert.equal(response.status,202));
 response=await fetchWorker(new Request('https://561.group/contact/'),federatedEnv,ctx);
