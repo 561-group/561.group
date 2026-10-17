@@ -66,5 +66,55 @@ check('actor and inbox URLs keep canonical origin at provider',()=>assert.deepEq
  ['POST','https://561.group','/actors/group/inbox'],
  ['GET','https://561.group','/no-such-route']
 ]));
+
+// Semaday: an incoming signed activity must reach the rightful provider
+// *unchanged*, even when the assets adapter attempts to read the body before
+// declining the POST. No duplicate protocol parser or alternate inbox.
+const authoredActivity = JSON.stringify({
+  '@context': 'https://www.w3.org/ns/activitystreams',
+  id: 'https://peer.example/activities/complete-1',
+  type: 'Create',
+  actor: 'https://peer.example/actors/sender',
+  object: { type: 'Note', content: 'actual activity bytes remain intact' },
+});
+const assetProbeBodies = [], receivedActivities = [];
+const signedEnv = {
+  ASSETS: { fetch: async request => {
+    assetProbeBodies.push(await request.text());
+    return new Response('static method refused', { status: 405 });
+  } },
+  ACTIVITYPUB_INSTANCE: { fetch: async request => {
+    receivedActivities.push({
+      method: request.method,
+      url: request.url,
+      contentType: request.headers.get('content-type'),
+      signature: request.headers.get('signature'),
+      body: await request.text(),
+    });
+    return new Response(null, { status: 202 });
+  } },
+};
+response = await fetchWorker(new Request('https://561.group/actors/group/inbox', {
+  method: 'POST',
+  headers: {
+    'content-type': 'application/activity+json',
+    signature: 'keyId="https://peer.example/actors/sender#main-key",headers="date digest",signature="fixture"',
+  },
+  body: authoredActivity,
+}), signedEnv, ctx);
+check('static asset method probe never consumes the signed federation body', () => {
+  assert.deepEqual(assetProbeBodies, ['']);
+  assert.equal(response.status, 202);
+});
+check('original sender, headers, origin and exact activity bytes reach one provider', () => {
+  assert.equal(receivedActivities.length, 1);
+  const arrived = receivedActivities[0];
+  assert.equal(arrived.method, 'POST');
+  assert.equal(arrived.url, 'https://561.group/actors/group/inbox');
+  assert.equal(arrived.contentType, 'application/activity+json');
+  assert.match(arrived.signature, /peer.example/);
+  assert.equal(arrived.body, authoredActivity);
+});
+
 console.log(JSON.stringify({passed:count,scope:'Actual authored Worker/told modules with deterministic assets and ActivityPub binding fixtures; not evidence of deployed provider.'}));
 
