@@ -28,4 +28,40 @@ check('cached estate retains public cache contract',()=>{assert.equal(response.h
 cached=puts[0].value;const probeCount=probes.length;response=await fetchWorker(new Request('https://561.group/estate.json'),env,ctx);
 check('cache hit does not re-probe or lose headers',()=>{assert.equal(probes.length,probeCount);assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
 check('all four told values preserved including not read',()=>{assert.equal(told.namespace.toldOf(undefined),'neither');assert.equal(told.namespace.toldOf(null),'false');assert.equal(told.namespace.toldOf(204),'true');assert.equal(told.namespace.toldOf(403),'both')});
-console.log(JSON.stringify({passed:count,scope:'Unmodified original Worker/told modules linked with VM JSON fixture and fake fetch/cache; no public requests or runtime deployment.'}));
+// An independently installed ACTIVITYPUB_INSTANCE receives only routes the
+// site's authored static assets do not serve; no protocol implementation is
+// duplicated inside the public-site Worker.
+const federatedRequests=[], assetPaths=[];
+const federatedEnv={
+  ASSETS:{fetch:async request=>{
+    const {pathname}=new URL(request.url);
+    assetPaths.push([request.method,pathname]);
+    if(pathname==='/contact/')return new Response('contact remains a public asset',{status:200});
+    return new Response('missing static route',{status:request.method==='POST'?405:404});
+  }},
+  ACTIVITYPUB_INSTANCE:{fetch:async request=>{
+    federatedRequests.push([request.method,new URL(request.url).origin,new URL(request.url).pathname]);
+    const {pathname}=new URL(request.url);
+    if(pathname==='/actors/group')return new Response(JSON.stringify({id:'https://561.group/actors/group'}),{status:200,headers:{'content-type':'application/activity+json'}});
+    if(pathname==='/actors/group/inbox'&&request.method==='POST')return new Response(null,{status:202});
+    return new Response(null,{status:404});
+  }}
+};
+response=await fetchWorker(new Request('https://561.group/actors/group'),federatedEnv,ctx);
+check('missing static actor route delegates to site-bound ActivityPub instance',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/activity+json');assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
+check('returned ActivityPub actor belongs to exact origin',()=>assert.equal((await response.clone().json()).id,'https://561.group/actors/group'));
+response=await fetchWorker(new Request('https://561.group/actors/group/inbox',{method:'POST'}),federatedEnv,ctx);
+check('POST inbox reaches the real provider after assets 405',()=>assert.equal(response.status,202));
+response=await fetchWorker(new Request('https://561.group/contact/'),federatedEnv,ctx);
+check('existing public page never calls federation provider',()=>{assert.equal(response.status,200);assert.equal(federatedRequests.length,2)});
+response=await fetchWorker(new Request('https://561.group/no-such-route'),federatedEnv,ctx);
+check('provider 404 does not replace authored static 404',()=>assert.equal(response.status,404));
+response=await fetchWorker(new Request('https://561.group/actors/group'),{ASSETS:federatedEnv.ASSETS},ctx);
+check('without installed provider binding old Worker remains intact',()=>assert.equal(response.status,404));
+check('actor and inbox URLs keep canonical origin at provider',()=>assert.deepEqual(federatedRequests,[
+ ['GET','https://561.group','/actors/group'],
+ ['POST','https://561.group','/actors/group/inbox'],
+ ['GET','https://561.group','/no-such-route']
+]));
+console.log(JSON.stringify({passed:count,scope:'Actual authored Worker/told modules with deterministic assets and ActivityPub binding fixtures; not evidence of deployed provider.'}));
+
