@@ -452,5 +452,10 @@ Fonts: Space Grotesk, Roboto Slab, JetBrains Mono (SIL Open Font License 1.1)
 
 export const renderRobots = (home) => `User-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
 
+// Both discovery formats describe the same canonical page routes.
+const sitemapUrls = (home) => [`${home.origin}/`, `${home.origin}/contact/`];
+
+export const renderSitemapText = (home) => sitemapUrls(home).join("\n") + "\n";
+
 export const renderSitemap = (home, updated) =>
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${home.origin}/</loc><lastmod>${updated}</lastmod></url>\n  <url><loc>${home.origin}/contact/</loc><lastmod>${updated}</lastmod></url>\n</urlset>\n`;
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls(home).map((url) => `  <url><loc>${url}</loc><lastmod>${updated}</lastmod></url>\n`).join("")}</urlset>\n`;

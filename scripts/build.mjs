@@ -4,7 +4,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap } from "../src/render.mjs";
+import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap, renderSitemapText } from "../src/render.mjs";
 
 import { discoverCatalog } from "@causeway-services/play/catalog";
 import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
@@ -40,6 +40,7 @@ const files = {
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated),
+  "public/sitemap.txt": renderSitemapText(home),
 };
 for (const [path, body] of Object.entries(files)) {
   await writeFile(new URL(path, root), body);
