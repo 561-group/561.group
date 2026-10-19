@@ -275,6 +275,11 @@ export function renderIndex(home, estate) {
         foundingDate: home.established,
         logo: `${home.origin}/favicon.svg`,
         image: `${home.origin}/card.png`,
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "service intake",
+          url: `${home.origin}/contact/`,
+        },
       },
       {
         "@type": "WebSite",
