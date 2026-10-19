@@ -2,9 +2,15 @@
 
 The Group's public face: one Cloudflare Worker on the `561.group` zone. It serves the page, sends `www.561.group` to the apex, and answers `/estate.json`.
 
+## Sustain the public commons
+
+The 561 Group's public research, reusable source, and technical infrastructure are supported in part by voluntary contributions. [**Sustain this work for USD $10 per month**](https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02) through the current seller's Stripe-hosted subscription checkout. Support renews monthly until canceled and does **not** purchase private access, influence over research or editorial decisions, or a charitable tax deduction.
+
+The checkout displays the current legal seller and exact billing terms. For subscription questions or cancellation assistance, use the [private Group contact route](https://561.group/contact/#private-intake). The support offer is authored in [the original Group homepage source](data/home.json); its public site release and the real payment processor's subscription records have separate receiving conditions. This GitHub publication is an immediately accessible first-party information route, not evidence that the Cloudflare homepage has deployed or anyone has subscribed.
+
 ## Layout
 
-- `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, and the four told values.
+- `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, the four told values, and the live voluntary recurring-support offer.
 - `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
 - `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
   The apex selects only its two public canonical pages; the shared computer-content codec emits the XML and robots formats. A build date is not falsely represented as a significant page modification.
