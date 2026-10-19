@@ -1,3 +1,4 @@
+import { robots as serializeRobots, sitemap as serializeSitemap } from "@red-cup-engineering/computer-serialized-content-engineering-services-section/web-feed";
 // Renders the 561.group public files from data/home.json and data/estate.json.
 // Pure: data in, file contents out. No person is named anywhere on this site.
 
@@ -492,7 +493,11 @@ Fonts: Space Grotesk, Roboto Slab, JetBrains Mono (SIL Open Font License 1.1)
 `;
 }
 
-export const renderRobots = (home) => `User-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
+// Canonical page choice belongs to the site; serial formats belong to Data.
+const publicSitemapEntries = (home) => [
+  { loc: new URL("/", home.origin).href },
+  { loc: new URL("/contact/", home.origin).href },
+];
 
-export const renderSitemap = (home, updated) =>
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${home.origin}/</loc><lastmod>${updated}</lastmod></url>\n  <url><loc>${home.origin}/contact/</loc><lastmod>${updated}</lastmod></url>\n</urlset>\n`;
+export const renderRobots = (home) => serializeRobots(new URL("/sitemap.xml", home.origin).href);
+export const renderSitemap = (home) => serializeSitemap(publicSitemapEntries(home));
