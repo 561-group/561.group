@@ -46,6 +46,12 @@ test("homepage JSON-LD binds one named Group organization to the site and the vi
   assert.equal(org.name, home.name);
   assert.equal(org.description, home.description);
   assert.equal(org.logo, "https://561.group/favicon.svg");
+  assert.deepEqual(org.contactPoint, {
+    "@type": "ContactPoint",
+    contactType: "service intake",
+    url: "https://561.group/contact/",
+  });
+  assert.match(page, /href="\/contact\/"/u, "the contact destination is visible to visitors");
   assert.equal(site["@id"], "https://561.group/#website");
   assert.equal(site.publisher["@id"], org["@id"]);
   assert.equal(site.mainEntity["@id"], list["@id"]);
