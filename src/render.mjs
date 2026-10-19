@@ -258,15 +258,57 @@ export function renderIndex(home, estate) {
   const notes = Object.entries(d.notes).sort((a, b) => Number(a[0]) - Number(b[0]));
   const loopCells = ["M", "A", "E", "P"].map((letter) => d.loop.find((l) => l.letter === letter));
   const ticker = tickerText(home);
+  // The original publication record owns the graph. The WebSite points to
+  // one public Group entity, while listed nodes are described as linked pages,
+  // not silently asserted to be Group-owned or operationally healthy.
+  const organizationId = `${home.origin}/#organization`;
+  const websiteId = `${home.origin}/#website`;
+  const publicPagesId = `${home.origin}/#public-pages`;
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: home.name,
-    url: `${home.origin}/`,
-    description: home.description,
-    foundingDate: home.established,
-    logo: `${home.origin}/card.png`,
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: home.name,
+        alternateName: "561 Group",
+        url: `${home.origin}/`,
+        description: home.description,
+        foundingDate: home.established,
+        logo: `${home.origin}/favicon.svg`,
+        image: `${home.origin}/card.png`,
+      },
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        name: home.name,
+        url: `${home.origin}/`,
+        description: home.description,
+        publisher: { "@id": organizationId },
+        about: { "@id": organizationId },
+        mainEntity: { "@id": publicPagesId },
+      },
+      {
+        "@type": "ItemList",
+        "@id": publicPagesId,
+        name: "561 Group public entry pages",
+        itemListElement: estate.nodes.map((node, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "WebPage",
+            name: node.name,
+            url: nodeUrl(node),
+            description: node.line,
+          },
+        })),
+      },
+    ],
   };
+  // JSON-LD is script content, not an HTML text node: a future public game
+  // title may contain "</script>". Keep its data while preventing it from
+  // terminating the script element and injecting markup.
+  const jsonLdText = JSON.stringify(jsonLd).replace(/</gu, "\\u003c");
 
   return `<!doctype html>
 <html lang="en">
@@ -293,7 +335,7 @@ export function renderIndex(home, estate) {
 <link rel="author" href="/humans.txt">
 <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/roboto-slab.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+<script type="application/ld+json">${jsonLdText}</script>
 <style>${CSS}</style>
 </head>
 <body>
