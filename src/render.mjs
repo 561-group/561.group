@@ -1,41 +1,39 @@
-// Renders the 561.group public files from data/home.json and data/estate.json.
-// Pure: data in, file contents out. No person is named anywhere on this site.
+// Renders the 561.group public files from data/home.json and data/estate.json, in every language the site serves.
+// Pure: data and a locale's speaker (src/locales.mjs) in, file contents out. No person is named anywhere on this site.
+
+import { locale as localeFaces, sitemapXml, trustedHtml } from "@red-cup-engineering/l-space";
+import { DEFAULT_LOCALE, LOCALES, localePath } from "./locales.mjs";
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-const cjk = (s) => esc(s).replace(/[㐀-鿿]+/g, (run) => `<span lang="zh">${run}</span>`);
+// Han runs inside text that is not itself Chinese are marked Simplified Chinese, for voice and face.
+const cjk = (html, tag) => (tag.startsWith("zh") ? html : html.replace(/[㐀-鿿]+/g, (run) => `<span lang="zh-Hans">${run}</span>`));
 
 const plain = (parts) => parts.map((p) => (typeof p === "string" ? p : p.text)).join("");
 
-function inline(parts) {
-  return parts
-    .map((p) =>
-      typeof p === "string"
-        ? esc(p)
-        : `<span class="term">${esc(p.text)}</span><sup class="ref"><a id="r${p.note}" href="#n${p.note}" aria-label="Note ${p.note}">${p.note}</a></sup>`,
-    )
-    .join("");
-}
-
-const sectionLabel = (n, title) =>
-  `<p class="sec-label"><span class="sec-num">§${n}</span><span>${esc(title)}</span></p>`;
+const sectionLabel = (n, titleHtml) =>
+  `<p class="sec-label"><span class="sec-num">§${n}</span><span>${titleHtml}</span></p>`;
 
 const nodeUrl = (node) => node.url ?? `https://${node.host}/`;
 
-function nodeTile(node, { door = false } = {}) {
+// A node's name or line in the page's language when there is a message for it; an authored game record's own words otherwise.
+const nodeWords = (say, node, field) => (say.has(`estate.node.${node.host}.${field}`) ? say.html(`estate.node.${node.host}.${field}`) : esc(node[field]));
+
+function nodeTile(node, say, { door = false } = {}) {
   return `<li><a class="node${door ? " door" : ""}" href="${esc(nodeUrl(node))}" data-host="${esc(node.host)}" data-url="${esc(nodeUrl(node))}" data-told="neither">
   <span class="node-head"><span class="told" aria-hidden="true">○</span><span class="host">${esc(node.host)}</span></span>
-  <span class="name">${esc(node.name)}</span>
-  <span class="line">${esc(node.line)}</span>
-  <span class="told-text visually-hidden">no reading yet</span>
+  <span class="name">${nodeWords(say, node, "name")}</span>
+  <span class="line">${nodeWords(say, node, "line")}</span>
+  <span class="told-text visually-hidden">${say.html("ui.noReading")}</span>
 </a></li>`;
 }
 
-function tickerText(home) {
+// The glossed sentences of the design, in loop order, for the ticker: terms without their note marks.
+function tickerHtml(home, say, bare) {
   const d = home.design;
-  const phrases = [plain(d.sentence), ...d.loop.map((l) => plain(l.line)), plain(d.knowledge.line), plain(d.whole)];
-  return phrases.map((p) => esc(p.replace(/\.$/, ""))).join(" <b>✶</b> ") + " <b>✶</b> ";
+  const keys = ["home.design.sentence", ...d.loop.map((l) => `home.design.loop.${l.letter}.line`), `home.design.loop.${d.knowledge.letter}.line`, "home.design.whole"];
+  return keys.map((key) => say.html(key, {}, bare).replace(/[.。](<\/span>)?$/u, "$1")).join(" <b>✶</b> ") + " <b>✶</b> ";
 }
 
 const CSS = `
@@ -216,13 +214,21 @@ html[data-phase] .cell[data-letter] .ref a{color:inherit}
   .bar .phase-wrap{display:none}
 }
 @media print{.ticker,.bar nav{display:none}body{background:none}.band{background:none;color:inherit}}
+/* Languages: CJK faces after the Latin subsets, Lakota in faces that carry its orthography whole, the switcher, the machine-translation note. */
+:lang(zh){--sans:"Space Grotesk","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif;--serif:"Roboto Slab","Songti SC","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif}
+:lang(zh) em{font-style:normal;text-emphasis:filled dot;text-emphasis-position:under right}
+:lang(lkt){--serif:"Charis SIL","Gentium Plus",Gentium,"Noto Serif","DejaVu Serif",serif;--sans:"Noto Sans","DejaVu Sans","Space Grotesk",sans-serif}
+.langs{display:flex;gap:.75rem;flex-wrap:wrap}
+.langs a[aria-current]{font-weight:700;text-decoration:none}
+.mt-note{font-family:var(--mono);font-size:.75rem;color:var(--ink-soft);border-left:3px solid var(--alarm);padding:.25rem .75rem;margin:1rem 0 0}
 `;
 
-const SCRIPT = (revision) => `
+const SCRIPT = (revision, words) => `
 (function(){
   var root=document.documentElement;
   var still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var phases=[["M","Monitor"],["A","Analyze"],["P","Plan"],["E","Execute"]],i=0;
+  var words=${JSON.stringify(words).replace(/</g, "\\u003c")};
+  var phases=words.phases,i=0;
   var phaseEl=document.getElementById("phase"),clock=document.getElementById("clock");
   function step(){root.setAttribute("data-phase",phases[i][0]);if(phaseEl)phaseEl.textContent=phases[i][1];i=(i+1)%4;}
   function tick(){if(clock)clock.textContent=new Date().toISOString().slice(11,19);}
@@ -230,7 +236,7 @@ const SCRIPT = (revision) => `
   if(!still)setInterval(step,2600);
   setInterval(tick,1000);
   var glyph={"true":"●","both":"◐","false":"✕","neither":"○"};
-  var said={"true":"answered","both":"answered, and refused","false":"no answer","neither":"no reading yet"};
+  function fill(template,values){return template.replace(/\\u0001(\\w+)\\u0001/g,function(_,k){return values[k]})}
   fetch("/estate.json?revision="+encodeURIComponent(${JSON.stringify(revision ?? "")}),{headers:{accept:"application/json"}}).then(function(r){return r.ok?r.json():null}).then(function(d){
     if(!d)return;
     var by={};d.nodes.forEach(function(n){by[n.url]=n});
@@ -238,54 +244,87 @@ const SCRIPT = (revision) => `
       var n=by[a.getAttribute("data-url")];if(!n)return;
       a.setAttribute("data-told",n.told);
       a.querySelector(".told").textContent=glyph[n.told];
-      a.querySelector(".told-text").textContent=said[n.told]+(n.status?" ("+n.status+")":"");
-      a.title="Told "+n.told+(n.status?" · HTTP "+n.status:"")+" · "+n.ms+" ms";
+      a.querySelector(".told-text").textContent=words.said[n.told]+(n.status?" ("+n.status+")":"");
+      a.title=fill(n.status?words.titleStatus:words.title,{label:words.labels[n.told],status:n.status,ms:n.ms});
     });
-    var t=document.getElementById("derived");if(t){t.textContent=d.derivedAt.replace("T"," ").slice(0,19)+" UTC";t.setAttribute("datetime",d.derivedAt);}
+    var t=document.getElementById("derived");if(t){t.textContent=fill(words.derived,{time:d.derivedAt.replace("T"," ").slice(0,19)});t.setAttribute("datetime",d.derivedAt);}
     var c={"true":0,"both":0,"false":0};d.nodes.forEach(function(n){if(n.told in c)c[n.told]++});
-    var s=document.getElementById("tally");if(s)s.textContent=c["true"]+" true · "+c.both+" both · "+c["false"]+" false";
+    var s=document.getElementById("tally");if(s)s.textContent=fill(words.tally,{answered:c["true"],both:c.both,failed:c["false"]});
   }).catch(function(){});
 })();
 `;
 
-export function renderIndex(home, estate) {
+// Words the live-status script needs, in the page's language; \u0001name\u0001 marks a value the script fills in.
+function scriptWords(home, say) {
+  const slot = (name) => `\u0001${name}\u0001`;
+  return {
+    phases: home.design.loop.map((l) => [l.letter, say.text(`home.design.loop.${l.letter}.phase`)]),
+    said: Object.fromEntries(["true", "both", "false", "neither"].map((value) => [value, say.text(`ui.said.${value}`)])),
+    labels: Object.fromEntries(home.told.map((t) => [t.value, say.text(`home.told.${t.value}.label`)])),
+    title: say.text("ui.toldTitle", { label: slot("label"), ms: slot("ms") }),
+    titleStatus: say.text("ui.toldTitleStatus", { label: slot("label"), status: slot("status"), ms: slot("ms") }),
+    tally: say.text("ui.tally", { answered: slot("answered"), both: slot("both"), failed: slot("failed") }),
+    derived: say.text("ui.derived", { time: slot("time") }),
+  };
+}
+
+/** The home page in one locale. `say` is that locale's speaker (src/locales.mjs). */
+export function renderIndex(home, estate, say) {
   const d = home.design;
+  const tag = say.tag;
+  const t = (key, values) => say.text(key, values);
+  const h = (key, values, tags) => say.html(key, values, tags);
   const doorHosts = new Set(estate.doors);
-  const doors = estate.doors.map((h) => estate.nodes.find((n) => n.host === h)).filter(Boolean);
+  const doors = estate.doors.map((host) => estate.nodes.find((n) => n.host === host)).filter(Boolean);
   const groups = estate.groups
     .map((g) => ({ ...g, nodes: estate.nodes.filter((n) => n.group === g.id && !doorHosts.has(n.host)) }))
     .filter((g) => g.nodes.length);
-  const notes = Object.entries(d.notes).sort((a, b) => Number(a[0]) - Number(b[0]));
+  const notes = Object.keys(d.notes).sort((a, b) => Number(a) - Number(b));
   const loopCells = ["M", "A", "E", "P"].map((letter) => d.loop.find((l) => l.letter === letter));
-  const ticker = tickerText(home);
+  // A glossed term keeps its note mark wherever the language puts it.
+  const glossTags = Object.fromEntries(notes.map((n) => [`n${n}`, (inner) => `<span class="term">${inner}</span><sup class="ref"><a id="r${n}" href="#n${n}" aria-label="${esc(t("ui.note", { n: Number(n) }))}">${n}</a></sup>`]));
+  const bare = Object.fromEntries(notes.map((n) => [`n${n}`, (inner) => inner]));
+  const glossed = (key) => h(key, {}, glossTags);
+  const name = t("home.name");
+  const description = t("home.description");
+  const canonical = `${home.origin}${localePath(tag)}`;
+  const alternates = say.alternates();
+  const faces = localeFaces(tag);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: home.name,
+    name,
     url: `${home.origin}/`,
-    description: home.description,
+    description,
     foundingDate: home.established,
     logo: `${home.origin}/card.png`,
+    inLanguage: tag,
+    knowsLanguage: [...LOCALES],
   };
+  const switcher = `<nav class="langs" aria-label="${esc(t("ui.languages"))}">${LOCALES.map((other) => `<a href="${localePath(other)}" hreflang="${other}" lang="${other}"${other === tag ? ' aria-current="true"' : ""}>${esc(localeFaces(other).autonym)}</a>`).join("")}</nav>`;
+  const original = tag === DEFAULT_LOCALE ? "" : ' hreflang="en"';
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${tag}" dir="${faces.direction}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(home.name)}</title>
-<meta name="description" content="${esc(home.description)}">
-<link rel="canonical" href="${home.origin}/">
+<title>${esc(name)}</title>
+<meta name="description" content="${esc(description)}">
+<link rel="canonical" href="${canonical}">
+${alternates.map((a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${a.href}">`).join("\n")}
 <meta name="theme-color" content="#ff4530">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="${esc(home.name)}">
-<meta property="og:title" content="${esc(home.name)}">
-<meta property="og:description" content="${esc(home.description)}">
-<meta property="og:url" content="${home.origin}/">
+<meta property="og:site_name" content="${esc(name)}">
+<meta property="og:title" content="${esc(name)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${canonical}">
+<meta property="og:locale" content="${faces.ogLocale}">
+${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:locale:alternate" content="${localeFaces(other).ogLocale}">`).join("\n")}
 <meta property="og:image" content="${home.origin}/card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="561, in red, over the Group's one-sentence description.">
+<meta property="og:image:alt" content="${esc(t("ui.cardAlt"))}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
@@ -302,61 +341,63 @@ export function renderIndex(home, estate) {
   quoted, and indexed. A plain-text account is at /llms.txt. Live status of every
   public node is at /estate.json. Prices form at the border, never in advance.
 -->
-<div class="ticker" aria-hidden="true"><div class="ticker-track"><span>${ticker}</span><span>${ticker}</span></div></div>
+<div class="ticker" aria-hidden="true"><div class="ticker-track"><span>${tickerHtml(home, say, bare)}</span><span>${tickerHtml(home, say, bare)}</span></div></div>
 <div class="wrap bar">
   <strong>561.group</strong>
-  <span class="phase-wrap">Loop ▸ <span class="phase" id="phase">Monitor</span></span>
-  <span>UTC <time id="clock">--:--:--</time></span>
-  <nav aria-label="Sections"><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#agents">Agents</a></nav>
+  <span class="phase-wrap">${h("ui.bar.loop")} ▸ <span class="phase" id="phase">${h("home.design.loop.M.phase")}</span></span>
+  <span>${h("ui.bar.utc")} <time id="clock">--:--:--</time></span>
+  <nav aria-label="${esc(t("ui.nav.sections"))}"><a href="#design">${h("ui.nav.design")}</a><a href="#estate">${h("ui.nav.estate")}</a><a href="#doctrine">${h("ui.nav.doctrine")}</a><a href="#agents">${h("ui.nav.agents")}</a></nav>
+  ${switcher}
 </div>
 
 <main>
 <header class="wrap hero">
   <div class="hero-top">
-    <h1 class="numeral" aria-label="${esc(home.name)}"><span aria-hidden="true">561</span></h1>
-    <ul class="masthead">${home.masthead.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>
+    <h1 class="numeral" aria-label="${esc(name)}"><span aria-hidden="true">561</span></h1>
+    <ul class="masthead">${home.masthead.map((_, i) => `<li>${h(`home.masthead.${i}`)}</li>`).join("")}</ul>
   </div>
-  <p class="lede">${esc(home.description)}</p>
-  <p class="address">${esc(home.address)}</p>
+  <p class="lede">${h("home.description")}</p>
+  <p class="address">${h("home.address")}</p>
+  ${say.machine() ? `<p class="mt-note" role="note">${h("ui.machine")} <a href="/" hreflang="en">English</a></p>` : ""}
 </header>
 
 <section class="wrap sec" id="design" aria-labelledby="design-h">
-  ${sectionLabel(1, "The intended design")}
-  <h2 class="visually-hidden" id="design-h">The intended design</h2>
-  <p class="design-sentence">${inline(d.sentence)}</p>
-  <p class="caveat">${esc(d.caveat)}</p>
-  <p class="loop-lead">${esc(d.loopLead)}</p>
+  ${sectionLabel(1, h("ui.section.design"))}
+  <h2 class="visually-hidden" id="design-h">${h("ui.section.design")}</h2>
+  <p class="design-sentence">${glossed("home.design.sentence")}</p>
+  <p class="caveat">${h("home.design.caveat")}</p>
+  <p class="loop-lead">${h("home.design.loopLead")}</p>
   <div class="loop">
     ${loopCells
       .map(
-        (l, i) => `<div class="cell" data-letter="${l.letter}"><span class="letter" aria-hidden="true">${l.letter}</span><span class="phase-name">0${
+        (l) => `<div class="cell" data-letter="${l.letter}"><span class="letter" aria-hidden="true">${l.letter}</span><span class="phase-name">0${
           d.loop.indexOf(l) + 1
-        } · ${esc(l.phase)}</span><p>${inline(l.line)}</p></div>`,
+        } · ${h(`home.design.loop.${l.letter}.phase`)}</span><p>${glossed(`home.design.loop.${l.letter}.line`)}</p></div>`,
       )
       .join("\n    ")}
-    <div class="knowledge"><span class="letter" aria-hidden="true">K</span><p><span class="visually-hidden">Knowledge: </span>${inline(d.knowledge.line)}</p></div>
+    <div class="knowledge"><span class="letter" aria-hidden="true">K</span><p><span class="visually-hidden">${h("ui.knowledge")} </span>${glossed(`home.design.loop.${d.knowledge.letter}.line`)}</p></div>
   </div>
-  <p class="whole">${inline(d.whole)}</p>
-  <ol class="notes" aria-label="Notes">
-    ${notes.map(([n, text]) => `<li id="n${n}"><a class="back" href="#r${n}" aria-label="Back to text, note ${n}">${n}</a><span>${cjk(text)}</span></li>`).join("\n    ")}
+  <p class="whole">${glossed("home.design.whole")}</p>
+  <ol class="notes" aria-label="${esc(t("ui.notes"))}">
+    ${notes.map((n) => `<li id="n${n}"><a class="back" href="#r${n}" aria-label="${esc(t("ui.noteBack", { n: Number(n) }))}">${n}</a><span>${cjk(h(`home.design.notes.${n}`), tag)}</span></li>`).join("\n    ")}
   </ol>
 </section>
 
 <section class="band sec" id="estate" aria-labelledby="estate-h">
   <div class="wrap">
-    ${sectionLabel(2, "The conurbation")}
-    <h2 class="band-title" id="estate-h"><span class="count">${estate.nodes.length}</span> public nodes.</h2>
-    <p class="band-sub">This reading checks the linked entry pages and reports their HTTP responses. Readings are cached for up to five minutes; they do not prove that the services work.</p>
-    <ul class="legend">${home.told.map((t) => `<li><span class="g">${t.glyph}</span> <b>${esc(t.label)}</b>: ${esc(t.means)}</li>`).join("")}</ul>
-    <p class="reading">Reading: <time id="derived">pending</time> · <span id="tally">no reading yet</span></p>
+    ${sectionLabel(2, h("ui.section.estate"))}
+    <h2 class="band-title" id="estate-h">${h("ui.nodes", { count: estate.nodes.length }, { num: (inner) => `<span class="count">${inner}</span>` })}</h2>
+    <p class="band-sub">${h("ui.readingNote")}</p>
+    <ul class="legend">${home.told.map((tv) => `<li><span class="g">${tv.glyph}</span> ${h("ui.legend", { label: trustedHtml(`<b>${h(`home.told.${tv.value}.label`)}</b>`), means: trustedHtml(h(`home.told.${tv.value}.means`)) })}</li>`).join("")}</ul>
+    <p class="reading">${h("ui.reading")} <time id="derived">${h("ui.pending")}</time> · <span id="tally">${h("ui.noReading")}</span></p>
     <ul class="doors">
-      ${doors.map((n) => nodeTile(n, { door: true })).join("\n      ")}
+      ${doors.map((n) => nodeTile(n, say, { door: true })).join("\n      ")}
     </ul>
     ${groups
       .map(
-        (g) => `<h3 class="group-title"><span>${esc(g.title)}</span><span>${g.nodes.length}</span></h3>
+        (g) => `<h3 class="group-title"><span>${h(`estate.group.${g.id}.title`)}</span><span>${g.nodes.length}</span></h3>
     <ul class="grid">
-      ${g.nodes.map((n) => nodeTile(n)).join("\n      ")}
+      ${g.nodes.map((n) => nodeTile(n, say)).join("\n      ")}
     </ul>`,
       )
       .join("\n    ")}
@@ -364,30 +405,33 @@ export function renderIndex(home, estate) {
 </section>
 
 <section class="wrap sec" id="doctrine" aria-labelledby="doctrine-h">
-  ${sectionLabel(3, "Doctrine")}
-  <h2 class="visually-hidden" id="doctrine-h">Doctrine</h2>
+  ${sectionLabel(3, h("ui.section.doctrine"))}
+  <h2 class="visually-hidden" id="doctrine-h">${h("ui.section.doctrine")}</h2>
   <ol class="doctrine">
     ${home.doctrine
-      .map(
-        (q, i) =>
-          `<li${q.text.length > 90 ? ' class="long"' : ""}><blockquote>${esc(q.text).replace(/\S+-\S+/g, (w) => `<span class="nw">${w}</span>`)}</blockquote><span class="src"><b>§3.${i + 1}</b> · ${esc(q.source)}</span></li>`,
-      )
+      .map((q, i) => {
+        const text = t(`home.doctrine.${i}.text`);
+        const html = h(`home.doctrine.${i}.text`);
+        // Keep hyphenated Latin words whole; never inside markup.
+        const kept = /[<>]/u.test(html) ? html : html.replace(/\S+-\S+/g, (w) => `<span class="nw">${w}</span>`);
+        return `<li${text.length > (tag.startsWith("zh") ? 45 : 90) ? ' class="long"' : ""}><blockquote>${kept}</blockquote><span class="src"><b>§3.${i + 1}</b> · ${h(`home.doctrine.${i}.source`)}</span></li>`;
+      })
       .join("\n    ")}
   </ol>
 </section>
 
 <section class="wrap sec" id="agents" aria-labelledby="agents-h">
-  ${sectionLabel(4, "For agents")}
+  ${sectionLabel(4, h("ui.section.agents"))}
   <div class="agents">
     <div>
-      <h2 id="agents-h">If you are an <em>agent</em>, you are expected.</h2>
-      <p class="say">Read anything here. Results that cost something say so at the door, in machine terms, before you pay.</p>
+      <h2 id="agents-h">${h("ui.agents.heading", {}, { em: (inner) => `<em>${inner}</em>` })}</h2>
+      <p class="say">${h("ui.agents.say")}</p>
     </div>
     <ul class="endpoints">
       ${estate.machine
         .map(
           (m) =>
-            `<li><span class="verb">${esc(m.verb)}</span><a href="${esc(m.url)}">${esc(m.url.replace(/^https:\/\//, ""))}</a><span class="what">${esc(m.what)}</span></li>`,
+            `<li><span class="verb">${esc(m.verb)}</span><a href="${esc(m.url)}">${esc(m.url.replace(/^https:\/\//, ""))}</a><span class="what">${h(`estate.endpoint.${m.verb} ${m.url}`)}</span></li>`,
         )
         .join("\n      ")}
     </ul>
@@ -398,12 +442,12 @@ export function renderIndex(home, estate) {
 <footer class="wrap">
   <p class="foot-big" aria-hidden="true">561 GROUP</p>
   <div class="foot">
-    <span>${esc(home.name)} · Private organization · Est. ${esc(home.established)}</span>
-    <nav aria-label="Group links"><a href="/contact/">Issues, complaints and ideas</a><a href="/llms.txt">llms.txt</a><a href="/estate.json">estate.json</a><a href="/humans.txt">humans.txt</a></nav>
-    <p class="foot-note">Authority is held by offices, not persons. No persons are listed here.</p>
+    <span>${h("ui.footer.line", { name, established: home.established })}</span>
+    <nav aria-label="${esc(t("ui.footer.links"))}"><a href="/contact/"${original}>${h("ui.footer.contact")}</a><a href="/llms.txt">llms.txt</a><a href="/estate.json">estate.json</a><a href="/humans.txt">humans.txt</a></nav>
+    <p class="foot-note">${h("ui.footer.note")}</p>
   </div>
 </footer>
-<script>${SCRIPT(estate.revision)}</script>
+<script>${SCRIPT(estate.revision, scriptWords(home, say))}</script>
 </body>
 </html>
 `;
@@ -435,6 +479,10 @@ ${estate.machine.map((m) => `- [${m.url.replace(/^https:\/\//, "")}](${m.url}): 
 ## Doctrine
 
 ${home.doctrine.map((q) => `- ${q.text}`).join("\n")}
+
+## Languages
+
+${LOCALES.map((tag) => `- [${localeFaces(tag).autonym}](${home.origin}${localePath(tag)})`).join("\n")}
 `;
 }
 
@@ -452,5 +500,9 @@ Fonts: Space Grotesk, Roboto Slab, JetBrains Mono (SIL Open Font License 1.1)
 
 export const renderRobots = (home) => `User-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
 
-export const renderSitemap = (home, updated) =>
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${home.origin}/</loc><lastmod>${updated}</lastmod></url>\n  <url><loc>${home.origin}/contact/</loc><lastmod>${updated}</lastmod></url>\n</urlset>\n`;
+/** The sitemap: each language's home page with its alternates, and the contact page. */
+export const renderSitemap = (home, updated, alternates = []) =>
+  sitemapXml([
+    ...LOCALES.map((tag) => ({ loc: `${home.origin}${localePath(tag)}`, lastmod: updated, alternates })),
+    { loc: `${home.origin}/contact/`, lastmod: updated },
+  ]);

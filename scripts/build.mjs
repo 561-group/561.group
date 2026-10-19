@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Writes the generated files in public/ from data/. Fonts, favicon and card are sources.
 
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap } from "../src/render.mjs";
+import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
 import { discoverCatalog } from "@causeway-services/play/catalog";
 import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
@@ -33,15 +34,26 @@ for (const door of estate.doors) if (!hosts.has(door)) throw new Error(`door ${d
 for (const n of estate.nodes) if (!estate.groups.some((g) => g.id === n.group)) throw new Error(`${n.host}: unknown group ${n.group}`);
 if (estate.nodes.length + (estate.machines ?? []).length > 45) throw new Error("estate.json exceeds the Worker's per-request subrequest budget for probing");
 
+// Every language the site serves: one L-space over the interface strings, the words derived from the
+// data, and each locale's renderings; each locale's home page at its own path.
+const readText = (path) => readFile(new URL(path, root), "utf8");
+const space = siteSpace({
+  interfaceSource: await readText("locales/en.arb"),
+  renderings: await Promise.all(LOCALES.slice(1).map((tag) => readText(`locales/${tag}.arb`))),
+  home,
+  estate,
+});
+const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, tag, { origin: home.origin })]));
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
-  "public/index.html": renderIndex(home, estate),
+  ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag])])),
   "public/llms.txt": renderLlms(home, estate),
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
-  "public/sitemap.xml": renderSitemap(home, updated),
+  "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),
 };
 for (const [path, body] of Object.entries(files)) {
+  await mkdir(new URL(path.slice(0, path.lastIndexOf("/") + 1), root), { recursive: true });
   await writeFile(new URL(path, root), body);
   console.log(`wrote ${fileURLToPath(new URL(path, root))} (${body.length} bytes)`);
 }

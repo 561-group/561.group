@@ -6,10 +6,11 @@
   "description": "The Group's public face: curated service doors and games discovered from their authored records, with HTTP readings of their exact entry paths.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs",
+    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs",
     "dev": "node scripts/build.mjs && wrangler dev",
     "deploy": "node scripts/build.mjs && wrangler deploy",
-    "test": "node test/market-discovery.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs"
+    "test": "node test/market-discovery.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
+    "source-catalog": "node scripts/source-catalog.mjs"
   },
   "engines": {
     "node": ">=24.2.0"
@@ -18,7 +19,8 @@
     "wrangler": "4.127.1"
   },
   "dependencies": {
-    "@causeway-services/play": "workspace:*"
+    "@causeway-services/play": "workspace:*",
+    "@red-cup-engineering/l-space": "0.1.0"
   },
   "repository": {
     "type": "git",

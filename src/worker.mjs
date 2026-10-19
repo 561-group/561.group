@@ -3,6 +3,9 @@
 
 import estate from "../public/estate-records.json";
 import { toldOf } from "./told.mjs";
+import { localeOfPath, localeRedirect } from "@red-cup-engineering/l-space/http";
+
+const LOCALES = ["en", "zh-Hans", "lkt"];
 
 const APEX = "561.group";
 const PROBE_TIMEOUT_MS = 4000;
@@ -104,6 +107,13 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === "/estate.json") return withHeaders(await estateReading(request, ctx));
-    return withHeaders(await websiteOrFederation(request, env));
+    // The root goes to a reader's preferred served language (a stored `lang` choice first); every other path is exact.
+    const redirect = localeRedirect(request, { locales: LOCALES });
+    if (redirect) return withHeaders(redirect);
+    const language = url.pathname === "/" ? "en" : localeOfPath(url.pathname, LOCALES);
+    return withHeaders(await websiteOrFederation(request, env), {
+      ...(language ? { "content-language": language } : {}),
+      ...(url.pathname === "/" ? { vary: "Accept-Language, Cookie" } : {}),
+    });
   },
 };

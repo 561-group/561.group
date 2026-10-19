@@ -10,10 +10,21 @@ const context=vm.createContext({Request,Response,URL,AbortSignal,Date,JSON,Promi
 const told=new vm.SourceTextModule(await readFile(path.join(root,'src/told.mjs'),'utf8'),{context,identifier:'authored-told'});
 const data=new vm.SyntheticModule(['default'],function(){this.setExport('default',estate)},{context,identifier:'fixture-estate-records'});
 const worker=new vm.SourceTextModule(await readFile(path.join(root,'src/worker.mjs'),'utf8'),{context,identifier:'authored-worker'});
-await worker.link(spec=>{if(spec==='../public/estate-records.json')return data;if(spec==='./told.mjs')return told;throw Error('unexpected dependency '+spec)});await worker.evaluate();
+// Package dependencies (the l-space HTTP edge) load from their real files into the same context.
+const { fileURLToPath, pathToFileURL } = await import('node:url');
+const loaded=new Map();
+const moduleAt=async file=>{if(!loaded.has(file))loaded.set(file,new vm.SourceTextModule(await readFile(file,'utf8'),{context,identifier:file}));return loaded.get(file)};
+const resolveFrom=(spec,referrer)=>spec.startsWith('.')?fileURLToPath(new URL(spec,pathToFileURL(referrer))):fileURLToPath(import.meta.resolve(spec));
+await worker.link(async(spec,referrer)=>{if(spec==='../public/estate-records.json')return data;if(spec==='./told.mjs')return told;if(spec.startsWith('@red-cup-engineering/l-space/')||referrer.identifier.startsWith('/'))return moduleAt(resolveFrom(spec,referrer.identifier));throw Error('unexpected dependency '+spec)});await worker.evaluate();
 let count=0;const check=(n,f)=>{f();count++;console.log('PASS',n)};const fetchWorker=worker.namespace.default.fetch;const ctx={waitUntil:p=>waits.push(p)};let assetRequest;
 const env={ASSETS:{fetch:async request=>{assetRequest=request;return new Response('original asset body',{status:200,headers:{'content-type':'text/html'}})}}};
-let response=await fetchWorker(new Request('https://www.561.group/contact/?a=b'),env,ctx);
+let response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN,zh;q=0.9,en;q=0.5'}}),env,ctx);
+check('a reader preferring Mandarin is sent from the root to the Mandarin page',()=>{assert.equal(response.status,302);assert.equal(response.headers.get('location'),'https://561.group/zh-hans/');assert.equal(response.headers.get('vary'),'Accept-Language, Cookie');assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
+response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN',cookie:'lang=en'}}),env,ctx);
+check('a stored choice of English keeps the root',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-language'),'en');assert.equal(response.headers.get('vary'),'Accept-Language, Cookie')});
+response=await fetchWorker(new Request('https://561.group/lkt/'),env,ctx);
+check('a locale path is served as is and says its language',()=>{assert.equal(response.status,200);assert.equal(assetRequest.url,'https://561.group/lkt/');assert.equal(response.headers.get('content-language'),'lkt')});
+response=await fetchWorker(new Request('https://www.561.group/contact/?a=b'),env,ctx);
 check('original alias redirects with exact path/query',()=>{assert.equal(response.status,301);assert.equal(response.headers.get('location'),'https://561.group/contact/?a=b')});
 response=await fetchWorker(new Request('https://561.group/contact/'),env,ctx);
 check('existing asset route receives unchanged request',()=>assert.equal(assetRequest.url,'https://561.group/contact/'));
