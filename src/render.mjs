@@ -517,7 +517,7 @@ ${support.description}
 
 ## Doctrine
 
-${home.doctrine.map((q) => `- ${q.text}`).join("\\n")}
+${home.doctrine.map((q) => `- ${q.text}`).join("\n")}
 `;
 }
 
