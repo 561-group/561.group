@@ -1,8 +1,6 @@
+import { escapeHtmlText as esc, robots as serializeRobots, sitemap as serializeSitemap, sitemapText as serializeSitemapText } from "@red-cup-engineering/computer-serialized-content-engineering-services-section/web-feed";
 // Renders the 561.group public files from data/home.json and data/estate.json.
 // Pure: data in, file contents out. No person is named anywhere on this site.
-
-const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 const cjk = (s) => esc(s).replace(/[㐀-鿿]+/g, (run) => `<span lang="zh">${run}</span>`);
 
@@ -258,15 +256,62 @@ export function renderIndex(home, estate) {
   const notes = Object.entries(d.notes).sort((a, b) => Number(a[0]) - Number(b[0]));
   const loopCells = ["M", "A", "E", "P"].map((letter) => d.loop.find((l) => l.letter === letter));
   const ticker = tickerText(home);
+  // The original publication record owns the graph. The WebSite points to
+  // one public Group entity, while listed nodes are described as linked pages,
+  // not silently asserted to be Group-owned or operationally healthy.
+  const organizationId = `${home.origin}/#organization`;
+  const websiteId = `${home.origin}/#website`;
+  const publicPagesId = `${home.origin}/#public-pages`;
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: home.name,
-    url: `${home.origin}/`,
-    description: home.description,
-    foundingDate: home.established,
-    logo: `${home.origin}/card.png`,
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: home.name,
+        alternateName: "561 Group",
+        url: `${home.origin}/`,
+        description: home.description,
+        foundingDate: home.established,
+        logo: `${home.origin}/favicon.svg`,
+        image: `${home.origin}/card.png`,
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "service intake",
+          url: `${home.origin}/contact/`,
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        name: home.name,
+        url: `${home.origin}/`,
+        description: home.description,
+        publisher: { "@id": organizationId },
+        about: { "@id": organizationId },
+        mainEntity: { "@id": publicPagesId },
+      },
+      {
+        "@type": "ItemList",
+        "@id": publicPagesId,
+        name: "561 Group public entry pages",
+        itemListElement: estate.nodes.map((node, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "WebPage",
+            name: node.name,
+            url: nodeUrl(node),
+            description: node.line,
+          },
+        })),
+      },
+    ],
   };
+  // JSON-LD is script content, not an HTML text node: a future public game
+  // title may contain "</script>". Keep its data while preventing it from
+  // terminating the script element and injecting markup.
+  const jsonLdText = JSON.stringify(jsonLd).replace(/</gu, "\\u003c");
 
   return `<!doctype html>
 <html lang="en">
@@ -293,7 +338,7 @@ export function renderIndex(home, estate) {
 <link rel="author" href="/humans.txt">
 <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/roboto-slab.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+<script type="application/ld+json">${jsonLdText}</script>
 <style>${CSS}</style>
 </head>
 <body>
@@ -450,12 +495,12 @@ Fonts: Space Grotesk, Roboto Slab, JetBrains Mono (SIL Open Font License 1.1)
 `;
 }
 
-export const renderRobots = (home) => `User-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
+// Canonical page choice belongs to the site; serial formats belong to Data.
+const publicSitemapEntries = (home) => [
+  { loc: new URL("/", home.origin).href },
+  { loc: new URL("/contact/", home.origin).href },
+];
 
-// Both discovery formats describe the same canonical page routes.
-const sitemapUrls = (home) => [`${home.origin}/`, `${home.origin}/contact/`];
-
-export const renderSitemapText = (home) => sitemapUrls(home).join("\n") + "\n";
-
-export const renderSitemap = (home, updated) =>
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls(home).map((url) => `  <url><loc>${url}</loc><lastmod>${updated}</lastmod></url>\n`).join("")}</urlset>\n`;
+export const renderRobots = (home) => serializeRobots(new URL("/sitemap.xml", home.origin).href);
+export const renderSitemap = (home) => serializeSitemap(publicSitemapEntries(home));
+export const renderSitemapText = (home) => serializeSitemapText(publicSitemapEntries(home));

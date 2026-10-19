@@ -6,7 +6,8 @@ The Group's public face: one Cloudflare Worker on the `561.group` zone. It serve
 
 - `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, and the four told values.
 - `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
-- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt`, `sitemap.xml` and `sitemap.txt`. Both sitemaps project the same canonical page routes.
+- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt`, `sitemap.xml` and `sitemap.txt`. Both sitemap formats project the same canonical page routes.
+  The apex selects only its two public canonical pages; the shared computer-content codec emits the XML and robots formats. A build date is not falsely represented as a significant page modification.
 - `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
 - `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
 - `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
@@ -30,7 +31,18 @@ homepage wording remains outside this recovery and is not selected here.
 | false   | no answer, 4xx, or 5xx                                   |
 | neither | no reading yet                                           |
 
-The reading is cached for 300 s. The page fetches it and colours each tile. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
+The reading is cached for 300 s. The page fetches it and colours each tile.
+
+The same public response is also a machine-consumable directory. It contains the
+source's `groups` and featured `doors`; `nodes` and `machines` combine each
+original public descriptor (`host`, `name`, `group`, `line`, entry `url` where
+authored) with that entry's derived `status`, `told`, `ms` and actual probe
+URL. The `endpoints` collection exposes the exact publicly authored agent
+interfaces, including intake, instead of making an agent reverse-engineer
+HTML tiles or invent a second catalog. `revision`, `derivedAt` and
+`ttlSeconds` distinguish the source selection from a cached HTTP reading.
+A responding page, a listed paid endpoint, or a successful probe is never a
+settled transaction, working app, or customer-accepted result. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
 
 ## Stealth
 

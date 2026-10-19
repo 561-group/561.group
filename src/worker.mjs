@@ -49,11 +49,27 @@ async function estateReading(request, ctx) {
 
   // The machines are read beside the nodes, not listed among them: the page lists services, and a
   // reader of the estate still learns whether the machines behind them answer.
-  const [nodes, machines] = await Promise.all([
+  const [nodeReadings, machineReadings] = await Promise.all([
     Promise.all(estate.nodes.map((node) => probe(node))),
     Promise.all((estate.machines ?? []).map((machine) => probe(machine))),
   ]);
-  const body = JSON.stringify({ revision: estate.revision, derivedAt: new Date().toISOString(), ttlSeconds: ESTATE_TTL_S, ...(estate.status ? { status: estate.status } : {}), nodes, machines }, null, 2);
+  // The published estate, not a second registry, owns the descriptions,
+  // groups, entry paths and agent-facing interfaces. Pair each reading with
+  // its originating public record so this endpoint is a usable directory,
+  // not merely a probe-status list. Readings are not delivery guarantees.
+  const nodes = estate.nodes.map((node, index) => ({ ...node, ...nodeReadings[index] }));
+  const machines = (estate.machines ?? []).map((machine, index) => ({ ...machine, ...machineReadings[index] }));
+  const body = JSON.stringify({
+    revision: estate.revision,
+    derivedAt: new Date().toISOString(),
+    ttlSeconds: ESTATE_TTL_S,
+    ...(estate.status ? { status: estate.status } : {}),
+    groups: estate.groups,
+    doors: estate.doors,
+    nodes,
+    machines,
+    endpoints: estate.machine,
+  }, null, 2);
   const response = new Response(body, {
     headers: {
       "content-type": "application/json; charset=utf-8",

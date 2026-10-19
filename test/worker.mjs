@@ -24,6 +24,22 @@ response=await fetchWorker(new Request('https://561.group/estate.json?arbitrary=
 check('every authored public node and machine probed',()=>assert.equal(probes.length,estate.nodes.length+estate.machines.length));
 check('probes use exact paths/manual redirects/timeout',()=>{assert.ok(probes.every(p=>p.init.method==='GET'&&p.init.redirect==='manual'&&p.init.signal instanceof AbortSignal));assert.ok(probes.some(p=>p.url==='https://cold-red-gate.561.group/healthz'))});
 check('first responses keep authored four-value semantics',()=>assert.deepEqual(body.nodes.slice(0,8).map(n=>n.told),['true','true','both','both','both','false','false','false']));
+check('the public reading includes the authored machine-readable service directory',()=>{
+  assert.deepEqual(body.groups,estate.groups);
+  assert.deepEqual(body.doors,estate.doors);
+  assert.deepEqual(body.endpoints,estate.machine);
+  assert.equal(body.nodes.length,estate.nodes.length);
+  for (let i=0;i<estate.nodes.length;i++){
+    assert.equal(body.nodes[i].host,estate.nodes[i].host);
+    assert.equal(body.nodes[i].name,estate.nodes[i].name);
+    assert.equal(body.nodes[i].group,estate.nodes[i].group);
+    assert.equal(body.nodes[i].line,estate.nodes[i].line);
+  }
+  for (let i=0;i<estate.machines.length;i++){
+    assert.equal(body.machines[i].name,estate.machines[i].name);
+    assert.equal(body.machines[i].line,estate.machines[i].line);
+  }
+});
 check('source revision cache key ignores arbitrary request query',()=>{assert.equal(keys[0],'https://561.group/estate.json?revision=local-source-fixture');assert.equal(puts[0].key,keys[0])});
 check('cached estate retains public cache contract',()=>{assert.equal(response.headers.get('cache-control'),'public, max-age=300');assert.equal(body.ttlSeconds,300);assert.equal(body.revision,estate.revision)});
 cached=puts[0].value;const probeCount=probes.length;response=await fetchWorker(new Request('https://561.group/estate.json'),env,ctx);

@@ -18,7 +18,8 @@
     "wrangler": "4.127.1"
   },
   "dependencies": {
-    "@causeway-services/play": "workspace:*"
+    "@causeway-services/play": "workspace:*",
+    "@red-cup-engineering/computer-serialized-content-engineering-services-section": "0.1.0"
   },
   "repository": {
     "type": "git",

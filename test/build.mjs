@@ -29,7 +29,11 @@ check('same existing URL not duplicated',()=>assert.equal(estate.nodes.filter(n=
 check('new authored browser entry preserves exact path',()=>assert.equal(estate.nodes.at(-1).url,'https://fixture.invalid/nested/game'));
 check('terminal-only source not substituted as browser page',()=>assert.equal(estate.nodes.some(n=>n.host==='terminal.invalid'),false));
 check('original machines and featured doors preserved',()=>{assert.deepEqual(estate.machines,original.machines);assert.deepEqual(estate.doors,original.doors)});
-check('publication date bound',()=>assert.match(before['sitemap.xml'],/2026-10-12/));
+check('sitemap contains canonical page routes without invented modification dates',()=>{
+  const xml=before['sitemap.xml'];
+  assert.deepEqual([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match)=>match[1]),['https://561.group/','https://561.group/contact/']);
+  assert.doesNotMatch(xml,/<lastmod>/);
+});
 const second=run();check('repeat actual build succeeds',()=>assert.equal(second.status,0,second.stderr));const after=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
 check('all seven outputs identical on repeat',()=>assert.deepEqual(after,before));
 for(const [name,extra,pattern] of [['missing source', {PLAY_CATALOG_SOURCES:undefined},/sources are required/],['empty source',{PLAY_CATALOG_SOURCES:'[]'},/nonempty/],['invalid date',{PLAY_CATALOG_DATE:'2026-02-30'},/real UTC date/]]) {const r=run(extra);check(name+' refuses',()=>{assert.notEqual(r.status,0);assert.match(r.stderr,pattern)});}
