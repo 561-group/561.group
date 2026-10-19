@@ -10,6 +10,14 @@
     "Status told in four values"
   ],
   "address": "This page is written for persons and for agents. Both are welcome. Neither is named.",
+  "support": {
+    "headline": "Keep the commons open.",
+    "description": "Help sustain the 561 Group's public research, reusable source, and technical infrastructure through voluntary monthly support.",
+    "monthlyUsd": 10,
+    "checkoutUrl": "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02",
+    "terms": "USD $10/month, renewing until canceled. Voluntary support confers no goods, private access, editorial influence, or customer-settlement rights. This is not a tax-deductible charitable contribution. The actual legal seller appears at Stripe checkout. For cancellation or billing help, use the Group's private contact route.",
+    "contactUrl": "/contact/"
+  },
   "design": {
     "caveat": "This is design intent, not an implementation receipt. Whether any one part of it is running is a separate question, answered by a dated record.",
     "sentence": [
