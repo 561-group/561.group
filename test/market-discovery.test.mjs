@@ -36,7 +36,7 @@ test("agents discover a single market's x402, A2A and MCP faces, not new shadow 
 
 test("homepage JSON-LD binds one named Group organization to the site and the visible public pages", () => {
   const page = renderIndex(home, estate);
-  const embedded = page.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/u);
+  const embedded = page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
   assert.ok(embedded, "homepage must publish JSON-LD");
   const graph = JSON.parse(embedded[1]);
   assert.equal(graph["@context"], "https://schema.org");
@@ -63,8 +63,8 @@ test("JSON-LD preserves public text without permitting script-breaking markup", 
     nodes: [{ ...estate.nodes[0], line: maliciousText }, ...estate.nodes.slice(1)],
   };
   const html = renderIndex(home, changed);
-  assert.doesNotMatch(html, /<script>alert\\('no'\\)<\\/script>/u);
-  const captured = html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/u);
+  assert.doesNotMatch(html, /<script>alert\('no'\)<\/script>/u);
+  const captured = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
   assert.ok(captured);
   const data = JSON.parse(captured[1]);
   assert.equal(data["@graph"][2].itemListElement[0].item.description, maliciousText);
