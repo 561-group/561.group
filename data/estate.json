@@ -28,7 +28,8 @@
   ],
   "machine": [
     { "verb": "GET", "url": "https://561.group/llms.txt", "what": "What this is, in plain text." },
-    { "verb": "GET", "url": "https://561.group/estate.json", "what": "Every public node, status re-derived on request and told in four values." },
+    { "verb": "GET", "url": "https://561.group/contact/", "what": "Public issues, complaints, suggestions and ideas, with a private email-draft option. Submissions require authorized intake before any work." },
+    { "verb": "GET", "url": "https://561.group/estate.json", "what": "Public services with their authored names, descriptions, categories and entry URLs, plus dated HTTP readings, featured doors and agent endpoints. An HTTP response is not delivery." },
     { "verb": "GET", "url": "https://market.561.group/.well-known/agent-card.json", "what": "A2A agent card with machine-readable skills derived from the current seller." },
     { "verb": "GET", "url": "https://market.561.group/.well-known/x402.json", "what": "Current x402 v2 discovery projected from the merchant's seller catalogue." },
     { "verb": "GET", "url": "https://market.561.group/.well-known/x402-service.json", "what": "Published x402 service/payment metadata, not evidence of a completed sale." },
