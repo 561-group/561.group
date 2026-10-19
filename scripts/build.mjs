@@ -39,7 +39,7 @@ const files = {
   "public/llms.txt": renderLlms(home, estate),
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
-  "public/sitemap.xml": renderSitemap(home, updated),
+  "public/sitemap.xml": renderSitemap(home),
 };
 for (const [path, body] of Object.entries(files)) {
   await writeFile(new URL(path, root), body);
