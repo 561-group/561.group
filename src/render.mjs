@@ -448,7 +448,7 @@ export function renderIndex(home, estate) {
   ${sectionLabel(4, "Sustaining support")}
   <h2 id="support-h" class="support-head">${esc(support.headline)}</h2>
   <p class="support-copy">${esc(support.description)}</p>
-  <p class="support-action"><a href="${esc(support.checkoutUrl)}" rel="noopener noreferrer">Support public work · USD ${esc(String(support.monthlyUsd))}/month ↗</a></p>
+  <p class="support-action"><a href="${esc(support.checkoutUrl)}" rel="noopener noreferrer">Support public work · USD $${esc(String(support.monthlyUsd))}/month ↗</a></p>
   <p class="support-terms">${esc(support.terms)} <a href="${esc(support.contactUrl)}">Request private billing help</a>.</p>
 </section>
 
@@ -513,7 +513,7 @@ ${estate.machine.map((m) => `- [${m.url.replace(/^https:\/\//, "")}](${m.url}): 
 
 ${support.description}
 
-[Voluntary USD ${support.monthlyUsd}/month sustaining support](${support.checkoutUrl}). ${support.terms} Billing or cancellation help: ${new URL(support.contactUrl, home.origin).href}
+[Voluntary USD $${support.monthlyUsd}/month sustaining support](${support.checkoutUrl}). ${support.terms} Billing or cancellation help: ${new URL(support.contactUrl, home.origin).href}
 
 ## Doctrine
 
