@@ -21,6 +21,21 @@ const sectionLabel = (n, title) =>
 
 const nodeUrl = (node) => node.url ?? `https://${node.host}/`;
 
+// The original Group source names the single Stripe-hosted price/checkout.
+// Refuse spoofable destinations rather than presenting a made-up payment route.
+function acceptedSupportOffer(support) {
+  if (!support || !Number.isSafeInteger(support.monthlyUsd) || support.monthlyUsd <= 0) {
+    throw new TypeError("sustaining support must have a positive whole-dollar monthly price");
+  }
+  if (typeof support.checkoutUrl !== "string" || !/^https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+$/u.test(support.checkoutUrl)) {
+    throw new TypeError("sustaining support needs its accepted exact Stripe checkout URL");
+  }
+  if (typeof support.description !== "string" || typeof support.terms !== "string") {
+    throw new TypeError("sustaining support must explain its public work and billing conditions");
+  }
+  return support;
+}
+
 function nodeTile(node, { door = false } = {}) {
   return `<li><a class="node${door ? " door" : ""}" href="${esc(nodeUrl(node))}" data-host="${esc(node.host)}" data-url="${esc(nodeUrl(node))}" data-told="neither">
   <span class="node-head"><span class="told" aria-hidden="true">○</span><span class="host">${esc(node.host)}</span></span>
@@ -178,6 +193,13 @@ html[data-phase] .cell[data-letter] .ref a{color:inherit}
 .doctrine .src{display:block;font-family:var(--mono);font-size:.74rem;font-weight:400;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-top:.9rem}
 .doctrine .src b{color:var(--alarm-ink)}
 
+/* recurring support: no separate payment renderer or invented settlement */
+.support-head{font-family:var(--sans);font-weight:700;font-size:clamp(2rem,4.6vw,4rem);line-height:1.05;letter-spacing:-.035em;max-width:18em}
+.support-copy{font-size:1.12rem;max-width:var(--measure);margin-top:1.2rem}
+.support-action{font-family:var(--sans);font-weight:700;font-size:1.15rem;margin-top:1.5rem}
+.support-action a{display:inline-block;padding:.65rem 0;text-decoration-thickness:2px}
+.support-terms{font-size:.85rem;line-height:1.5;color:var(--ink-soft);max-width:var(--measure);margin-top:1rem}
+
 /* agents */
 .agents{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:clamp(1.5rem,4vw,4rem);align-items:start}
 .agents h2{font-family:var(--sans);font-weight:700;font-size:clamp(2rem,4.6vw,3.8rem);line-height:.95;letter-spacing:-.04em}
@@ -248,6 +270,7 @@ const SCRIPT = (revision) => `
 
 export function renderIndex(home, estate) {
   const d = home.design;
+  const support = acceptedSupportOffer(home.support);
   const doorHosts = new Set(estate.doors);
   const doors = estate.doors.map((h) => estate.nodes.find((n) => n.host === h)).filter(Boolean);
   const groups = estate.groups
@@ -352,7 +375,7 @@ export function renderIndex(home, estate) {
   <strong>561.group</strong>
   <span class="phase-wrap">Loop ▸ <span class="phase" id="phase">Monitor</span></span>
   <span>UTC <time id="clock">--:--:--</time></span>
-  <nav aria-label="Sections"><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#agents">Agents</a></nav>
+  <nav aria-label="Sections"><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#support">Support</a><a href="#agents">Agents</a></nav>
 </div>
 
 <main>
@@ -421,8 +444,16 @@ export function renderIndex(home, estate) {
   </ol>
 </section>
 
+<section class="wrap sec" id="support" aria-labelledby="support-h">
+  ${sectionLabel(4, "Sustaining support")}
+  <h2 id="support-h" class="support-head">${esc(support.headline)}</h2>
+  <p class="support-copy">${esc(support.description)}</p>
+  <p class="support-action"><a href="${esc(support.checkoutUrl)}" rel="noopener noreferrer">Support public work · USD ${esc(String(support.monthlyUsd))}/month ↗</a></p>
+  <p class="support-terms">${esc(support.terms)} <a href="${esc(support.contactUrl)}">Request private billing help</a>.</p>
+</section>
+
 <section class="wrap sec" id="agents" aria-labelledby="agents-h">
-  ${sectionLabel(4, "For agents")}
+  ${sectionLabel(5, "For agents")}
   <div class="agents">
     <div>
       <h2 id="agents-h">If you are an <em>agent</em>, you are expected.</h2>
@@ -456,6 +487,7 @@ export function renderIndex(home, estate) {
 
 export function renderLlms(home, estate) {
   const d = home.design;
+  const support = acceptedSupportOffer(home.support);
   const byGroup = estate.groups
     .map((g) => ({ g, nodes: estate.nodes.filter((n) => n.group === g.id) }))
     .filter((x) => x.nodes.length);
@@ -477,9 +509,15 @@ ${byGroup.map(({ g, nodes }) => `### ${g.title}\n\n${nodes.map((n) => `- [${n.na
 
 ${estate.machine.map((m) => `- [${m.url.replace(/^https:\/\//, "")}](${m.url}): ${m.what}`).join("\n")}
 
+## Sustaining support
+
+${support.description}
+
+[Voluntary USD ${support.monthlyUsd}/month sustaining support](${support.checkoutUrl}). ${support.terms} Billing or cancellation help: ${new URL(support.contactUrl, home.origin).href}
+
 ## Doctrine
 
-${home.doctrine.map((q) => `- ${q.text}`).join("\n")}
+${home.doctrine.map((q) => `- ${q.text}`).join("\\n")}
 `;
 }
 
