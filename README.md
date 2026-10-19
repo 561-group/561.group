@@ -24,7 +24,18 @@ The Group's public face: one Cloudflare Worker on the `561.group` zone. It serve
 | false   | no answer, 4xx, or 5xx                                   |
 | neither | no reading yet                                           |
 
-The reading is cached for 300 s. The page fetches it and colours each tile. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
+The reading is cached for 300 s. The page fetches it and colours each tile.
+
+The same public response is also a machine-consumable directory. It contains the
+source's `groups` and featured `doors`; `nodes` and `machines` combine each
+original public descriptor (`host`, `name`, `group`, `line`, entry `url` where
+authored) with that entry's derived `status`, `told`, `ms` and actual probe
+URL. The `endpoints` collection exposes the exact publicly authored agent
+interfaces, including intake, instead of making an agent reverse-engineer
+HTML tiles or invent a second catalog. `revision`, `derivedAt` and
+`ttlSeconds` distinguish the source selection from a cached HTTP reading.
+A responding page, a listed paid endpoint, or a successful probe is never a
+settled transaction, working app, or customer-accepted result. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
 
 ## Stealth
 
