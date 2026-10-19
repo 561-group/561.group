@@ -1,9 +1,6 @@
-import { robots as serializeRobots, sitemap as serializeSitemap } from "@red-cup-engineering/computer-serialized-content-engineering-services-section/web-feed";
+import { escapeHtmlText as esc, robots as serializeRobots, sitemap as serializeSitemap } from "@red-cup-engineering/computer-serialized-content-engineering-services-section/web-feed";
 // Renders the 561.group public files from data/home.json and data/estate.json.
 // Pure: data in, file contents out. No person is named anywhere on this site.
-
-const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 const cjk = (s) => esc(s).replace(/[㐀-鿿]+/g, (run) => `<span lang="zh">${run}</span>`);
 
