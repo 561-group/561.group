@@ -7,6 +7,7 @@ The Group's public face: one Cloudflare Worker on the `561.group` zone. It serve
 - `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, and the four told values.
 - `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
 - `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
+  The apex selects only its two public canonical pages; the shared computer-content codec emits the XML and robots formats. A build date is not falsely represented as a significant page modification.
 - `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
 - `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
 - `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
