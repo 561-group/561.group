@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { renderIndex } from "../src/render.mjs";
+import { renderIndex, renderLlms } from "../src/render.mjs";
 
 const estate = JSON.parse(await readFile(new URL("../data/estate.json", import.meta.url), "utf8"));
 const home = JSON.parse(await readFile(new URL("../data/home.json", import.meta.url), "utf8"));
@@ -74,4 +74,27 @@ test("JSON-LD preserves public text without permitting script-breaking markup", 
   assert.ok(captured);
   const data = JSON.parse(captured[1]);
   assert.equal(data["@graph"][2].itemListElement[0].item.description, maliciousText);
+});
+
+test("accepted Stripe support checkout is visible to people and agents with true monthly terms", () => {
+  const support = home.support;
+  assert.equal(support.monthlyUsd, 10);
+  assert.match(support.checkoutUrl, /^https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+$/u);
+  const page = renderIndex(home, estate);
+  const machineText = renderLlms(home, estate);
+  assert.equal(page.split(`href="${support.checkoutUrl}"`).length - 1, 1, "one real hosted checkout in the public page");
+  assert.match(page, /Support public work · USD \$10\/month/u);
+  assert.match(machineText, /Voluntary USD \$10\/month/u);
+  assert.ok(machineText.includes(support.checkoutUrl), "agent-readable text selects the same checkout");
+  assert.match(page, /until canceled/u);
+  assert.match(page, /not a tax-deductible charitable contribution/u);
+  assert.match(page, /Request private billing help/u);
+  assert.doesNotMatch(page, /href="[^"]*ai-visibility-audit[^"]*"/u, "inactive paid audit remains gated");
+});
+
+test("the support channel refuses spoofed Stripe links or unqualified prices", () => {
+  for (const url of ["http://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02", "https://evil.invalid/collect", "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02?redirect=evil"]) {
+    assert.throws(() => renderIndex({ ...home, support: { ...home.support, checkoutUrl: url } }, estate), /accepted exact Stripe checkout URL/u);
+  }
+  assert.throws(() => renderLlms({ ...home, support: { ...home.support, monthlyUsd: 0 } }, estate), /positive whole-dollar monthly price/u);
 });
