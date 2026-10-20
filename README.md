@@ -29,7 +29,7 @@ The source-level gate is `node --test test/market-discovery.test.mjs`; the full 
 - `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
 - `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
 - `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
-- `public/fonts/` holds Space Grotesk, Roboto Slab and JetBrains Mono (latin, variable, OFL), self-hosted. `favicon.svg` and `card.png` (1200×630, the Open Graph image) are sources, not build output.
+- `public/fonts/` holds Space Grotesk, Roboto Slab and JetBrains Mono (latin, variable, OFL), self-hosted. `favicon.svg` remains the active identity-logo source. The archived 1200×630 `card.png` is a source asset **not currently advertised in social metadata** because its pixels contain the old mission text; regeneration and qualified receiving are required before restoring `og:image`.
 
 ## The estate reading
 
