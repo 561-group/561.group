@@ -2,7 +2,7 @@
   "origin": "https://561.group",
   "name": "The 561 Group",
   "established": "2018",
-  "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through political, financial, and economic volatility.",
+  "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
   "masthead": [
     "Private organization",
     "Est. MMXVIII",
@@ -10,6 +10,53 @@
     "Status told in four values"
   ],
   "address": "This page is written for persons and for agents. Both are welcome. Neither is named.",
+  "readerIntro": "Choose a path from your question to a real next action. Every path also says what that action does not establish.",
+  "readerPaths": [
+    {
+      "id": "ask",
+      "title": "Ask for work",
+      "audience": "You have a requirement, complaint, or idea.",
+      "step": "Describe what should change and how you would recognize a satisfactory result.",
+      "action": "Describe a need",
+      "href": "/contact/",
+      "boundary": "Filing starts intake. It is not a commitment, completed service, or acceptance receipt.",
+      "evidenceLabel": "Read the intake and follow-up process",
+      "evidenceHref": "/contact/"
+    },
+    {
+      "id": "explore",
+      "title": "Explore public work",
+      "audience": "You want to try or evaluate a service.",
+      "step": "Choose a public entry point and examine what it actually does.",
+      "action": "Browse the public estate",
+      "href": "#estate",
+      "boundary": "An HTTP response shows that an entry point answered, not that the service fulfills its promises.",
+      "evidenceLabel": "Inspect dated HTTP readings",
+      "evidenceHref": "/estate.json"
+    },
+    {
+      "id": "read",
+      "title": "Read the design",
+      "audience": "You want to understand the Group's methods.",
+      "step": "Follow the design terms and notes, then distinguish those intentions from received effects.",
+      "action": "Inspect the design and notes",
+      "href": "#design",
+      "boundary": "A description of intended architecture does not prove that its components are installed.",
+      "evidenceLabel": "Read the plain-text account",
+      "evidenceHref": "/llms.txt"
+    },
+    {
+      "id": "use",
+      "title": "Use machine routes",
+      "audience": "You are an agent or build software clients.",
+      "step": "Inspect declared interfaces, access conditions, and terms before invoking an operation.",
+      "action": "Find machine endpoints",
+      "href": "#agents",
+      "boundary": "A catalog entry grants no permission and does not prove a payment or completed invocation.",
+      "evidenceLabel": "Read the agent-facing account",
+      "evidenceHref": "/llms.txt"
+    }
+  ],
   "support": {
     "headline": "Keep the commons open.",
     "description": "Help sustain the 561 Group's public research, reusable source, and technical infrastructure through voluntary monthly support.",
