@@ -1,98 +1,49 @@
 # 561.group
 
-The Group's public face: one Cloudflare Worker on the `561.group` zone. It serves the page, sends `www.561.group` to the apex, and answers `/estate.json`.
+The public front door of the 561 Group, built through its original Cloudflare Worker and one source-owned static renderer.
 
-## Sustain the public commons
+## Give every page its own job
 
-The 561 Group's public research, reusable source, and technical infrastructure are supported in part by voluntary contributions. [**Sustain this work for USD $10 per month**](https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02) through the current seller's Stripe-hosted subscription checkout. Support renews monthly until canceled and does **not** purchase private access, influence over research or editorial decisions, or a charitable tax deduction.
+| Route | Page type | Reader task |
+| --- | --- | --- |
+| / | Institutional homepage | Understand the Group, see real examples, select an appropriate action |
+| /approach/ | Research explainer | Follow the source-linked Relationality → Obsmetrologia → Sign engineering → agentic institutions progression and understand its evidence limits |
+| /contact/ | Public/private intake | Submit a public report or privately prepare and send an email without mistaking the submission for an accepted work order |
+| /work/ | Project directory | Identify a service, publication, game or world and follow its real link |
+| /llms.txt | Agent-facing explanation | Discover the same pages, service interfaces, status limits and commercial terms |
+| /estate.json | Dated machine directory | Inspect authored nodes and bounded HTTP readings, not infer actual customer fulfillment |
+| /sitemap.xml and /sitemap.txt | Search/discovery | Receive the same four actual human URLs from the upstream serializers |
 
-The checkout displays the current legal seller and exact billing terms. For subscription questions or cancellation assistance, use the [private Group contact route](https://561.group/contact/#private-intake). The support offer is authored in [the original Group homepage source](data/home.json); its public site release and the real payment processor's subscription records have separate receiving conditions. This GitHub publication is an immediately accessible first-party information route, not evidence that the Cloudflare homepage has deployed or anyone has subscribed.
+The homepage must not double as a mathematical research paper, comprehensive service directory, status dashboard, or technical reference. Those responsibilities have their own pages. The original technical-context text is preserved in Git history, not projected into the live front door.
 
-## Layout
+Public styling retains the site's original square identity motif and self-hosted fonts while reducing visual aggression, motion and density. The original social-card PNG contains obsolete wording and remains excluded from current metadata until a source-true replacement is qualified.
 
-- `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, the four told values, and the live voluntary recurring-support offer.
-- `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
-- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
-  The apex selects only its two public canonical pages; the shared computer-content codec emits the XML and robots formats. A build date is not falsely represented as a significant page modification.
-- `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
-- `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
-- `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
-- `public/fonts/` holds Space Grotesk, Roboto Slab and JetBrains Mono (latin, variable, OFL), self-hosted. `favicon.svg` and `card.png` (1200×630, the Open Graph image) are sources, not build output.
+## HITS, not TAPS: compare pages by their jobs
 
-## The estate reading
+The Leader's October 20, 2026 instruction is to make **literally each website page meet then beat market fitness for its own page type**, using Holistic Integrated Thing Structures rather than Thin Approximate Prototype Simulacra. Follow the existing [Coesite taps-to-hits procedure](https://github.com/coesite-operations/operations-services-section/blob/main/lib/agency/skills/taps-to-hits/SKILL.md), [Group HITS meaning](https://github.com/561-group/561-group-services-section/blob/main/content/text/glossary/terms/hits.md) and the [original site's method](docs/reader-closure-qualification.md). Do not make a second workflow, fake an acceptance metric, or call an unreceived source change complete.
 
-`/estate.json` is not a status page that someone updates. On a cache miss, the Worker GETs every node in `data/estate.json` concurrently. Each GET does not follow redirects and times out after 4 s. The Worker tells each answer in Belnap's four values (`src/told.mjs`):
+Every page-kind qualification requires an original visitor job, the actual relevant source/producer, truthfulness and privacy boundaries, a comparable market baseline, the first unreceived required edge, native positive/alternate/refusal checks, deployed readback and real task completion evidence. [NN/g homepage principles](https://www.nngroup.com/articles/homepage-design-principles/), [GOV.UK content design](https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/plan-manage-content/understand-content-design/), and [W3C WCAG 2.2](https://www.w3.org/WAI/WCAG22/understanding/) inform the page-kind criteria; citation to those sources is not a conformance certificate.
 
-| told    | when                                                     |
-|---------|----------------------------------------------------------|
-| true    | 2xx or 3xx                                               |
-| both    | 401, 402, 403: answered and refused (payment or credentials) |
-| false   | no answer, 4xx, or 5xx                                   |
-| neither | no reading yet                                           |
+Other projects listed under /work/ are separately owned public websites; their owning producers must be assessed and improved individually. A successful 561.group apex release does not complete those domains.
 
-The reading is cached for 300 s. The page fetches it and colours each tile.
+## Original producers and evidence
 
-The same public response is also a machine-consumable directory. It contains the
-source's `groups` and featured `doors`; `nodes` and `machines` combine each
-original public descriptor (`host`, `name`, `group`, `line`, entry `url` where
-authored) with that entry's derived `status`, `told`, `ms` and actual probe
-URL. The `endpoints` collection exposes the exact publicly authored agent
-interfaces, including intake, instead of making an agent reverse-engineer
-HTML tiles or invent a second catalog. `revision`, `derivedAt` and
-`ttlSeconds` distinguish the source selection from a cached HTTP reading.
-A responding page, a listed paid endpoint, or a successful probe is never a
-settled transaction, working app, or customer-accepted result. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
+- data/home.json: the institutional mission and exact **economic, political, and ecological** domain order, public entry copy, original mathematical sources, and real support terms.
+- data/estate.json: original curated projects and current machine routes. Games are combined from the original Causeway Play catalog supplier on build; no invented static game shadow list.
+- src/render.mjs: one rendering producer for the human pages, agent account, sitemaps and robots; HTML and W3C/Sitemaps source formats use the original Red Cup upstream codecs.
+- scripts/build.mjs: generates index, approach, work, sitemap XML and text, agents, humans and estate assets. The contact page remains separately authored.
+- src/worker.mjs: preserves Cloudflare static serving, original canonical redirect, security headers, bounded dynamic /estate.json readings, and optional separately installed federation.
+- test/public-intake-boundary.test.mjs: dependency-free native source/rights/route checks.
+- test/market-discovery.test.mjs, test/build.mjs, and test/worker.mjs: full original producer, installed supplier and Worker tests.
 
-## Stealth
+The full project requires Node 24.2 or newer, PNPM, the compatible original Play workspace supplier, the pinned upstream content serializer, and source-qualified PLAY_CATALOG_SOURCES. The true original installation gate is **pnpm test**, then **pnpm build**. Missing suppliers must refuse a build, not produce a fake smaller catalog.
 
-No person is named anywhere on this site, and nothing here may link to a person's accounts, repositories or sites. Authority is held by offices.
+## Release means publication, not a branch
 
-- `workers_dev` and `preview_urls` stay `false`. The account's workers.dev subdomain must never appear on a public surface.
-- Before listing a node in `data/estate.json`, read its public pages for personal names, handles, repo paths and workers.dev URLs.
-- Leave out nodes that are broken, behind a login, or infrastructure.
+Production still requires separate explicit authority under .github/workflows/deploy.yml while original [consolidation #51](https://github.com/561-group/561-group/issues/51) remains unresolved. Its release must produce complete assets from the qualified source before Wrangler deploy; it must refuse if tools, source roots, tests or expected outputs are missing. GitHub source, passing check, successful Worker deployment and independent public-beneficiary acceptance are four different evidence states.
 
-## Site-owned ActivityPub federation
+After publication, read back all four human routes; public and private contact actions; sitemap parity; /llms.txt; /estate.json; exact checkout terms; website headers; keyboard and no-script behavior; narrow-screen layouts; and at least one unassisted reader task per page against a declared same-kind competitor/baseline. A live HTTP 200 is not service fulfillment.
 
-The Worker preserves the site's authored static resources and routes missing
-resources through `ACTIVITYPUB_INSTANCE.fetch(request)` **only when an
-independently configured ActivityPub service binding exists**. It forwards the
-exact origin-bearing request. Static contact/estate pages take precedence;
-provider 404s do not overwrite asset 404s; and public requests for
-`/_private/*` never reach internal delivery or queue handlers.
+No personal profile, third-party confidential data, or infrastructure-only node is promoted into the public directory. Public issues are untrusted testimony, not permission to send, spend, publish or deploy. Keep the known original email address until a replacement is independently received.
 
-The provider must be a separately keyed, custodied
-`@red-cup-engineering/activitypub-services-section` instance hosted through
-the upstream [ActivityPub server](https://github.com/red-cup-engineering/activitypub-server).
-It must accept only `https://561.group` as its canonical origin; a
-`science.561.group` or another site's provider is not substitutable.
-Do not publish bearer credentials in Worker source or treat static WebFinger
-JSON as an ActivityPub server.
-
-**Not yet installed:** the current `wrangler.jsonc` does not declare an
-`ACTIVITYPUB_INSTANCE` service binding and no public live federation
-receiving is asserted. Configure and independently receive a real upstream
-provider and Worker binding before advertising an ActivityPub actor.
-
-## Build and deploy
-
-```sh
-pnpm build    # writes public/ from data/ and authored game sources
-pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.group/*)
-```
-
-After deploying, check three things. `https://561.group/` should answer 200. `https://www.561.group/x` should return a 301 to `https://561.group/x`. `https://561.group/estate.json` should list every node with a `told` value.
-
-## Source composition
-
-The apex consumes `@causeway-services/play` through its declared catalog,
-presentation and composition exports. Bind the actual Public Games and external
-Science Git checkouts with `PLAY_CATALOG_SOURCES` using the supplier's source-array
-contract; `PLAY_CATALOG_DATE` optionally fixes the real UTC publication date.
-Outside the original integrated checkout, missing source bindings fail the build.
-Catalog discovery does not probe public pages during publication. The existing
-Worker's request-time estate readings are unchanged.
-
-This package requires Node >=24.2.0, matching the received play supplier's runtime
-floor. The workspace dependency declares source composition, not a completed
-package-manager installation or release. Source receiving, installed closure,
-provider version and independent public receiving remain separate.
+Current Work: [original apex issue #17](https://github.com/561-group/561.group/issues/17) and [original public-site PR #18](https://github.com/561-group/561.group/pull/18).

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // Writes the generated files in public/ from data/. Fonts, favicon and card are sources.
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap } from "../src/render.mjs";
+import { renderHumans, renderIndex, renderWork, renderApproach, renderLlms, renderRobots, renderSitemap, renderSitemapText } from "../src/render.mjs";
 
 import { discoverCatalog } from "@causeway-services/play/catalog";
 import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
@@ -36,12 +36,16 @@ if (estate.nodes.length + (estate.machines ?? []).length > 45) throw new Error("
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
   "public/index.html": renderIndex(home, estate),
+  "public/approach/index.html": renderApproach(home, estate),
+  "public/work/index.html": renderWork(home, estate),
   "public/llms.txt": renderLlms(home, estate),
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home),
+  "public/sitemap.txt": renderSitemapText(home),
 };
 for (const [path, body] of Object.entries(files)) {
+  await mkdir(new URL("./", new URL(path, root)), { recursive: true });
   await writeFile(new URL(path, root), body);
   console.log(`wrote ${fileURLToPath(new URL(path, root))} (${body.length} bytes)`);
 }

@@ -60,3 +60,51 @@ test("production release remains a separately invoked operation",()=>{
   assert.match(workflow,/^on:\s*\n\s+workflow_dispatch:\s*$/mu);
   assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
 });
+
+
+test("public homepage has one concise reader job and five actual public doors",()=>{
+  const source=JSON.parse(read("data/home.json"));
+  const estate=JSON.parse(read("data/estate.json"));
+  assert.ok(source.public&&source.public.headline==="We make research useful.");
+  assert.match(source.public.aim,/economic, political, and ecological volatility/u);
+  assert.equal(source.public.featured.length,5);
+  const known=new Set(estate.doors);
+  assert.ok(source.public.featured.every(x=>known.has(x.host)&&estate.nodes.some(n=>n.host===x.host)));
+  const actions=source.public.featured.map(x=>x.action);
+  assert.deepEqual(actions,[...actions].sort((a,b)=>a.localeCompare(b,"en")));
+});
+test("site keeps three distinct human page jobs and a fourth original contact page",()=>{
+  const source=read("src/render.mjs");
+  const build=read("scripts/build.mjs");
+  assert.match(source,/export function renderIndex\b/u);
+  assert.match(source,/export function renderWork\b/u);
+  assert.match(source,/export function renderApproach\b/u);
+  assert.match(source,/export function renderLlms\b/u);
+  assert.match(build,/public\/approach\/index\.html/u);
+  assert.match(build,/public\/work\/index\.html/u);
+  assert.ok(read("public/contact/index.html").includes("What can we help with?"));
+  assert.ok(source.includes('class="steps"')&&source.includes('class="cards"'));
+  assert.doesNotMatch(source,/class="ticker"/u);
+});
+test("one canonical sitemap owner emits four actual pages in XML and text",()=>{
+  const source=read("src/render.mjs");
+  const build=read("scripts/build.mjs");
+  assert.ok(source.includes('["/","/approach/","/contact/","/work/"]'));
+  assert.match(source,/serializeSitemap\(publicSitemapEntries\(home\)\)/u);
+  assert.match(source,/serializeSitemapText\(publicSitemapEntries\(home\)\)/u);
+  for(const route of ["public/index.html","public/approach/index.html","public/contact/index.html","public/work/index.html"]){
+    if(route!=="public/contact/index.html")assert.ok(build.includes(route));
+  }
+  assert.ok(build.includes("public/sitemap.txt"));
+});
+test("human and machine source share the same math, projects and real support terms",()=>{
+  const source=read("src/render.mjs");
+  const home=JSON.parse(read("data/home.json"));
+  assert.match(source,/foundation\(home\.foundation\)/u);
+  assert.match(source,/home\.public/u);
+  assert.ok(home.public.approachStages.length===4);
+  assert.equal(new Set(home.public.featured.map(x=>x.host)).size,5);
+  assert.match(source,/estate\.machine\.map/u);
+  assert.match(source,/positive whole-dollar monthly price/u);
+  assert.match(source,/accepted exact Stripe checkout URL/u);
+});

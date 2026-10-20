@@ -16,7 +16,7 @@ const base={...process.env,PLAY_CATALOG_SOURCES:JSON.stringify([{repositoryRoot:
 const run=(extra={})=>spawnSync(process.execPath,['--import',preload,'scripts/build.mjs'],{cwd:app,env:{...base,...extra},encoding:'utf8'});
 let passed=0;const check=(name,fn)=>{fn();passed++;console.log('PASS',name)};
 const first=run();check('actual CLI with genuine supplier export imports',()=>assert.equal(first.status,0,first.stderr));
-const names=['estate-records.json','index.html','llms.txt','humans.txt','robots.txt','sitemap.xml'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
+const names=['estate-records.json','index.html','llms.txt','humans.txt','robots.txt','sitemap.xml','sitemap.txt','approach/index.html','work/index.html'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
 const estate=JSON.parse(before['estate-records.json']);const original=JSON.parse(await readFile(path.join(ROOT,'data/estate.json'),'utf8'));
 check('all original curated nodes preserved unchanged',()=>assert.deepEqual(estate.nodes.slice(0,original.nodes.length),original.nodes));
 check('same existing URL not duplicated',()=>assert.equal(estate.nodes.filter(n=>n.host==='play.561.group').length,1));
@@ -25,11 +25,28 @@ check('terminal-only source not substituted as browser page',()=>assert.equal(es
 check('original machines and featured doors preserved',()=>{assert.deepEqual(estate.machines,original.machines);assert.deepEqual(estate.doors,original.doors)});
 check('sitemap contains canonical page routes without invented modification dates',()=>{
   const xml=before['sitemap.xml'];
-  assert.deepEqual([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match)=>match[1]),['https://561.group/','https://561.group/contact/']);
+  assert.deepEqual([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match)=>match[1]),['https://561.group/','https://561.group/approach/','https://561.group/contact/','https://561.group/work/']);
   assert.doesNotMatch(xml,/<lastmod>/);
 });
+const expectedRoutes=['https://561.group/','https://561.group/approach/','https://561.group/contact/','https://561.group/work/'];
+const textRoutes=before['sitemap.txt'].trimEnd().split('\n');
+const xmlRoutes=[...before['sitemap.xml'].matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
+check('text and XML sitemaps are one source-derived route set',()=>{assert.deepEqual(textRoutes,expectedRoutes);assert.deepEqual(xmlRoutes,expectedRoutes);assert.ok(before['sitemap.txt'].endsWith('\n'))});
+for(const route of expectedRoutes) {
+  const url=new URL(route);
+  const pathName=url.pathname==='/'?'index.html':url.pathname.slice(1)+'index.html';
+  const page=await readFile(path.join(app,'public',pathName),'utf8');
+  check('site map links an actual authored page: '+route,()=>{assert.match(page,/<html\b/u);assert.match(page,/<main\b/u)});
+}
+check('different human page types preserve distinct jobs',()=>{
+  assert.match(before['index.html'],/We make research useful/u);
+  assert.match(before['approach/index.html'],/How our research becomes technology/u);
+  assert.match(before['work/index.html'],/Find a project/u);
+  assert.doesNotMatch(before['index.html'],/paraconsistent.*transfinitely-valued/u);
+  assert.doesNotMatch(before['index.html'],/Huidu Guanli|Rendanheyi/u);
+});
 const second=run();check('repeat actual build succeeds',()=>assert.equal(second.status,0,second.stderr));const after=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
-check('all six outputs identical on repeat',()=>assert.deepEqual(after,before));
+check('all nine outputs identical on repeat',()=>assert.deepEqual(after,before));
 for(const [name,extra,pattern] of [['missing source', {PLAY_CATALOG_SOURCES:undefined},/sources are required/],['empty source',{PLAY_CATALOG_SOURCES:'[]'},/nonempty/],['invalid date',{PLAY_CATALOG_DATE:'2026-02-30'},/real UTC date/]]) {const r=run(extra);check(name+' refuses',()=>{assert.notEqual(r.status,0);assert.match(r.stderr,pattern)});}
 await mkdir(path.join(source,'duplicate'));await writeFile(path.join(source,'duplicate/catalog-entry.json'),JSON.stringify(record('new','other.invalid')));let r=run();check('duplicate identity refuses',()=>{assert.notEqual(r.status,0);assert.match(r.stderr,/duplicate game id/)});
 await writeFile(path.join(source,'duplicate/catalog-entry.json'),JSON.stringify(record('another','other.invalid')));

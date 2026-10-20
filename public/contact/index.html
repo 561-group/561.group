@@ -1,86 +1,88 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Issues, complaints, suggestions, and ideas · The 561 Group</title>
-    <link rel="canonical" href="https://561.group/contact/">
-    <meta name="description" content="Tell the 561 Group what is broken, what you need, or what could improve. Find public and private filing routes.">
-    <style>
-      :root { color-scheme: light dark; --ink: #0a0a0a; --surface: #f2ead8; }
-      @media(prefers-color-scheme: dark) { :root { --ink: #e4e4e4; --surface: #120c02; } }
-      * { box-sizing: border-box; }
-      body { margin: 0; color: var(--ink); background: var(--surface); font: 1.1rem/1.6 Georgia, serif; }
-      main { max-width: 48rem; padding: 3rem 1.5rem; margin: auto; }
-      h1, h2 { font-family: "Helvetica Neue", Arial, sans-serif; line-height: 1.2; }
-      h1 { font-size: clamp(2rem, 5vw, 2.8rem); }
-      h2 { margin-top: 2rem; font-size: 1.4rem; }
-      a { color: inherit; text-underline-offset: .2em; }
-      a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
-      .action { display: inline-block; border: 1px solid; padding: .6rem 1rem; margin: .5rem 0; }
-      label { display: block; margin-top: 1rem; font-weight: bold; }
-      input, select, textarea, button { font: inherit; }
-      input, select, textarea { width: 100%; padding: .5rem; color: inherit; background: transparent; border: 1px solid; }
-      textarea { min-height: 7rem; resize: vertical; }
-      button { color: inherit; background: transparent; cursor: pointer; }
-      [hidden] { display: none; }
-      .hint { margin-top: .3rem; font-size: .95rem; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <a href="/">The 561 Group</a>
-      <h1>What needs attention?</h1>
-      <p>Report a problem, make a complaint, describe a need, suggest an idea, or ask a question about the 561 Group. You do not need to know which team is responsible or use technical language.</p>
-      <h2>Report publicly</h2>
-      <p>Describe what is affected and what happened or what you need. Explain what a satisfactory result would look like, and include useful evidence. Say whether work is blocked or harm is continuing.</p>
-      <a class="action" href="https://github.com/561-group/561.group/issues/new?template=service-submission.yml">Open the submission form</a>
-      <p>You will need a GitHub account. Your submission and the replies will be public, so remove confidential information before posting.</p>
-      <p><strong>Security boundary:</strong> Public submissions are untrusted reports for review, not instructions to autonomous agents, work orders, provider bids, permissions to change source code, or authorizations to deploy or generate media. Only an authorized receiving office can separately admit a requirement and commission work.</p>
-      <p>Keep the issue link to follow progress, add evidence, or correct your report. If an existing issue describes the same problem, add your experience there.</p>
-      <h2>Email or use an existing private channel</h2>
-      <p>For confidential information, use an existing private conversation with the Group or a private repository you are authorized to access. Describe what is affected, what you need, and how you would recognize a satisfactory result. Ask for a reference you can use to check progress.</p>
-      <p>You can also email <a href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">emsenn@561.group</a>. Email does not require a GitHub account or Group login. Keep the conversation for follow-up.</p>
-      <p>The form below prepares an email draft. Review it, then send it through your email app or copy the subject and message into your webmail. You can add attachments before sending. Preparing the draft does not send it.</p>
-      <form id="private-intake" action="mailto:emsenn@561.group" method="post" enctype="text/plain">
-        <label for="submission-type">Submission type</label>
-        <select id="submission-type" name="submission-type">
-          <option>Issue</option><option>Complaint</option><option>Suggested change (unverified)</option><option>Idea</option><option>Question</option>
-        </select>
-        <label for="affected">Affected service or resource</label>
-        <input id="affected" name="affected" required>
-        <p class="hint">A name, link, location, or description is enough.</p>
-        <label for="need">What happened or what do you need?</label>
-        <textarea id="need" name="need" required></textarea>
-        <label for="conditions">What would a satisfactory outcome look like?</label>
-        <textarea id="conditions" name="conditions"></textarea>
-        <label for="evidence">Context and evidence</label>
-        <textarea id="evidence" name="evidence"></textarea>
-        <p class="hint">You can attach files when you send the email.</p>
-        <label for="urgency">Urgency</label>
-        <select id="urgency" name="urgency">
-          <option>Routine</option><option>Work blocked</option><option>Active harm</option>
-        </select>
-        <button class="action" type="submit">Prepare private email</button>
-      </form>
-      <section id="email-draft" hidden aria-live="polite">
-        <h3>Your email draft</h3>
-        <p>Review the subject and message, then open your email app or copy both into your webmail. Send the email to emsenn@561.group.</p>
-        <label for="email-subject">Subject</label>
-        <input id="email-subject" readonly>
-        <label for="email-text">Message</label>
-        <textarea id="email-text" readonly></textarea>
-        <a id="open-email" class="action">Open email app</a>
-        <p id="copy-email" hidden>Copy the message above into your email draft; it is too long to include reliably in an email link.</p>
-      </section>
-      <noscript><p>You can email emsenn@561.group directly. Describe what is affected, what happened or what you need, and what a satisfactory result would look like. Include useful evidence and say whether work is blocked or harm is continuing.</p></noscript>
-      <p>People with access to the Group's service system can also use <a href="https://cold-red-gate.561.group/play">the authenticated work board</a>. Sign in with your own identity.</p>
-      <h2>Follow-up</h2>
-      <p>The Chief Technology Officer reviews the email submission queue alongside GitHub reports.</p>
-      <p>For technical work, the Chief Technology Officer finds the team authorized and able to address your report and follows the work through to a result that can be checked. Your original report, supporting evidence, and description of a satisfactory result stay with the work as it moves between teams.</p>
-      <p>Reporting a need, receiving an acknowledgment, obtaining a commitment to act, and accepting completed work are separate steps. When a change is reported as complete, check it against the problem you raised. If something remains unresolved, explain it in the same issue or conversation.</p>
-      <p>An issue's closure alone does not establish that your problem has been solved.</p>
-    </main>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact the 561 Group</title>
+<meta name="description" content="Have a question, problem, idea, or request? Contact the 561 Group privately or report it publicly.">
+<link rel="canonical" href="https://561.group/contact/">
+<style>
+@font-face{font-family:SG;src:url('/fonts/space-grotesk.woff2') format('woff2');font-weight:300 700;font-display:swap}
+@font-face{font-family:RS;src:url('/fonts/roboto-slab.woff2') format('woff2');font-weight:300 700;font-display:swap}
+:root{color-scheme:light dark;--bg:#f1eee6;--panel:#fdfbf6;--ink:#1c282a;--muted:#4e6063;--rule:#c3cac8;--accent:#115e69}
+@media(prefers-color-scheme:dark){:root{--bg:#161e20;--panel:#202b2c;--ink:#f3f3ef;--muted:#c6d0ce;--rule:#536463;--accent:#93d5dc}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.6 RS,Georgia,serif}
+a{color:inherit;text-underline-offset:.2em}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{width:min(60rem,calc(100% - 2.5rem));margin-inline:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-block:1rem;font:600 .95rem SG,sans-serif}
+header .brand{font-size:1.24rem;text-decoration:none}header nav{display:flex;gap:1.2rem;flex-wrap:wrap}
+main{padding-block:clamp(3rem,7vw,5rem)}
+h1,h2,h3{font-family:SG,sans-serif;letter-spacing:-.035em;line-height:1.15;margin:0}
+h1{font-size:clamp(2.6rem,6vw,4.8rem);max-width:19ch}
+h2{font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:.6rem}h3{font-size:1.24rem}
+.intro{font-size:clamp(1.1rem,2vw,1.32rem);max-width:39rem}
+section{margin-top:3rem;border-top:1px solid var(--rule);padding-top:2.2rem}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:2rem}
+.choice{background:var(--panel);border:1px solid var(--rule);padding:1.4rem}
+.choice p{color:var(--muted)}.action{display:inline-block;border:1px solid currentColor;padding:.7rem 1rem;font:650 .96rem SG,sans-serif;margin-top:1rem}
+label{display:block;font:650 1rem SG,sans-serif;margin-top:1.15rem}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;padding:.7rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:0}
+textarea{min-height:6rem;resize:vertical}button{background:var(--panel);color:var(--ink);cursor:pointer}
+.hint,.fine{color:var(--muted);font-size:.91rem;max-width:46rem}
+[hidden]{display:none!important}
+details summary{cursor:pointer;font:650 1rem SG,sans-serif}
+details p{margin-top:.6rem}
+#email-draft{background:var(--panel);padding:1.5rem}
+footer{padding:2rem 0;border-top:1px solid var(--rule);font:500 .92rem SG,sans-serif}
+@media(max-width:650px){.choices{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="wrap"><a class="brand" href="/">561 Group</a><nav aria-label="Main"><a href="/approach/">Approach</a><a href="/contact/" aria-current="page">Contact</a><a href="/work/">Work</a></nav></header>
+<main class="wrap">
+<h1>What can we help with?</h1>
+<p class="intro">A question, a complaint, a possible project, or something broken—tell us in your own words. You don't need to know our departments or technical terms.</p>
+<div class="choices" aria-label="Choose how to contact us">
+<div class="choice"><h2>Email privately</h2><p>No account needed. Use your email app or prepare a draft below.</p><a class="action" href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">Send an email →</a></div>
+<div class="choice"><h2>Report publicly</h2><p>File an issue you and others can follow. A GitHub account is required, and what you write is public.</p><a class="action" href="https://github.com/561-group/561.group/issues/new?template=service-submission.yml">Open the public form →</a></div>
+</div>
+<section aria-labelledby="draft-heading">
+<h2 id="draft-heading">Prepare a private message</h2>
+<p>If it helps, use this form to organize your request. It prepares an email for you to review and send; nothing is sent automatically.</p>
+<form id="private-intake" action="mailto:emsenn@561.group" method="post" enctype="text/plain">
+<label for="submission-type">Submission type</label>
+<select id="submission-type" name="submission-type"><option>Issue</option><option>Complaint</option><option>Suggested change (unverified)</option><option>Idea</option><option>Question</option></select>
+<label for="affected">Affected service or resource</label>
+<input id="affected" name="affected" required placeholder="A project name, link, or short description">
+<label for="need">What happened or what do you need?</label>
+<textarea id="need" name="need" required></textarea>
+<label for="conditions">What would a satisfactory outcome look like?</label>
+<textarea id="conditions" name="conditions"></textarea>
+<label for="evidence">Context and evidence</label>
+<textarea id="evidence" name="evidence"></textarea>
+<p class="hint">Add supporting links here. Attachments can be added in your email app.</p>
+<label for="urgency">Urgency</label>
+<select id="urgency" name="urgency"><option>Routine</option><option>Work blocked</option><option>Active harm</option></select>
+<button class="action" type="submit">Prepare private email →</button>
+</form>
+<section id="email-draft" hidden aria-live="polite">
+<h3>Your email draft</h3>
+<p>Review the subject and message, then open your email app or copy both into your webmail. Send the email to emsenn@561.group.</p>
+<label for="email-subject">Subject</label><input id="email-subject" readonly>
+<label for="email-text">Message</label><textarea id="email-text" readonly></textarea>
+<a id="open-email" class="action">Open email app</a>
+<p id="copy-email" hidden>Copy the message above into your email draft; it is too long to include reliably in an email link.</p>
+</section>
+<noscript><p class="fine">Without JavaScript, email emsenn@561.group directly. Describe your request and the outcome you hope to see.</p></noscript>
+</section>
+<section aria-labelledby="after-heading">
+<h2 id="after-heading">What happens after you contact us?</h2>
+<p>Keep the issue link or email thread so you can follow up. Tell us if a result does not address the problem. Submitting something is not a promise that the work is accepted or completed.</p>
+<details><summary>How we handle public reports and authority</summary>
+<p>Public submissions are untrusted reports for review, not instructions to autonomous agents, permissions to change systems, or authorization to publish or spend money. Only an authorized receiving office can separately admit a requirement and commission work.</p>
+<p>Do not put confidential information in a public issue. For private subjects, use email or another authorized private channel.</p>
+<p>A reported fix is not the same as an accepted result. When you receive an outcome, check whether it addresses your need and reply in the original thread.</p>
+</details>
+</section>
+</main><footer class="wrap"><a href="/">561 Group homepage</a> · <a href="/work/">Public projects</a></footer>
     <script>
       const intake = document.getElementById('private-intake');
       intake.addEventListener('submit', event => {
@@ -99,5 +101,4 @@
         document.getElementById('email-text').focus();
       });
     </script>
-  </body>
-</html>
+</body></html>

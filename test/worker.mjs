@@ -132,5 +132,43 @@ check('original sender, headers, origin and exact activity bytes reach one provi
   assert.equal(arrived.body, authoredActivity);
 });
 
+
+// Received from the original text-sitemap recovery Work (#12). The static
+// discovery route stays with the existing Worker assets before federation.
+const sitemap="https://561.group/\nhttps://561.group/approach/\nhttps://561.group/contact/\nhttps://561.group/work/\n";
+let sitemapFederationCalls=0;
+const sitemapRequests=[];
+const sitemapEnv={
+  ASSETS:{fetch:async request=>{
+    sitemapRequests.push(request);
+    return new Response(request.method==="HEAD"?null:sitemap,{
+      status:200,headers:{"content-type":"text/plain; charset=utf-8"}
+    });
+  }},
+  ACTIVITYPUB_INSTANCE:{fetch:async()=>{sitemapFederationCalls++;throw Error("Static sitemap must not reach federation");}}
+};
+response=await fetchWorker(new Request("https://561.group/sitemap.txt?check=1"),sitemapEnv,ctx);
+const sitemapBody=await response.text();
+check("text sitemap route preserves correct bytes, headers and the original Worker security policy",()=>{
+  assert.equal(response.status,200);
+  assert.equal(sitemapBody,sitemap);
+  assert.equal(response.headers.get("content-type"),"text/plain; charset=utf-8");
+  assert.equal(response.headers.get("x-content-type-options"),"nosniff");
+  assert.equal(sitemapRequests[0].url,"https://561.group/sitemap.txt?check=1");
+});
+response=await fetchWorker(new Request("https://561.group/sitemap.txt",{method:"HEAD"}),sitemapEnv,ctx);
+check("HEAD sitemap is a bodyless original static asset request",()=>{
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get("content-type"),"text/plain; charset=utf-8");
+  assert.equal(sitemapRequests[1].method,"HEAD");
+  assert.equal(sitemapFederationCalls,0);
+});
+response=await fetchWorker(new Request("https://www.561.group/sitemap.txt?check=1"),sitemapEnv,ctx);
+check("www sitemap redirects preserving the same canonical path and query",()=>{
+  assert.equal(response.status,301);
+  assert.equal(response.headers.get("location"),"https://561.group/sitemap.txt?check=1");
+  assert.equal(sitemapRequests.length,2);
+});
+
 console.log(JSON.stringify({passed:count,scope:'Actual authored Worker/told modules with deterministic assets and ActivityPub binding fixtures; not evidence of deployed provider.'}));
 

@@ -2,14 +2,7 @@
   "origin": "https://561.group",
   "name": "The 561 Group",
   "established": "2018",
-  "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through political, financial, and economic volatility.",
-  "masthead": [
-    "Private organization",
-    "Est. MMXVIII",
-    "Offices, not persons",
-    "Status told in four values"
-  ],
-  "address": "This page is written for persons and for agents. Both are welcome. Neither is named.",
+  "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
   "support": {
     "headline": "Keep the commons open.",
     "description": "Help sustain the 561 Group's public research, reusable source, and technical infrastructure through voluntary monthly support.",
@@ -18,202 +11,99 @@
     "terms": "USD $10/month, renewing until canceled. Voluntary support confers no goods, private access, editorial influence, or customer-settlement rights. This is not a tax-deductible charitable contribution. The actual legal seller appears at Stripe checkout. For cancellation or billing help, use the Group's private contact route.",
     "contactUrl": "/contact/#private-intake"
   },
-  "design": {
-    "caveat": "This is design intent, not an implementation receipt. Whether any one part of it is running is a separate question, answered by a dated record.",
-    "sentence": [
-      "A ",
+  "foundation": {
+    "tagline": "Formal mathematics is the foundation of our agentic world.",
+    "headline": "An ontology generated through mathematical research.",
+    "thesis": "The 561 Group develops its entire agentic and institutional ontology from a mathematical research program. The mathematics determines the forms our technologies seek to admit: marks, claims, witnesses, relations, obligations, actors, transitions, and settlements. Its software and operations, in turn, create new obligations for the mathematics.",
+    "orientation": "This is the source dependency, not a list of borrowed technical specialties. Every transition needs its own evidence.",
+    "stages": [
       {
-        "text": "type-theoretic",
-        "note": 1
-      },
-      " distributed operating system providing agentic ",
-      {
-        "text": "MAPE-K",
-        "note": 2
-      },
-      " industrial enterprise resource control systems, organized under a hull of ",
-      {
-        "text": "Huidu Guanli",
-        "note": 3
-      },
-      " principles, orchestrated under a kernel of ",
-      {
-        "text": "Rendanheyi",
-        "note": 4
-      },
-      " micro-enterprise practices, creating a ",
-      {
-        "text": "conurbanized",
-        "note": 5
-      },
-      " ecosystem of agentic nodes."
-    ],
-    "loopLead": "Each node runs as a service loop:",
-    "loop": [
-      {
-        "letter": "M",
-        "phase": "Monitor",
-        "line": [
-          {
-            "text": "paraconsistent",
-            "note": 6
-          },
-          " ",
-          {
-            "text": "transfinitely-valued",
-            "note": 7
-          },
-          " data-monitoring"
-        ]
+        "id": "relationality",
+        "name": "Relationality",
+        "kind": "Philosophical foundation",
+        "account": "Our original relational metaphysics begins with the productive impossibility of absolute relationlessness. Relating is investigated as constitutive, rather than added after independent entities have been assumed.",
+        "limit": "The founding metaphysical argument and its proposed bridge to the formal primitives remain distinct from a completed proof.",
+        "sourceLabel": "Relationality research",
+        "sourceUrl": "https://github.com/lenticule-science/science-services-section/blob/main/services/philosophy-services-section/services/relationality-services-section/README.md"
       },
       {
-        "letter": "A",
-        "phase": "Analyze",
-        "line": [
-          {
-            "text": "content-addressed",
-            "note": 8
-          },
-          " evidence-substrate analyzing"
-        ]
+        "id": "obsmetrologia",
+        "name": "Obsmetrologia",
+        "kind": "Formal mathematical research",
+        "account": "The Lean 4 program follows a generative order: Mark → Utterance → Articulating → Predicating → Positing → Settling, then lawful recoveries of logical, spatial, and dynamical structure. Familiar mathematics is investigated as a downstream projection.",
+        "limit": "A checked theorem establishes its stated result; the full metaphysical-to-formal derivation and particular projections require their own proof receipts.",
+        "sourceLabel": "Obsmetrologia Lean import spine",
+        "sourceUrl": "https://github.com/lenticule-science/obsmetrologia/blob/main/Obsmetrologia.lean"
       },
       {
-        "letter": "P",
-        "phase": "Plan",
-        "line": [
-          {
-            "text": "coordination-free",
-            "note": 9
-          },
-          " deductive-truth planning"
-        ]
+        "id": "sign",
+        "name": "Sign engineering",
+        "kind": "Mathematical software projections",
+        "account": "SignCell, SignChain, SignGraph, and SignCraft carry oriented subject–predicate–object cells, evidence, inference, local-to-global structure, and settlement into executable software. These are consumers of the formal research.",
+        "limit": "A software test is evidence about that implementation; formal correspondence to a mathematical theorem is a separate obligation.",
+        "sourceLabel": "SignCraft settlement source",
+        "sourceUrl": "https://github.com/red-cup-engineering/signcraft/blob/main/src/settle.mjs"
       },
       {
-        "letter": "E",
-        "phase": "Execute",
-        "line": [
-          {
-            "text": "database-proof",
-            "note": 10
-          },
-          " executing"
-        ]
+        "id": "agents",
+        "name": "Agentic institutions",
+        "kind": "Enterprise operation",
+        "account": "MetroPlat and its operating world give the generated concepts institutional consequences through Actors, Offices, permissions, work, evidence, and deontic authority. Operations are where the mathematical commitments meet real receivers.",
+        "limit": "Source existence, configured runtime, authorized execution, and customer-accepted results are distinct observations.",
+        "sourceLabel": "MetroPlat source and receiving contract",
+        "sourceUrl": "https://github.com/red-cup-engineering/metroplat/blob/main/README.md"
       }
     ],
-    "knowledge": {
-      "letter": "K",
-      "phase": "Knowledge",
-      "line": [
-        {
-          "text": "recursively self-improving",
-          "note": 11
-        },
-        " knowledge"
-      ]
-    },
-    "whole": [
-      "Creating, as a whole, an ",
-      {
-        "text": "autonomic",
-        "note": 12
-      },
-      " language-systems ",
-      {
-        "text": "multiplexer",
-        "note": 13
-      },
-      " platform."
-    ],
-    "notes": {
-      "1": "Every capability is a typed unit: an exact input, an exact output, or a typed refusal. Programs and the proofs about them are written in one language.",
-      "2": "Monitor, Analyze, Plan, Execute, over shared Knowledge: the control loop of autonomic computing. Kephart & Chess, “The Vision of Autonomic Computing,” IEEE Computer, 2003.",
-      "3": "灰度管理, “grayscale management”: the management philosophy associated with Huawei founder Ren Zhengfei, which governs through tolerance of ambiguity and compromise instead of black-and-white rulings. Here it shapes the hull, the boundary each cell keeps.",
-      "4": "人单合一, “unity of people and orders”: the model Zhang Ruimin introduced at Haier in 2005, which turns a firm into a network of self-governing micro-enterprises, each answerable directly to its own customers.",
-      "5": "A conurbation is a region where separate towns have grown into one continuous city (Patrick Geddes, Cities in Evolution, 1915). Here: separately accountable nodes grown into one service fabric.",
-      "6": "A logic in which a contradiction does not entail everything. Conflicting records are kept side by side, not overwritten. Belnap, “A Useful Four-Valued Logic,” 1977: told true, told false, told both, told neither.",
-      "7": "Truth values indexed by ordinals rather than drawn from a finite set, so evidence can keep refining past every finite stage of observation.",
-      "8": "Every record is named by a cryptographic hash of its own bytes. The same content always has the same name, and a name can never be quietly re-pointed.",
-      "9": "The CALM theorem (Hellerstein & Alvaro, “Keeping CALM,” 2020): programs whose conclusions only grow can run across many machines without locks or consensus and still agree.",
-      "10": "Execution leaves its own evidence as append-only records. Whether something happened is re-derived from the record, never asserted.",
-      "11": "Each pass of the loop may revise the methods the loop runs on, under the same evidence rules as everything else.",
-      "12": "Self-managing: self-configuring, self-healing, self-optimizing, self-protecting. After IBM's autonomic computing manifesto, 2001.",
-      "13": "One channel carrying many signals. Here: one platform carrying many languages, natural, formal, and machine, among many agents."
-    }
+    "feedback": "Every standards conflict, counterexample, operational obstruction, and receiver-side discrepancy is material for the research-to-engineering-to-operations loop. We use and improve our mathematics to enable our agents, and we use our agents to pressure and improve the mathematics.",
+    "frontier": "Philosophical claim, Lean-checked theorem, verified software correspondence, installed operation, and accepted beneficiary effect are separately evidenced; none is inferred merely from the adjacent stage."
   },
-  "doctrine": [
-    {
-      "text": "Public research and reusable source form a commons. Each enterprise offers its own bounded operation, assurance and support under explicit terms.",
-      "source": "Public Web carrier, July 2026"
-    },
-    {
-      "text": "Sponsorship supports public work. It grants no hidden access, control over findings or claim on customer settlements.",
-      "source": "Public sponsorship policy, July 2026"
-    },
-    {
-      "text": "In an economy where every agent can generate, the only scarce good is the witness.",
-      "source": "Trade doctrine, 2026"
-    },
-    {
-      "text": "Authority is held by offices, not persons.",
-      "source": "Work method"
-    },
-    {
-      "text": "Status is derived by re-running goals, never asserted.",
-      "source": "Record discipline"
-    },
-    {
-      "text": "A price forms only at a counterparty border.",
-      "source": "Internal economy"
-    },
-    {
-      "text": "There is no vantage from which erasure is free; there are only sites that cannot see what was erased.",
-      "source": "On the price of saying, 2026"
-    },
-    {
-      "text": "Supplier completion is not customer acceptance.",
-      "source": "Office invariant"
-    },
-    {
-      "text": "Refusal is a first-class typed outcome.",
-      "source": "Verification stance"
-    },
-    {
-      "text": "The engine is universal; criticality is local.",
-      "source": "Bootstrap doctrine, 2026"
-    },
-    {
-      "text": "The dignity persists across captains.",
-      "source": "Commissioned ships"
-    },
-    {
-      "text": "Each product finds one outside wallet willing to pay one real invoice this quarter, or it is confessed unrealized and goes back on the shelf.",
-      "source": "Trade doctrine, 2026"
-    }
-  ],
-  "told": [
-    {
-      "value": "true",
-      "glyph": "●",
-      "label": "Told true",
-      "means": "answered"
-    },
-    {
-      "value": "both",
-      "glyph": "◐",
-      "label": "Told both",
-      "means": "answered, and refused: payment or credentials required"
-    },
-    {
-      "value": "false",
-      "glyph": "✕",
-      "label": "Told false",
-      "means": "no answer"
-    },
-    {
-      "value": "neither",
-      "glyph": "○",
-      "label": "Told neither",
-      "means": "no reading yet"
-    }
-  ]
+  "public": {
+    "headline": "We make research useful.",
+    "intro": "The 561 Group builds and operates software, publications, and online worlds. Original mathematical research shapes the technology and institutions behind them.",
+    "aim": "Our long-term work advances autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
+    "workHeadline": "There is something here to use.",
+    "workIntro": "Explore a few places where the research meets the public. Each link goes to an actual project, not a presentation about one.",
+    "featured": [
+      {
+        "host": "shop.561.group",
+        "action": "Browse the books",
+        "summary": "Find books and inspect the available editions."
+      },
+      {
+        "host": "farstone.561.group",
+        "action": "Enter Farstone",
+        "summary": "Visit a persistent multiplayer text world."
+      },
+      {
+        "host": "play.561.group",
+        "action": "Find a game",
+        "summary": "Discover games with replayable outcomes."
+      },
+      {
+        "host": "koios.news",
+        "action": "Read Koios.News",
+        "summary": "Follow news with attention to systems and consequences."
+      },
+      {
+        "host": "market.561.group",
+        "action": "Use the machine market",
+        "summary": "Inspect available data and computation, including payment terms."
+      }
+    ],
+    "approachHeadline": "The mathematics comes first.",
+    "approachIntro": "We develop a mathematical account of relations, implement what we can justify, and test the resulting software in the work of actual agents and institutions.",
+    "approachAction": "How the research becomes technology",
+    "contactHeadline": "Have a question or a problem for us?",
+    "contactIntro": "Tell us what you need. You do not need to know our organizational chart or technical language.",
+    "workDirectoryHeadline": "Find a project.",
+    "workDirectoryIntro": "Browse the public services and projects by what they offer. A listed link is an entry point, not a guarantee that every capability is available right now.",
+    "approachPageIntro": "A short map of the original research, the software it informs, and the evidence each step still needs. Explore the underlying sources directly; this is an introduction, not a substitute for the proofs.",
+    "supportIntro": "Help sustain open research and public tools. Contributions are voluntary and do not buy influence, goods, or privileged access.",
+    "approachStages": [
+      "Our philosophy investigates how entities and meaning take form through relating.",
+      "Obsmetrologia formalizes generated mathematical structures in Lean, starting from marks and articulation.",
+      "Sign software represents ordered claims, evidence, inference, graphs, and settlement.",
+      "MetroPlat organizes authorized agents, offices, and work in a functioning enterprise world."
+    ]
+  }
 }

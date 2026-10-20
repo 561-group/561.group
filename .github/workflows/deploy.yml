@@ -1,11 +1,9 @@
 name: Deploy 561.group
 
 # TEMPORARY CONSOLIDATION GATE
-#
-# Do not automatically publish every main-branch change while the 561 Group
-# web estate has multiple competing source/render/deploy implementations.
-# Production deployment is explicit until 561-group/561-group#51 settles a
-# single source → TUFTE render → deploy → public-witness chain for 561.group.
+# Only an explicit source-qualified publication may deploy this site while
+# https://github.com/561-group/561-group/issues/51 remains unresolved.
+# Never deploy a bare checkout: the rendered pages are gitignored.
 on:
   workflow_dispatch:
 
@@ -20,10 +18,68 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Admit only original integrated publication inputs
+        env:
+          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
+        run: |
+          set -eu
+          node --check src/render.mjs
+          node --check scripts/build.mjs
+          node --test test/public-intake-boundary.test.mjs
+          # This site requires @causeway-services/play as workspace:*.
+          # A clean checkout is not the original installed workspace.
+          # Do not silently omit the Play catalog, use fabricated fixtures
+          # or deploy a partial/missing generated HTML directory.
+          test -f pnpm-workspace.yaml || { echo "::error::Original PNPM workspace is not installed; deploy refused"; exit 1; }
+          test -f pnpm-lock.yaml || { echo "::error::Original locked supplier graph is absent; deploy refused"; exit 1; }
+          test -n "$PLAY_CATALOG_SOURCES" || { echo "::error::Source-qualified Play catalog roots are required"; exit 1; }
+      - name: Install exact supplier graph, test and fabricate pages
+        env:
+          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
+        run: |
+          set -eu
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test
+          pnpm build
+      - name: Refuse missing, stale or inconsistent public assets
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          const required=[
+            "public/index.html",
+            "public/approach/index.html",
+            "public/contact/index.html",
+            "public/work/index.html",
+            "public/llms.txt",
+            "public/estate-records.json",
+            "public/robots.txt",
+            "public/sitemap.xml",
+            "public/sitemap.txt"
+          ];
+          for(const file of required){
+            const data=await readFile(file,"utf8");
+            if(data.length<50)throw Error("Missing or empty generated asset: "+file);
+          }
+          const expected=["https://561.group/","https://561.group/approach/","https://561.group/contact/","https://561.group/work/"];
+          const text=(await readFile("public/sitemap.txt","utf8")).trimEnd().split("\n");
+          const xml=[...(await readFile("public/sitemap.xml","utf8")).matchAll(/<loc>([^<]+)<\/loc>/gu)].map(m=>m[1]);
+          if(JSON.stringify(text)!==JSON.stringify(expected)||JSON.stringify(xml)!==JSON.stringify(expected))throw Error("Sitemap and generated pages disagree");
+          const homepage=await readFile("public/index.html","utf8");
+          if(!homepage.includes("We make research useful.")||!homepage.includes("economic, political, and ecological volatility"))throw Error("Current public source is not represented in output");
+          for(const route of ["/approach/","/work/"]) {
+            const page=await readFile("public"+route+"index.html","utf8");
+            if(!page.includes("<main"))throw Error("Required page has no body: "+route);
+          }
+          console.log("Original human and machine pages fabricated and internally consistent");
+          NODE
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.118.0
+          wranglerVersion: 4.127.1
           command: deploy --config wrangler.jsonc
