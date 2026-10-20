@@ -3,6 +3,12 @@ on:
   push:
     paths:
       - public/contact/index.html
+      - data/home.json
+      - data/estate.json
+      - scripts/build.mjs
+      - src/render.mjs
+      - test/build.mjs
+      - test/market-discovery.test.mjs
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
@@ -12,6 +18,12 @@ on:
   pull_request:
     paths:
       - public/contact/index.html
+      - data/home.json
+      - data/estate.json
+      - scripts/build.mjs
+      - src/render.mjs
+      - test/build.mjs
+      - test/market-discovery.test.mjs
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
@@ -29,6 +41,6 @@ jobs:
         with:
           node-version: '24'
       - name: Assay public reporting is read-only and production remains separately authorized
-        run: node --test test/public-intake-boundary.test.mjs
+        run: node --check src/render.mjs && node --check scripts/build.mjs && node --test test/public-intake-boundary.test.mjs
       - name: Exercise the actual Worker, canonical estate and signed federation fallback
         run: node --experimental-vm-modules test/worker.mjs
