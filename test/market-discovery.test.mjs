@@ -181,3 +181,17 @@ test("authored reading text is escaped in HTML while the original choice order s
   assert.match(page, /id="reader-ask"[\s\S]*id="reader-explore"[\s\S]*id="reader-read"[\s\S]*id="reader-use"/u);
   assert.match(page, /class="reader-boundary"/u);
 });
+
+test("social and structured metadata cannot advertise the superseded mission card", () => {
+  const page = renderIndex(home, estate);
+  const embedded = page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
+  assert.ok(embedded);
+  const [organization] = JSON.parse(embedded[1])["@graph"];
+  assert.equal(organization.description, home.description);
+  assert.ok(!Object.hasOwn(organization, "image"),
+    "old card.png prints political/financial/economic, so it cannot be a source-true identity image");
+  assert.doesNotMatch(page, /property="og:image"/u);
+  assert.doesNotMatch(page, /summary_large_image/u);
+  assert.match(page, /<meta name="twitter:card" content="summary">/u);
+  assert.match(page, /<meta property="og:description" content="[^"]*economic, political, and ecological volatility\."/u);
+});
