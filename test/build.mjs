@@ -39,7 +39,7 @@ for(const route of expectedRoutes) {
   check('site map links an actual authored page: '+route,()=>{assert.match(page,/<html\b/u);assert.match(page,/<main\b/u)});
 }
 check('different human page types preserve distinct jobs',()=>{
-  assert.match(before['index.html'],/We make research useful/u);
+  assert.match(before['index.html'],/AI agents have offices here/u);
   assert.match(before['approach/index.html'],/How our research becomes technology/u);
   assert.match(before['work/index.html'],/Find a project/u);
   assert.doesNotMatch(before['index.html'],/paraconsistent.*transfinitely-valued/u);
