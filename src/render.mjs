@@ -55,6 +55,7 @@ function foot(home){
 
 function frame(home,estate,which,title,body){
  const orgId=home.origin+"/#organization",siteId=home.origin+"/#website",pagesId=home.origin+"/#public-pages",url=home.origin+(which==="home"?"/":"/"+which+"/");
+ const pageDescription=which==="home"?home.public.intro:which==="work"?home.public.workDirectoryIntro:which==="approach"?home.public.approachPageIntro:home.description;
  const graph={"@context":"https://schema.org","@graph":[
  {"@type":"Organization","@id":orgId,name:home.name,alternateName:"561 Group",url:home.origin+"/",description:home.description,foundingDate:home.established,logo:home.origin+"/favicon.svg",contactPoint:{"@type":"ContactPoint",contactType:"service intake",url:home.origin+"/contact/"}},
  {"@type":"WebSite","@id":siteId,name:home.name,url:home.origin+"/",description:home.description,publisher:{"@id":orgId},about:{"@id":orgId},mainEntity:{"@id":pagesId}},
@@ -63,10 +64,10 @@ function frame(home,estate,which,title,body){
  const ld=JSON.stringify(graph).replace(/</gu,"\\u003c");
  return `<!doctype html><html lang="en"><head>
  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
- <title>${esc(title)}</title><meta name="description" content="${esc(home.description)}">
+ <title>${esc(title)}</title><meta name="description" content="${esc(pageDescription)}">
  <link rel="canonical" href="${esc(url)}"><meta name="theme-color" content="#f1eee6">
  <meta property="og:type" content="website"><meta property="og:site_name" content="${esc(home.name)}">
- <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(home.description)}">
+ <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(pageDescription)}">
  <meta property="og:url" content="${esc(url)}"><meta name="twitter:card" content="summary">
  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate" type="text/plain" title="For agents" href="/llms.txt">
  <link rel="alternate" type="application/json" title="Public project HTTP readings" href="/estate.json">
