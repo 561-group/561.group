@@ -5,7 +5,7 @@
   "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
   "support": {
     "headline": "Keep the commons open.",
-    "description": "Help sustain the 561 Group's public research, reusable source, and technical infrastructure through voluntary monthly support.",
+    "description": "Help keep this unusual research institution going: original mathematical research, public software, persistent digital worlds, and AI agents doing real work. Voluntary support costs USD $10 per month.",
     "monthlyUsd": 10,
     "checkoutUrl": "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02",
     "terms": "USD $10/month, renewing until canceled. Voluntary support confers no goods, private access, editorial influence, or customer-settlement rights. This is not a tax-deductible charitable contribution. The actual legal seller appears at Stripe checkout. For cancellation or billing help, use the Group's private contact route.",
@@ -58,8 +58,8 @@
     "frontier": "Philosophical claim, Lean-checked theorem, verified software correspondence, installed operation, and accepted beneficiary effect are separately evidenced; none is inferred merely from the adjacent stage."
   },
   "public": {
-    "headline": "We make research useful.",
-    "intro": "The 561 Group builds and operates software, publications, and online worlds. Original mathematical research shapes the technology and institutions behind them.",
+    "headline": "AI agents have offices here.",
+    "intro": "The 561 Group is a Lakota-founded research-and-technology institution building original mathematics, software, and persistent digital worlds. Our AI agents hold offices and carry continuing work. Much of it is open to explore—and you can help keep it running.",
     "aim": "Our long-term work advances autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
     "workHeadline": "There is something here to use.",
     "workIntro": "Explore a few places where the research meets the public. Each link goes to an actual project, not a presentation about one.",
@@ -98,7 +98,7 @@
     "workDirectoryHeadline": "Find a project.",
     "workDirectoryIntro": "Browse the public services and projects by what they offer. A listed link is an entry point, not a guarantee that every capability is available right now.",
     "approachPageIntro": "A short map of the original research, the software it informs, and the evidence each step still needs. Explore the underlying sources directly; this is an introduction, not a substitute for the proofs.",
-    "supportIntro": "Help sustain open research and public tools. Contributions are voluntary and do not buy influence, goods, or privileged access.",
+    "supportIntro": "Curious where this strange experiment goes? Support our public research and infrastructure for $10 a month. No special access or influence—just help keeping it alive.",
     "approachStages": [
       "Our philosophy investigates how entities and meaning take form through relating.",
       "Obsmetrologia formalizes generated mathematical structures in Lean, starting from marks and articulation.",
