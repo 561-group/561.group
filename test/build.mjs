@@ -29,14 +29,14 @@ check('sitemap contains canonical page routes without invented modification date
   assert.doesNotMatch(xml,/<lastmod>/);
 });
 const expectedRoutes=['https://561.group/','https://561.group/approach/','https://561.group/contact/','https://561.group/work/'];
-const textRoutes=before['sitemap.txt'].trimEnd().split('\\n');
-const xmlRoutes=[...before['sitemap.xml'].matchAll(/<loc>([^<]+)<\\/loc>/g)].map(m=>m[1]);
-check('text and XML sitemaps are one source-derived route set',()=>{assert.deepEqual(textRoutes,expectedRoutes);assert.deepEqual(xmlRoutes,expectedRoutes);assert.ok(before['sitemap.txt'].endsWith('\\n'))});
+const textRoutes=before['sitemap.txt'].trimEnd().split('\n');
+const xmlRoutes=[...before['sitemap.xml'].matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
+check('text and XML sitemaps are one source-derived route set',()=>{assert.deepEqual(textRoutes,expectedRoutes);assert.deepEqual(xmlRoutes,expectedRoutes);assert.ok(before['sitemap.txt'].endsWith('\n'))});
 for(const route of expectedRoutes) {
   const url=new URL(route);
   const pathName=url.pathname==='/'?'index.html':url.pathname.slice(1)+'index.html';
   const page=await readFile(path.join(app,'public',pathName),'utf8');
-  check('site map links an actual authored page: '+route,()=>{assert.match(page,/<html\\b/u);assert.match(page,/<main\\b/u)});
+  check('site map links an actual authored page: '+route,()=>{assert.match(page,/<html\b/u);assert.match(page,/<main\b/u)});
 }
 check('different human page types preserve distinct jobs',()=>{
   assert.match(before['index.html'],/We make research useful/u);
