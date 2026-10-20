@@ -377,7 +377,6 @@ export function renderIndex(home, estate) {
         description: home.description,
         foundingDate: home.established,
         logo: `${home.origin}/favicon.svg`,
-        image: `${home.origin}/card.png`,
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "service intake",
@@ -430,11 +429,9 @@ export function renderIndex(home, estate) {
 <meta property="og:title" content="${esc(home.name)}">
 <meta property="og:description" content="${esc(home.description)}">
 <meta property="og:url" content="${home.origin}/">
-<meta property="og:image" content="${home.origin}/card.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="561, in red, over the Group's one-sentence description.">
-<meta name="twitter:card" content="summary_large_image">
+<!-- The archived card.png still embeds the superseded volatility triad.
+     Use a text-only social summary until an exact source-true PNG is received. -->
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
 <link rel="alternate" type="application/json" title="Estate reading" href="/estate.json">
