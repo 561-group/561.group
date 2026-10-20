@@ -308,5 +308,48 @@
       "label": "Told neither",
       "means": "no reading yet"
     }
-  ]
+  ],
+  "public": {
+    "headline": "We make research useful.",
+    "intro": "The 561 Group builds and operates software, publications, and online worlds. Original mathematical research shapes the technology and institutions behind them.",
+    "aim": "Our long-term work advances autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
+    "workHeadline": "There is something here to use.",
+    "workIntro": "Explore a few places where the research meets the public. Each link goes to an actual project, not a presentation about one.",
+    "featured": [
+      {
+        "host": "shop.561.group",
+        "action": "Browse the books",
+        "summary": "Find books and inspect the available editions."
+      },
+      {
+        "host": "farstone.561.group",
+        "action": "Enter Farstone",
+        "summary": "Visit a persistent multiplayer text world."
+      },
+      {
+        "host": "play.561.group",
+        "action": "Find a game",
+        "summary": "Discover games with replayable outcomes."
+      },
+      {
+        "host": "koios.news",
+        "action": "Read Koios.News",
+        "summary": "Follow news with attention to systems and consequences."
+      },
+      {
+        "host": "market.561.group",
+        "action": "Use the machine market",
+        "summary": "Inspect available data and computation, including payment terms."
+      }
+    ],
+    "approachHeadline": "The mathematics comes first.",
+    "approachIntro": "We develop a mathematical account of relations, implement what we can justify, and test the resulting software in the work of actual agents and institutions.",
+    "approachAction": "How the research becomes technology",
+    "contactHeadline": "Have a question or a problem for us?",
+    "contactIntro": "Tell us what you need. You do not need to know our organizational chart or technical language.",
+    "workDirectoryHeadline": "Find a project.",
+    "workDirectoryIntro": "Browse the public services and projects by what they offer. A listed link is an entry point, not a guarantee that every capability is available right now.",
+    "approachPageIntro": "A short map of the original research, the software it informs, and the evidence each step still needs. Explore the underlying sources directly; this is an introduction, not a substitute for the proofs.",
+    "supportIntro": "Help sustain open research and public tools. Contributions are voluntary and do not buy influence, goods, or privileged access."
+  }
 }
