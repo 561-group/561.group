@@ -45,6 +45,66 @@ function nodeTile(node, { door = false } = {}) {
 </a></li>`;
 }
 
+
+/**
+ * These are alternate reader choices, not a theorem sequence or source graph.
+ * Only this site's real first-party routes can be selected; an author supplies
+ * both the action and the explicit limit/repair of the inferred next step.
+ */
+const READER_TARGETS = new Set(["/contact/", "/estate.json", "/llms.txt", "#design", "#estate", "#agents", "#support"]);
+const READER_ID = /^[a-z][a-z0-9-]*$/u;
+function acceptedReaderPaths(home) {
+  if (typeof home.readerIntro !== "string" || !home.readerIntro.trim() || home.readerIntro.length > 400) {
+    throw new TypeError("reader entry needs a bounded introduction");
+  }
+  const paths = home.readerPaths;
+  if (!Array.isArray(paths) || paths.length < 2 || paths.length > 8) {
+    throw new RangeError("reader entry needs two to eight explicit routes");
+  }
+  const ids = new Set();
+  for (const route of paths) {
+    if (!route || typeof route !== "object" || Array.isArray(route) ||
+        typeof route.id !== "string" || !READER_ID.test(route.id) || ids.has(route.id)) {
+      throw new TypeError("reader routes require unique safe identifiers");
+    }
+    ids.add(route.id);
+    for (const key of ["title", "audience", "step", "action", "boundary", "evidenceLabel"]) {
+      if (typeof route[key] !== "string" || !route[key].trim() ||
+          route[key].length > 420 || /[\u0000-\u001f\u007f]/u.test(route[key])) {
+        throw new TypeError("reader route requires bounded " + key);
+      }
+    }
+    for (const key of ["href", "evidenceHref"]) {
+      if (!READER_TARGETS.has(route[key])) {
+        throw new TypeError("reader route has an unsupported first-party destination");
+      }
+    }
+  }
+  // This is an unordered choice of routes; use the house's PTGAE default
+  // lexical ordering rather than quietly suggesting a dependency order.
+  const titles = paths.map((route) => route.title);
+  if (titles.some((title, i) => i > 0 && titles[i - 1].localeCompare(title, "en") > 0)) {
+    throw new TypeError("reader route choices must be alphabetically ordered");
+  }
+  return paths;
+}
+
+function renderReaderPaths(paths) {
+  return '<ul class="reader-paths">'
+    + paths.map((route) =>
+      '<li class="reader-card" id="reader-' + esc(route.id) + '">'
+      + '<h3>' + esc(route.title) + '</h3>'
+      + '<p class="reader-audience">' + esc(route.audience) + '</p>'
+      + '<p class="reader-step"><strong>Reader task:</strong> ' + esc(route.step) + '</p>'
+      + '<p class="reader-action"><a href="' + esc(route.href) + '">' + esc(route.action) + ' <span aria-hidden="true">→</span></a></p>'
+      + '<p class="reader-boundary"><strong>What this does not establish:</strong> ' + esc(route.boundary) + '</p>'
+      + '<details class="reader-gutter"><summary>Inspect the supporting route</summary>'
+      + '<p><a href="' + esc(route.evidenceHref) + '">' + esc(route.evidenceLabel) + '</a></p></details>'
+      + '</li>'
+    ).join("")
+    + '</ul>';
+}
+
 function tickerText(home) {
   const d = home.design;
   const phrases = [plain(d.sentence), ...d.loop.map((l) => plain(l.line)), plain(d.knowledge.line), plain(d.whole)];
@@ -114,6 +174,25 @@ a:focus-visible{outline:3px solid var(--alarm);outline-offset:3px}
 .sec{padding-top:clamp(3rem,7vw,6rem);padding-bottom:clamp(3rem,7vw,6rem)}
 .sec-label{display:flex;gap:.9rem;align-items:baseline;font-family:var(--mono);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;border-top:3px solid currentColor;padding-top:.7rem;margin-bottom:clamp(1.6rem,4vw,3rem)}
 .sec-num{color:var(--alarm-ink);font-weight:700}
+
+
+/* Reader-first pathways are alternative actions, not source-derived proof edges. */
+.reader-head{font-family:var(--sans);font-size:clamp(1.8rem,4.6vw,3.6rem);line-height:1.05;letter-spacing:-.035em;max-width:22em}
+.reader-intro{font-family:var(--serif);font-size:1.06rem;max-width:var(--measure);margin-top:.8rem}
+.reader-paths{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1.8rem}
+.reader-card{display:flex;flex-direction:column;gap:.7rem;min-width:0;padding:clamp(1rem,2.4vw,1.75rem);border:1px solid var(--rule);background:var(--surface-deep)}
+.reader-card h3{font-family:var(--sans);font-size:clamp(1.3rem,2.4vw,1.75rem);line-height:1.2}
+.reader-audience{font-family:var(--serif);font-size:1rem;font-weight:600}
+.reader-step{font-size:.91rem;line-height:1.4}
+.reader-step strong,.reader-boundary strong{font-family:var(--mono);font-size:.77rem}
+.reader-action{margin:.15rem 0}
+.reader-action a{font-family:var(--sans);font-weight:700;text-decoration-thickness:2px;text-underline-offset:.3em}
+.reader-boundary{font-size:.83rem;color:var(--ink-soft);line-height:1.5;border-top:1px solid var(--rule);padding-top:.6rem}
+.reader-gutter{font-family:var(--mono);font-size:.77rem;margin-top:auto}
+.reader-gutter summary{cursor:pointer;list-style:revert;font-weight:600}
+.reader-gutter p{font-family:var(--serif);font-size:.9rem;line-height:1.4;padding:.6rem 0 .1rem}
+.reader-gutter[open] summary{margin-bottom:.2rem}
+@media(max-width:760px){.reader-paths{grid-template-columns:1fr}}
 
 /* intended design */
 .design-sentence{font-family:var(--serif);font-weight:400;font-size:clamp(1.4rem,2.9vw,2.55rem);line-height:1.26;letter-spacing:-.01em;max-width:30em;text-wrap:pretty}
@@ -264,20 +343,21 @@ const SCRIPT = (revision) => `
     var t=document.getElementById("derived");if(t){t.textContent=d.derivedAt.replace("T"," ").slice(0,19)+" UTC";t.setAttribute("datetime",d.derivedAt);}
     var c={"true":0,"both":0,"false":0};d.nodes.forEach(function(n){if(n.told in c)c[n.told]++});
     var s=document.getElementById("tally");if(s)s.textContent=c["true"]+" true · "+c.both+" both · "+c["false"]+" false";
-  }).catch(function(){});
+  }).catch(function(){var s=document.getElementById("tally");if(s)s.textContent="status unavailable; read /estate.json";});
 })();
 `;
 
 export function renderIndex(home, estate) {
   const d = home.design;
   const support = acceptedSupportOffer(home.support);
+  const readerPaths = acceptedReaderPaths(home);
   const doorHosts = new Set(estate.doors);
   const doors = estate.doors.map((h) => estate.nodes.find((n) => n.host === h)).filter(Boolean);
   const groups = estate.groups
     .map((g) => ({ ...g, nodes: estate.nodes.filter((n) => n.group === g.id && !doorHosts.has(n.host)) }))
     .filter((g) => g.nodes.length);
   const notes = Object.entries(d.notes).sort((a, b) => Number(a[0]) - Number(b[0]));
-  const loopCells = ["M", "A", "E", "P"].map((letter) => d.loop.find((l) => l.letter === letter));
+  const loopCells = d.loop; // Preserve the actual M → A → P → E reading/numbering order.
   const ticker = tickerText(home);
   // The original publication record owns the graph. The WebSite points to
   // one public Group entity, while listed nodes are described as linked pages,
@@ -375,7 +455,7 @@ export function renderIndex(home, estate) {
   <strong>561.group</strong>
   <span class="phase-wrap">Loop ▸ <span class="phase" id="phase">Monitor</span></span>
   <span>UTC <time id="clock">--:--:--</time></span>
-  <nav aria-label="Sections"><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#support">Support</a><a href="#agents">Agents</a></nav>
+  <nav aria-label="Sections"><a href="#start">Start</a><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#support">Support</a><a href="#agents">Agents</a><a href="/contact/">Contact</a></nav>
 </div>
 
 <main>
@@ -387,6 +467,13 @@ export function renderIndex(home, estate) {
   <p class="lede">${esc(home.description)}</p>
   <p class="address">${esc(home.address)}</p>
 </header>
+
+<section class="wrap sec reader" id="start" aria-labelledby="start-h">
+  ${sectionLabel(0, "Choose a path")}
+  <h2 class="reader-head" id="start-h">What brought you here?</h2>
+  <p class="reader-intro">${esc(home.readerIntro)}</p>
+  ${renderReaderPaths(readerPaths)}
+</section>
 
 <section class="wrap sec" id="design" aria-labelledby="design-h">
   ${sectionLabel(1, "The intended design")}
@@ -417,6 +504,8 @@ export function renderIndex(home, estate) {
     <p class="band-sub">This reading checks the linked entry pages and reports their HTTP responses. Readings are cached for up to five minutes; they do not prove that the services work.</p>
     <ul class="legend">${home.told.map((t) => `<li><span class="g">${t.glyph}</span> <b>${esc(t.label)}</b>: ${esc(t.means)}</li>`).join("")}</ul>
     <p class="reading">Reading: <time id="derived">pending</time> · <span id="tally">no reading yet</span></p>
+    <p class="reading">Read the <a href="/estate.json">dated HTTP observations</a> directly. A response is not proof of service delivery.</p>
+    <noscript><p class="reading">JavaScript is not required to follow any service link. The original HTTP observations remain available above.</p></noscript>
     <ul class="doors">
       ${doors.map((n) => nodeTile(n, { door: true })).join("\n      ")}
     </ul>
@@ -488,12 +577,19 @@ export function renderIndex(home, estate) {
 export function renderLlms(home, estate) {
   const d = home.design;
   const support = acceptedSupportOffer(home.support);
+  const readerPaths = acceptedReaderPaths(home);
   const byGroup = estate.groups
     .map((g) => ({ g, nodes: estate.nodes.filter((n) => n.group === g.id) }))
     .filter((x) => x.nodes.length);
   return `# ${home.name}
 
 > ${home.description}
+
+## Find your route
+
+${home.readerIntro}
+
+${readerPaths.map((route) => `- **${route.title}** — ${route.audience} ${route.step} [${route.action}](${new URL(route.href, home.origin + "/").href}). What this does not establish: ${route.boundary} [${route.evidenceLabel}](${new URL(route.evidenceHref, home.origin + "/").href}).`).join("\n")}
 
 Intended design: ${plain(d.sentence)} ${d.loopLead} ${d.loop
     .map((l) => `${l.phase.toLowerCase()}: ${plain(l.line)}`)
