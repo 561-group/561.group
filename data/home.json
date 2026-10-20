@@ -36,13 +36,13 @@
     },
     {
       "id": "read",
-      "title": "Read the design",
-      "audience": "You want to understand the Group's methods.",
-      "step": "Follow the design terms and notes, then distinguish those intentions from received effects.",
-      "action": "Inspect the design and notes",
-      "href": "#design",
-      "boundary": "A description of intended architecture does not prove that its components are installed.",
-      "evidenceLabel": "Read the plain-text account",
+      "title": "Read the mathematics",
+      "audience": "You want to understand the Group's agentic ontology.",
+      "step": "Follow the research-to-software dependency and its evidence boundaries before reading the derived architecture.",
+      "action": "Trace the mathematical foundation",
+      "href": "#foundation",
+      "boundary": "A mathematical lineage does not alone certify every proof, software correspondence, or deployed operation.",
+      "evidenceLabel": "Read the agent-facing source account",
       "evidenceHref": "/llms.txt"
     },
     {
@@ -64,6 +64,52 @@
     "checkoutUrl": "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02",
     "terms": "USD $10/month, renewing until canceled. Voluntary support confers no goods, private access, editorial influence, or customer-settlement rights. This is not a tax-deductible charitable contribution. The actual legal seller appears at Stripe checkout. For cancellation or billing help, use the Group's private contact route.",
     "contactUrl": "/contact/#private-intake"
+  },
+  "foundation": {
+    "tagline": "Formal mathematics is the foundation of our agentic world.",
+    "headline": "An ontology generated through mathematical research.",
+    "thesis": "The 561 Group develops its entire agentic and institutional ontology from a mathematical research program. The mathematics determines the forms our technologies seek to admit: marks, claims, witnesses, relations, obligations, actors, transitions, and settlements. Its software and operations, in turn, create new obligations for the mathematics.",
+    "orientation": "This is the source dependency, not a list of borrowed technical specialties. Every transition needs its own evidence.",
+    "stages": [
+      {
+        "id": "relationality",
+        "name": "Relationality",
+        "kind": "Philosophical foundation",
+        "account": "Our original relational metaphysics begins with the productive impossibility of absolute relationlessness. Relating is investigated as constitutive, rather than added after independent entities have been assumed.",
+        "limit": "The founding metaphysical argument and its proposed bridge to the formal primitives remain distinct from a completed proof.",
+        "sourceLabel": "Relationality research",
+        "sourceUrl": "https://github.com/lenticule-science/science-services-section/blob/main/services/philosophy-services-section/services/relationality-services-section/README.md"
+      },
+      {
+        "id": "obsmetrologia",
+        "name": "Obsmetrologia",
+        "kind": "Formal mathematical research",
+        "account": "The Lean 4 program follows a generative order: Mark → Utterance → Articulating → Predicating → Positing → Settling, then lawful recoveries of logical, spatial, and dynamical structure. Familiar mathematics is investigated as a downstream projection.",
+        "limit": "A checked theorem establishes its stated result; the full metaphysical-to-formal derivation and particular projections require their own proof receipts.",
+        "sourceLabel": "Obsmetrologia Lean import spine",
+        "sourceUrl": "https://github.com/lenticule-science/obsmetrologia/blob/main/Obsmetrologia.lean"
+      },
+      {
+        "id": "sign",
+        "name": "Sign engineering",
+        "kind": "Mathematical software projections",
+        "account": "SignCell, SignChain, SignGraph, and SignCraft carry oriented subject–predicate–object cells, evidence, inference, local-to-global structure, and settlement into executable software. These are consumers of the formal research.",
+        "limit": "A software test is evidence about that implementation; formal correspondence to a mathematical theorem is a separate obligation.",
+        "sourceLabel": "SignCraft settlement source",
+        "sourceUrl": "https://github.com/red-cup-engineering/signcraft/blob/main/src/settle.mjs"
+      },
+      {
+        "id": "agents",
+        "name": "Agentic institutions",
+        "kind": "Enterprise operation",
+        "account": "MetroPlat and its operating world give the generated concepts institutional consequences through Actors, Offices, permissions, work, evidence, and deontic authority. Operations are where the mathematical commitments meet real receivers.",
+        "limit": "Source existence, configured runtime, authorized execution, and customer-accepted results are distinct observations.",
+        "sourceLabel": "MetroPlat source and receiving contract",
+        "sourceUrl": "https://github.com/red-cup-engineering/metroplat/blob/main/README.md"
+      }
+    ],
+    "feedback": "Every standards conflict, counterexample, operational obstruction, and receiver-side discrepancy is material for the research-to-engineering-to-operations loop. We use and improve our mathematics to enable our agents, and we use our agents to pressure and improve the mathematics.",
+    "frontier": "Philosophical claim, Lean-checked theorem, verified software correspondence, installed operation, and accepted beneficiary effect are separately evidenced; none is inferred merely from the adjacent stage."
   },
   "design": {
     "caveat": "This is design intent, not an implementation receipt. Whether any one part of it is running is a separate question, answered by a dated record.",
