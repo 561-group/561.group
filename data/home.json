@@ -350,6 +350,12 @@
     "workDirectoryHeadline": "Find a project.",
     "workDirectoryIntro": "Browse the public services and projects by what they offer. A listed link is an entry point, not a guarantee that every capability is available right now.",
     "approachPageIntro": "A short map of the original research, the software it informs, and the evidence each step still needs. Explore the underlying sources directly; this is an introduction, not a substitute for the proofs.",
-    "supportIntro": "Help sustain open research and public tools. Contributions are voluntary and do not buy influence, goods, or privileged access."
+    "supportIntro": "Help sustain open research and public tools. Contributions are voluntary and do not buy influence, goods, or privileged access.",
+    "approachStages": [
+      "Our philosophy investigates how entities and meaning take form through relating.",
+      "Obsmetrologia formalizes generated mathematical structures in Lean, starting from marks and articulation.",
+      "Sign software represents ordered claims, evidence, inference, graphs, and settlement.",
+      "MetroPlat organizes authorized agents, offices, and work in a functioning enterprise world."
+    ]
   }
 }
