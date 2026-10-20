@@ -9,6 +9,7 @@ on:
       - src/render.mjs
       - test/build.mjs
       - test/market-discovery.test.mjs
+      - test/market-discovery-source-receiving.mjs
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
@@ -24,6 +25,7 @@ on:
       - src/render.mjs
       - test/build.mjs
       - test/market-discovery.test.mjs
+      - test/market-discovery-source-receiving.mjs
       - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
       - test/public-intake-boundary.test.mjs
@@ -42,5 +44,7 @@ jobs:
           node-version: '24'
       - name: Assay public reporting is read-only and production remains separately authorized
         run: node --check src/render.mjs && node --check scripts/build.mjs && node --test test/public-intake-boundary.test.mjs
+      - name: Execute original reader assertions with explicitly isolated external serializer
+        run: node --experimental-vm-modules test/market-discovery-source-receiving.mjs
       - name: Exercise the actual Worker, canonical estate and signed federation fallback
         run: node --experimental-vm-modules test/worker.mjs
