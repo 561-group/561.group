@@ -51,7 +51,7 @@ function nodeTile(node, { door = false } = {}) {
  * Only this site's real first-party routes can be selected; an author supplies
  * both the action and the explicit limit/repair of the inferred next step.
  */
-const READER_TARGETS = new Set(["/contact/", "/estate.json", "/llms.txt", "#design", "#estate", "#agents", "#support"]);
+const READER_TARGETS = new Set(["/contact/", "/estate.json", "/llms.txt", "#foundation", "#design", "#estate", "#agents", "#support"]);
 const READER_ID = /^[a-z][a-z0-9-]*$/u;
 function acceptedReaderPaths(home) {
   if (typeof home.readerIntro !== "string" || !home.readerIntro.trim() || home.readerIntro.length > 400) {
@@ -105,9 +105,64 @@ function renderReaderPaths(paths) {
     + '</ul>';
 }
 
+
+/**
+ * The research→formal→software→operation list is source dependency, not a
+ * collection of themes. The homepage renders the original research sources,
+ * while proof/implementation/receiving status stays with those actual owners.
+ */
+const FOUNDATION_IDS = ["relationality", "obsmetrologia", "sign", "agents"];
+const FOUNDATION_SOURCE_OWNERS = new Set(["lenticule-science", "red-cup-engineering"]);
+function acceptedFoundation(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("foundation requires a source-authored research account");
+  }
+  for (const key of ["tagline", "headline", "thesis", "orientation", "feedback", "frontier"]) {
+    if (typeof value[key] !== "string" || !value[key].trim() ||
+        value[key].length > 1100 || /[\u0000-\u001f\u007f]/u.test(value[key])) {
+      throw new TypeError("foundation requires a bounded " + key);
+    }
+  }
+  if (!Array.isArray(value.stages) || value.stages.length !== FOUNDATION_IDS.length ||
+      value.stages.some((stage, i) => !stage || stage.id !== FOUNDATION_IDS[i])) {
+    throw new TypeError("foundation must preserve the generative order");
+  }
+  for (const stage of value.stages) {
+    for (const key of ["name", "kind", "account", "limit", "sourceLabel"]) {
+      if (typeof stage[key] !== "string" || !stage[key].trim() ||
+          stage[key].length > 900 || /[\u0000-\u001f\u007f]/u.test(stage[key])) {
+        throw new TypeError("foundation stage requires a bounded " + key);
+      }
+    }
+    let url;
+    try { url = new URL(stage.sourceUrl); } catch { throw new TypeError("foundation needs an admissible source URL"); }
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (url.protocol !== "https:" || url.hostname !== "github.com" ||
+        url.username || url.password || url.search || url.hash || url.port ||
+        !FOUNDATION_SOURCE_OWNERS.has(parts[0]) || !parts[1] || parts.length < 4 ||
+        !["blob", "tree"].includes(parts[2])) {
+      throw new TypeError("foundation source must link to the original qualified research/software location");
+    }
+  }
+  return value;
+}
+function renderFoundationStages(foundation) {
+  return '<ol class="foundation-chain">'
+    + foundation.stages.map((stage) =>
+      '<li id="foundation-' + esc(stage.id) + '">'
+      + '<p class="foundation-kind">' + esc(stage.kind) + '</p>'
+      + '<h3>' + esc(stage.name) + '</h3>'
+      + '<p>' + esc(stage.account) + '</p>'
+      + '<p class="foundation-limit"><strong>Evidence boundary:</strong> ' + esc(stage.limit) + '</p>'
+      + '<p class="foundation-source"><a href="' + esc(stage.sourceUrl) + '" rel="noopener noreferrer">' + esc(stage.sourceLabel) + ' ↗</a></p>'
+      + '</li>'
+    ).join("")
+    + '</ol>';
+}
+
 function tickerText(home) {
   const d = home.design;
-  const phrases = [plain(d.sentence), ...d.loop.map((l) => plain(l.line)), plain(d.knowledge.line), plain(d.whole)];
+  const phrases = [home.foundation.headline, ...home.foundation.stages.map((stage) => stage.name), plain(d.sentence), ...d.loop.map((l) => plain(l.line)), plain(d.knowledge.line), plain(d.whole)];
   return phrases.map((p) => esc(p.replace(/\.$/, ""))).join(" <b>✶</b> ") + " <b>✶</b> ";
 }
 
@@ -193,6 +248,23 @@ a:focus-visible{outline:3px solid var(--alarm);outline-offset:3px}
 .reader-gutter p{font-family:var(--serif);font-size:.9rem;line-height:1.4;padding:.6rem 0 .1rem}
 .reader-gutter[open] summary{margin-bottom:.2rem}
 @media(max-width:760px){.reader-paths{grid-template-columns:1fr}}
+
+
+/* Source-ordered generative foundation, preceding downstream system design. */
+.foundation-hero{font-family:var(--sans);font-weight:700;font-size:clamp(1.12rem,2.1vw,1.6rem);letter-spacing:-.02em;max-width:32em;margin-top:1.3rem}
+.foundation-head{font-family:var(--sans);font-weight:700;font-size:clamp(2rem,5vw,4.5rem);line-height:1.07;letter-spacing:-.04em;max-width:19em}
+.foundation-thesis{font-family:var(--serif);font-size:clamp(1.14rem,2vw,1.55rem);line-height:1.4;max-width:43em;margin-top:1.3rem}
+.foundation-orientation,.foundation-feedback{font-family:var(--serif);font-size:1.07rem;line-height:1.48;max-width:var(--measure);margin-top:1rem}
+.foundation-chain{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.3rem 2.4rem;margin-top:2.1rem;padding-left:1.5rem}
+.foundation-chain li{min-width:0;padding:1.2rem .3rem 1.1rem .5rem;border-top:3px solid var(--ink);line-height:1.5}
+.foundation-chain li::marker{font-family:var(--mono);font-size:.83rem;color:var(--alarm-ink)}
+.foundation-chain h3{font-family:var(--sans);font-size:clamp(1.35rem,2.2vw,1.9rem);line-height:1.2;margin:.2rem 0 .9rem}
+.foundation-kind,.foundation-limit,.foundation-source{font-size:.81rem}
+.foundation-kind{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
+.foundation-limit{color:var(--ink-soft);margin-top:1rem;border-top:1px solid var(--rule);padding-top:.75rem}
+.foundation-source{font-family:var(--mono);margin-top:.55rem}
+.foundation-frontier{font-family:var(--mono);font-size:.8rem;line-height:1.6;color:var(--ink-soft);max-width:var(--measure);margin-top:1rem}
+@media(max-width:760px){.foundation-chain{grid-template-columns:1fr}}
 
 /* intended design */
 .design-sentence{font-family:var(--serif);font-weight:400;font-size:clamp(1.4rem,2.9vw,2.55rem);line-height:1.26;letter-spacing:-.01em;max-width:30em;text-wrap:pretty}
@@ -351,6 +423,7 @@ export function renderIndex(home, estate) {
   const d = home.design;
   const support = acceptedSupportOffer(home.support);
   const readerPaths = acceptedReaderPaths(home);
+  const foundation = acceptedFoundation(home.foundation);
   const doorHosts = new Set(estate.doors);
   const doors = estate.doors.map((h) => estate.nodes.find((n) => n.host === h)).filter(Boolean);
   const groups = estate.groups
@@ -452,7 +525,7 @@ export function renderIndex(home, estate) {
   <strong>561.group</strong>
   <span class="phase-wrap">Loop ▸ <span class="phase" id="phase">Monitor</span></span>
   <span>UTC <time id="clock">--:--:--</time></span>
-  <nav aria-label="Sections"><a href="#start">Start</a><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#support">Support</a><a href="#agents">Agents</a><a href="/contact/">Contact</a></nav>
+  <nav aria-label="Sections"><a href="#start">Start</a><a href="#foundation">Foundation</a><a href="#design">Design</a><a href="#estate">Estate</a><a href="#doctrine">Doctrine</a><a href="#support">Support</a><a href="#agents">Agents</a><a href="/contact/">Contact</a></nav>
 </div>
 
 <main>
@@ -462,6 +535,7 @@ export function renderIndex(home, estate) {
     <ul class="masthead">${home.masthead.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>
   </div>
   <p class="lede">${esc(home.description)}</p>
+  <p class="foundation-hero">${esc(foundation.tagline)}</p>
   <p class="address">${esc(home.address)}</p>
 </header>
 
@@ -472,8 +546,18 @@ export function renderIndex(home, estate) {
   ${renderReaderPaths(readerPaths)}
 </section>
 
+<section class="wrap sec" id="foundation" aria-labelledby="foundation-h">
+  ${sectionLabel(1, "The mathematical foundation")}
+  <h2 class="foundation-head" id="foundation-h">${esc(foundation.headline)}</h2>
+  <p class="foundation-thesis">${esc(foundation.thesis)}</p>
+  <p class="foundation-orientation">${esc(foundation.orientation)}</p>
+  ${renderFoundationStages(foundation)}
+  <p class="foundation-feedback">${esc(foundation.feedback)}</p>
+  <p class="foundation-frontier">${esc(foundation.frontier)}</p>
+</section>
+
 <section class="wrap sec" id="design" aria-labelledby="design-h">
-  ${sectionLabel(1, "The intended design")}
+  ${sectionLabel(2, "The intended design")}
   <h2 class="visually-hidden" id="design-h">The intended design</h2>
   <p class="design-sentence">${inline(d.sentence)}</p>
   <p class="caveat">${esc(d.caveat)}</p>
@@ -496,7 +580,7 @@ export function renderIndex(home, estate) {
 
 <section class="band sec" id="estate" aria-labelledby="estate-h">
   <div class="wrap">
-    ${sectionLabel(2, "The conurbation")}
+    ${sectionLabel(3, "The conurbation")}
     <h2 class="band-title" id="estate-h"><span class="count">${estate.nodes.length}</span> public nodes.</h2>
     <p class="band-sub">This reading checks the linked entry pages and reports their HTTP responses. Readings are cached for up to five minutes; they do not prove that the services work.</p>
     <ul class="legend">${home.told.map((t) => `<li><span class="g">${t.glyph}</span> <b>${esc(t.label)}</b>: ${esc(t.means)}</li>`).join("")}</ul>
@@ -518,20 +602,20 @@ export function renderIndex(home, estate) {
 </section>
 
 <section class="wrap sec" id="doctrine" aria-labelledby="doctrine-h">
-  ${sectionLabel(3, "Doctrine")}
+  ${sectionLabel(4, "Doctrine")}
   <h2 class="visually-hidden" id="doctrine-h">Doctrine</h2>
   <ol class="doctrine">
     ${home.doctrine
       .map(
         (q, i) =>
-          `<li${q.text.length > 90 ? ' class="long"' : ""}><blockquote>${esc(q.text).replace(/\S+-\S+/g, (w) => `<span class="nw">${w}</span>`)}</blockquote><span class="src"><b>§3.${i + 1}</b> · ${esc(q.source)}</span></li>`,
+          `<li${q.text.length > 90 ? ' class="long"' : ""}><blockquote>${esc(q.text).replace(/\S+-\S+/g, (w) => `<span class="nw">${w}</span>`)}</blockquote><span class="src"><b>§4.${i + 1}</b> · ${esc(q.source)}</span></li>`,
       )
       .join("\n    ")}
   </ol>
 </section>
 
 <section class="wrap sec" id="support" aria-labelledby="support-h">
-  ${sectionLabel(4, "Sustaining support")}
+  ${sectionLabel(5, "Sustaining support")}
   <h2 id="support-h" class="support-head">${esc(support.headline)}</h2>
   <p class="support-copy">${esc(support.description)}</p>
   <p class="support-action"><a href="${esc(support.checkoutUrl)}" rel="noopener noreferrer">Support public work · USD $${esc(String(support.monthlyUsd))}/month ↗</a></p>
@@ -539,7 +623,7 @@ export function renderIndex(home, estate) {
 </section>
 
 <section class="wrap sec" id="agents" aria-labelledby="agents-h">
-  ${sectionLabel(5, "For agents")}
+  ${sectionLabel(6, "For agents")}
   <div class="agents">
     <div>
       <h2 id="agents-h">If you are an <em>agent</em>, you are expected.</h2>
@@ -575,6 +659,7 @@ export function renderLlms(home, estate) {
   const d = home.design;
   const support = acceptedSupportOffer(home.support);
   const readerPaths = acceptedReaderPaths(home);
+  const foundation = acceptedFoundation(home.foundation);
   const byGroup = estate.groups
     .map((g) => ({ g, nodes: estate.nodes.filter((n) => n.group === g.id) }))
     .filter((x) => x.nodes.length);
@@ -587,6 +672,22 @@ export function renderLlms(home, estate) {
 ${home.readerIntro}
 
 ${readerPaths.map((route) => `- **${route.title}** — ${route.audience} ${route.step} [${route.action}](${new URL(route.href, home.origin + "/").href}). What this does not establish: ${route.boundary} [${route.evidenceLabel}](${new URL(route.evidenceHref, home.origin + "/").href}).`).join("\n")}
+
+## Mathematical foundation
+
+${foundation.tagline}
+
+${foundation.headline}
+
+${foundation.thesis}
+
+${foundation.orientation}
+
+${foundation.stages.map((stage, index) => `${index + 1}. **${stage.name}** (${stage.kind}) — ${stage.account} Evidence boundary: ${stage.limit} [${stage.sourceLabel}](${stage.sourceUrl}).`).join("\n")}
+
+${foundation.feedback}
+
+${foundation.frontier}
 
 Intended design: ${plain(d.sentence)} ${d.loopLead} ${d.loop
     .map((l) => `${l.phase.toLowerCase()}: ${plain(l.line)}`)
