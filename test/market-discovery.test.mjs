@@ -98,3 +98,86 @@ test("the support channel refuses spoofed Stripe links or unqualified prices", (
   }
   assert.throws(() => renderLlms({ ...home, support: { ...home.support, monthlyUsd: 0 } }, estate), /positive whole-dollar monthly price/u);
 });
+
+test("Leader's ordered economic–political–ecological mission propagates into every reader", () => {
+  const exact = "through economic, political, and ecological volatility.";
+  assert.ok(home.description.endsWith(exact));
+  assert.doesNotMatch(home.description, /political, financial, and economic volatility/u);
+  const page = renderIndex(home, estate);
+  const machine = renderLlms(home, estate);
+  assert.match(page, /through economic, political, and ecological volatility/u);
+  assert.match(machine, /through economic, political, and ecological volatility/u);
+  assert.match(page, /<meta name="description" content="[^"]*economic, political, and ecological volatility\."/u);
+  const graph = JSON.parse(page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u)[1])["@graph"];
+  assert.equal(graph[0].description, home.description);
+  assert.equal(graph[1].description, home.description);
+});
+
+test("MAPE-K visual and semantic reading sequence follows the authored plan", () => {
+  assert.deepEqual(home.design.loop.map(step => step.letter), ["M", "A", "P", "E"]);
+  const page = renderIndex(home, estate);
+  const cells = [...page.matchAll(/<div class="cell" data-letter="([MAPE])">/gu)].map(m => m[1]);
+  assert.deepEqual(cells, ["M", "A", "P", "E"],
+    "page order must not show Execute before Plan or depend on 2-D positioning");
+  const phases = [...page.matchAll(/<span class="phase-name">(0[1-4]) · ([A-Za-z]+)<\/span>/gu)]
+    .map(m => [m[1],m[2]]);
+  assert.deepEqual(phases,[["01","Monitor"],["02","Analyze"],["03","Plan"],["04","Execute"]]);
+});
+
+test("visitor work has native action, declared limit and evidence/repair before design", () => {
+  const page = renderIndex(home, estate);
+  const machine = renderLlms(home, estate);
+  assert.ok(page.indexOf('id="start"') > page.indexOf('class="wrap hero"'));
+  assert.ok(page.indexOf('id="start"') < page.indexOf('id="design"'),
+    "reader should choose an action before parsing the architecture");
+  assert.match(page, /<nav aria-label="Sections">[^<]*<a href="#start">Start<\/a>/u);
+  assert.match(page, /<a href="\/contact\/">Contact<\/a><\/nav>/u);
+  assert.match(page, /<ul class="reader-paths">/u);
+  assert.match(page, /<details class="reader-gutter"><summary>Inspect the supporting route<\/summary>/u);
+  assert.match(page, /What this does not establish:/u);
+  assert.match(page, /<noscript><p class="reading">/u);
+  assert.match(page, /href="\/estate.json">dated HTTP observations/u);
+  assert.match(machine, /## Find your route/u);
+  assert.equal((page.match(/class="reader-card"/gu) ?? []).length, home.readerPaths.length);
+  const ids = ["ask", "explore", "read", "use"];
+  assert.deepEqual(home.readerPaths.map(r => r.id), ids);
+  for (const route of home.readerPaths) {
+    assert.match(page, new RegExp('id="reader-' + route.id + '"'));
+    assert.match(page, new RegExp('href="' + route.href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + '"'));
+    assert.ok(page.includes(route.boundary), "the consequence limit must be visible: " + route.id);
+    assert.ok(machine.includes(route.boundary), "the agent also receives the same limit: " + route.id);
+    assert.ok(machine.includes(new URL(route.href, home.origin + "/").href));
+    assert.ok(machine.includes(new URL(route.evidenceHref, home.origin + "/").href));
+  }
+});
+
+test("first-party reader route admission refuses unsupported or malformed transitions", () => {
+  const reject = (change) => {
+    const changed = structuredClone(home);
+    change(changed);
+    assert.throws(() => renderIndex(changed, estate), /reader/u);
+    assert.throws(() => renderLlms(changed, estate), /reader/u);
+  };
+  reject(h => { h.readerPaths[0].href = "https://untrusted.invalid/intake"; });
+  reject(h => { h.readerPaths[0].href = "javascript:alert(1)"; });
+  reject(h => { h.readerPaths[1].evidenceHref = "//another.host/"; });
+  reject(h => { h.readerPaths[0].id = "bad id"; });
+  reject(h => { h.readerPaths[1].id = "ask"; });
+  reject(h => { h.readerPaths[0].boundary = ""; });
+  reject(h => { h.readerPaths[0].step = "wrong\nnew line"; });
+  reject(h => { h.readerPaths.reverse(); });
+  reject(h => { h.readerPaths = []; });
+  reject(h => { h.readerIntro = ""; });
+});
+
+test("authored reading text is escaped in HTML while the original choice order stays fixed", () => {
+  const changed = structuredClone(home);
+  const malicious = '<img src=x onerror="doNotRun()">';
+  changed.readerPaths[0].step = malicious;
+  changed.readerPaths[1].boundary = malicious;
+  const page = renderIndex(changed, estate);
+  assert.doesNotMatch(page, /<img src=x onerror=/u);
+  assert.match(page, /&lt;img src=x onerror=&quot;doNotRun\(\)&quot;&gt;/u);
+  assert.match(page, /id="reader-ask"[\s\S]*id="reader-explore"[\s\S]*id="reader-read"[\s\S]*id="reader-use"/u);
+  assert.match(page, /class="reader-boundary"/u);
+});
