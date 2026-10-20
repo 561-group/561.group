@@ -195,3 +195,58 @@ test("social and structured metadata cannot advertise the superseded mission car
   assert.match(page, /<meta name="twitter:card" content="summary">/u);
   assert.match(page, /<meta property="og:description" content="[^"]*economic, political, and ecological volatility\."/u);
 });
+
+test("formal mathematical ontology generates the public story before the downstream architecture", () => {
+  const ids = ["relationality", "obsmetrologia", "sign", "agents"];
+  assert.deepEqual(home.foundation.stages.map(stage => stage.id), ids);
+  const page = renderIndex(home, estate);
+  const machine = renderLlms(home, estate);
+  assert.ok(page.indexOf('id="foundation"') > page.indexOf('id="start"'),
+    "visitor choices are alternative next actions before the explanatory dependency");
+  assert.ok(page.indexOf('id="foundation"') < page.indexOf('id="design"'),
+    "mathematical generative dependency must be shown before derived system design");
+  assert.ok(page.indexOf('class="foundation-hero"') < page.indexOf('id="foundation"'));
+  assert.match(page, /<ol class="foundation-chain">/u,
+    "the research-to-agent transition is a true ordered dependency, not unordered marketing themes");
+  assert.match(page, /<a href="#foundation">Foundation<\/a>/u);
+  assert.match(machine, /## Mathematical foundation/u);
+  assert.equal(home.readerPaths[2].href, "#foundation");
+  assert.match(page, /Formal mathematics is the foundation of our agentic world/u);
+  assert.match(machine, /Formal mathematics is the foundation of our agentic world/u);
+  assert.match(page, /Mark → Utterance → Articulating → Predicating → Positing → Settling/u);
+  assert.match(machine, /Mark → Utterance → Articulating → Predicating → Positing → Settling/u);
+  let previous = -1;
+  for (const stage of home.foundation.stages) {
+    const here = page.indexOf('id="foundation-' + stage.id + '"');
+    assert.ok(here > previous, stage.id + " must follow its source predecessor");
+    previous = here;
+    assert.ok(page.includes(stage.sourceUrl), stage.id + " source must be publicly inspectable");
+    assert.ok(machine.includes(stage.sourceUrl), stage.id + " source must be inspectable by agents");
+    assert.ok(page.includes(stage.limit), stage.id + " must carry its local evidence boundary");
+    assert.ok(machine.includes(stage.limit), stage.id + " must preserve its evidence boundary for agents");
+  }
+  assert.match(page, /customer-accepted results are distinct observations/u);
+  assert.match(machine, /Lean-checked theorem, verified software correspondence, installed operation/u);
+});
+
+test("mathematical source admission rejects false order, missing boundaries, spoofed source and injected markup", () => {
+  const reject = change => {
+    const copy = structuredClone(home);
+    change(copy);
+    assert.throws(() => renderIndex(copy, estate), /foundation/u);
+    assert.throws(() => renderLlms(copy, estate), /foundation/u);
+  };
+  reject(copy => { copy.foundation.stages.reverse(); });
+  reject(copy => { copy.foundation.stages[1].limit = ""; });
+  reject(copy => { copy.foundation.stages[2].sourceUrl = "https://github.com.evil.invalid/red-cup-engineering/signcraft"; });
+  reject(copy => { copy.foundation.stages[2].sourceUrl = "javascript:alert(1)"; });
+  reject(copy => { copy.foundation.thesis = ""; });
+  const copy = structuredClone(home);
+  copy.foundation.stages[1].account = '<script>alert("math")</script>';
+  const page = renderIndex(copy, estate);
+  assert.doesNotMatch(page, /<script>alert\("math"\)<\/script>/u);
+  assert.match(page, /&lt;script&gt;alert/u);
+  const machine = renderLlms(copy, estate);
+  assert.ok(machine.includes(copy.foundation.stages[1].account),
+    "the text-facing account preserves literal source text without executing markup");
+});
