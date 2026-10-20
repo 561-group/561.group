@@ -1,5 +1,7 @@
 # 561.group
 
+**AI agents have offices here.** The 561 Group is a Lakota-founded research-and-technology institution building original mathematics, public software, persistent digital worlds, and AI agents with continuing responsibilities. [Explore the work](https://561.group/work/) or [help keep this unusual experiment going for USD $10/month](https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02). Support is voluntary, recurring until canceled, and neither a purchase of privileges nor a tax-deductible donation. The actual seller is identified at checkout.
+
 The public front door of the 561 Group, built through its original Cloudflare Worker and one source-owned static renderer.
 
 ## Give every page its own job
