@@ -1,0 +1,51 @@
+# Site reader-closure qualification: 561.group
+
+**Owner:** Original 561 Group apex-site source, this repository.  
+**Date admitted:** 2026-10-20.  
+**Source intent:** Improve the actual public reader's ability to identify the Group, select a lawful next action, and inspect what that action really establishes. Do not create a second math/comics theory, general GUI renderer, agency, TUFTE component or machine endpoint here.
+
+## Source owners and demand
+
+- [Group homepage correction and whole-page audit #17](https://github.com/561-group/561.group/issues/17) governs the mission's exact **economic, political, and ecological** sequence and requires assessment of the entire source→live page. The phrase is an explicit corporate/PTGAE exception to the general alphabetical-list convention; it must remain in that order everywhere it is emitted.
+- [561 Theory source-indexed gutter research](https://github.com/lenticule-science/561-theory/pull/12) improves the actual mathematical-communication classify-gap method. [TUFTE's authored-reading source](https://github.com/red-cup-engineering/web-page-tiling-engine/pull/15) proposes a reusable, no-script sequence projector; that draft is **not** an installed dependency or a license to import a second content/proof authority.
+- The Group's original [operational method](https://github.com/561-group/561-group-services-section/blob/main/content/text/glossary/concepts/method-for-work-in-the-561-group.md) requires receiving against the actual beneficiary, method improvement before execution, and independent evidence of external effects.
+
+## Why the gutter matters on the public website
+
+A mathematical **panel** frames a claim; the **gutter** between panels is the work the reader must complete to move from one to another. On a corporate website the important transitions include **purpose → appropriate service**, **service listing → actual availability**, **submitted request → institutional commitment**, **technical design → deployed capability**, and **catalog metadata → lawful transaction**.
+
+An HTML link supplies a route, not an inference license. A responding HTTP entry is not a customer-received product. A design description is not evidence of installation. A filed request is not a promise. An agent catalog is not permission to buy. Merely placing two visual blocks next to each other does not produce a causal, mathematical, commercial or organizational relation. The site must make the reader's task and these limits legible, with the original evidence/repair destination accessible where possible.
+
+**Site-specific receiving tactic:** Put a compact, semantically unordered **choice of reader routes** immediately after the mission, before the original detailed design. These are *alternatives*, not a fake proof sequence or a new TUFTE renderer. Each route carries an intended audience, a concrete reader task, an actionable native anchor, a visible boundary on what the action can establish, and a linked explanation/repair. The existing `data/home.json` is the source of route wording; the original `src/render.mjs` renders both human HTML and `llms.txt` from it. Source-owned cards are not ontology edges or proof-status resources.
+
+## Initial adversarial source audit (2026-10-20)
+
+| Observation | Evidence at source or public reading | Classification | Repair and refusal |
+| --- | --- | --- | --- |
+| The mission names political, financial and economic volatility, omitting ecological and giving the wrong sequence | `data/home.json.description`, Issue #17 / corporate #248 | **Observed source defect, governing wording settled** | Replace only the exact triad with **economic, political, and ecological**, retain mission verbs and aims, assert generated metadata/JSON-LD/`llms.txt` parity |
+| Homepage loop is displayed M, A, E, P while the authored MAPE-K and browser animation are M, A, P, E | `src/render.mjs` `loopCells` versus `data/home.json.design.loop` and `SCRIPT` | **Observed reading-order defect** | Render cells in authored M-A-P-E DOM order; ensure numbering and visible/screen-reader reading order agree, including narrow layout. Don't infer a proof from the diagram |
+| Source first teaches a densely technical design, with no reader-task selector before it; intake is only in footer and agent machine list | `renderIndex`, homepage retrieved by public Web reading (recent crawl, not a live Chromium test) | **Observed information-architecture affordance gap** | Offer audience/task-based next steps first; retain design notes, actual published node listing, doctrine, existing intake, legal support terms and full machine interface |
+| Dynamic HTTP statuses read `pending` without JS and the access route is far away | `renderIndex` `Reading: pending` and client `SCRIPT` | **Observed progressive-enhancement gap** | Provide a native visible/no-script reference to `/estate.json` and name its bounded evidence (HTTP response only). Do not present a result as measured before the client receives it |
+| Source has a real voluntary support offer while a retrieved public homepage snapshot lacks it | `data/home.json.support` and PR #14 vs public crawler's HTML; timing/cache/installation unknown | **Source/public difference; cause unverified** | Retain source receipt and independent Cloudflare/public release readback; do not claim a broken deploy, conversion or live support widget from snapshots alone |
+| The long conurbation directory puts many services behind category headings and lengthy descriptions | `data/estate.json` + generated Play catalog; 33 nodes in a recent public reading | **Observed scale, outcome hypothesis** | Test whether choosing a reader task before browsing improves qualified navigation; don't invent measured conversion improvement or silently hide nodes |
+
+No user interviews, mobile-browser acceptance, independent source-install or task-completion experiment is claimed by this audit.
+
+## Operating method for each following site change
+
+1. **Recover demand and source.** Read original issue/PR/branch state, `data/home.json`, `data/estate.json`, renderer, original source-owned contact page, actual build, and current external public HTML/JSON. Trace originating Group requirements and relevant Science/TUFTE work. Distinguish proposed copy from settled mission language.
+2. **Name a real user task and transition.** State the intended audience, before/after panels, requested action, whether closure is routine/productive/disciplinary/unaccountable for that audience, the evidence/repair locator, and what cannot legitimately follow. If the target is unknown or unauthorized, refuse rather than invent a web link or claim.
+3. **Use the original producer.** Source copy in `data/home.json` and estate descriptors in `data/estate.json`, render HTML/`llms.txt` via `src/render.mjs`, keep HTTP/HTML/schema.org/JSON-LD/site routing in their current owners. Do not build a shadow asset catalogue, new protocol dialect or alternative homepage. Follow the original TUFTE consumer when installed; meanwhile make a bounded site-specific semantic navigation improvement, not a copy of TUFTE's reusable sequence API.
+4. **Prove source refusal and consistency.** Check intended order and exact PTGAE exception, all destinations against this site's actual authored routes, strong text escaping, keyboard-readable native HTML, no-script fallback, honest status and legal/payment wording. Run at least: accepted paths, an alternative legitimate route, malformed/unsafe/unsupported path, and both HTML and agent text outputs from the same source. Do not change source-owned `/contact/`, worker probing rights, payment credential boundary or unpublished service identity in this work.
+5. **Receive separately.** Record (a) committed source identity, (b) Node >=24.2 + installed workspace full `pnpm test`/`pnpm build` results, (c) independent page checks with JS off and on, 320/390/760/1280 CSS px, keyboard+screen-reader order and focus, and (d) gated Cloudflare deployment and readback of homepage, `/contact/`, `/estate.json`, `/llms.txt`, JSON-LD, CSP and original support link. No claim of production until (d) is observed.
+6. **Gather actual external pressure.** Give previously unfamiliar readers, including screen-reader and agent users, four tasks: **ask for work, explore a service, read the design honestly, inspect machine access**. Compare old and changed pages with randomized order and predeclared success criteria: correct destination, accurate explanation of what that destination proves and doesn't prove, number of unsupported claims, time/clicks, and whether a user can find remedy/intake. Preserve individual privacy and avoid hidden tracking without consent. No fabricated conversion metrics.
+
+## Ready-to-run source checks
+
+- `node --test test/market-discovery.test.mjs`: exact domain triad in source, rendered lede, meta description and JSON-LD/`llms.txt`; authored MAPE-K DOM order; all reader routes and repairs; site-owned target admission and dangerous-input refusal; original support policy.
+- `pnpm test` and `pnpm build` in the original installed version-pinned workspace; check all original old tests. Do not replace missing workspace suppliers with fake data.
+- Browser acceptance must exercise *both* a keyboard user without JS and a mobile viewport, including expanded repair apparatus, hidden/non-hidden statuses, supporting source URLs and actual contact completion route. A visible card alone is not evidence that a reader understood it.
+
+## Cross-system receiving
+
+Science should study whether showing the exact reader task + source/repair boundary improves explanation and plan reconstruction for an intended audience. Engineering TUFTE can use the apex case as a real consumer pressure test for authored sequence, source links, and no-JS accessibility **without** importing the apex's site-specific editorial text or conflating navigation choices with theorem panels. Causeway should receive the public site only when visitors actually see it. This site audit is a baseline, not the final theory or the last website review.
