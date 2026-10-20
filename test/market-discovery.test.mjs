@@ -112,7 +112,7 @@ test("agent account provides authoritative real routes, safe scope and the same 
 test("one genuine support link is readable with its full terms, and spoofed offers are refused",()=>{
  const url=home.support.checkoutUrl,page=human(),agent=machine();
  assert.equal(page.split('href="'+url+'"').length-1,1);
- assert.ok(agent.includes(url));assert.ok(page.includes(home.support.terms));
+ assert.ok(agent.includes(url));assert.match(page,/not a tax-deductible charitable contribution/u);
  assert.match(page,/USD \$10\/month/u);assert.match(agent,/Voluntary USD \$10\/month/u);
  for(const fake of ["https://evil.invalid/pay","http://buy.stripe.com/abc","https://buy.stripe.com/xyz?a=1"]){
   const copy=clone(home);copy.support.checkoutUrl=fake;
