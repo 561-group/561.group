@@ -16,6 +16,8 @@ The page's early **Choose a path** section derives four honest visitor actions f
 
 The MAPE-K explanatory cells must render in the original source order **Monitor → Analyze → Plan → Execute**. Visual reordering that places Execute before Plan is a communication defect, even when decorative numeric labels correctly say 04 and 03. The site also gives readers the raw `/estate.json` link when status enhancement is absent or fails; HTTP status is not proof of service effect.
 
+The original `public/card.png` social-preview image still visually prints the superseded political/financial/economic mission. Until its pixels are regenerated and received from the current description, the page **does not advertise** that stale image through schema.org or Open Graph; text-only `twitter:card=summary` avoids a contradictory large-card claim. Preserve the original PNG as historical source until replaced correctly, and inspect the regenerated asset before restoring a large social card. This is a known, explicit pending receiving obligation, not the permanent desired design.
+
 The source-level gate is `node --test test/market-discovery.test.mjs`; the full installed gate is `pnpm test && pnpm build` with the required Play sources and Node >=24.2. Browser/mobile/no-script and real Cloudflare publication are **separate** receiving obligations; a branch, PR, isolated V8 test or GitHub merge cannot claim public deployment. The existing production workflow remains manually gated. The Science [gutter research PR](https://github.com/lenticule-science/561-theory/pull/12) and the Engineering [TUFTE reading projector PR](https://github.com/red-cup-engineering/web-page-tiling-engine/pull/15) supply the adjacent research and reusable UI contracts.
 
 ## Layout
