@@ -83,7 +83,13 @@ test("research explanation is separate, readable and ordered by actual dependenc
 
 test("metas and JSON-LD use one genuine Organization while preserving source-truth and no script escape",()=>{
  const page=human();
- assert.match(page,/<meta name="description" content="[^"]*economic, political, and ecological volatility\."/u);
+ assert.match(page,/<meta name="description" content="The 561 Group builds and operates software/u);
+ const summaryOf=html=>html.match(/<meta name="description" content="([^"]+)">/u)?.[1];
+ assert.equal(summaryOf(page),home.public.intro);
+ assert.equal(summaryOf(renderWork(home,estate)),home.public.workDirectoryIntro);
+ assert.equal(summaryOf(renderApproach(home,estate)),home.public.approachPageIntro);
+ assert.equal(new Set([summaryOf(page),summaryOf(renderWork(home,estate)),summaryOf(renderApproach(home,estate))]).size,3);
+
  const txt=page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u)?.[1];
  assert.ok(txt);
  const data=JSON.parse(txt);
