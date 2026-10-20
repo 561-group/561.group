@@ -1,252 +1,175 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { renderIndex, renderLlms } from "../src/render.mjs";
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+import {renderIndex,renderWork,renderApproach,renderLlms,renderSitemap,renderSitemapText} from "../src/render.mjs";
 
-const estate = JSON.parse(await readFile(new URL("../data/estate.json", import.meta.url), "utf8"));
-const home = JSON.parse(await readFile(new URL("../data/home.json", import.meta.url), "utf8"));
+const root=new URL("../",import.meta.url);
+const home=JSON.parse(await readFile(new URL("data/home.json",root),"utf8"));
+const estate=JSON.parse(await readFile(new URL("data/estate.json",root),"utf8"));
+const human=()=>renderIndex(home,estate);
+const machine=()=>renderLlms(home,estate);
+const clone=x=>structuredClone(x);
 
-test("corporate public face never hardcodes a stale market offer/skill count", () => {
-  const market = estate.nodes.find(row => row.host === "market.561.group");
-  assert.ok(market);
-  assert.match(market.line, /seller's priced computations|x402 terms/u);
-  assert.doesNotMatch(market.line, /\b(?:[0-9]+|sixty-one)\s+(?:skills|operations|routes)\b/iu);
-  const card = estate.machine.find(row => row.url === "https://market.561.group/.well-known/agent-card.json");
-  assert.ok(card);
-  assert.doesNotMatch(card.what, /\b(?:[0-9]+|sixty-one)\s+skills\b/iu);
+test("machine market preserves original x402, A2A and MCP authorities without fabricated quantities",()=>{
+ const urls=[
+  "https://market.561.group/.well-known/agent-card.json",
+  "https://market.561.group/.well-known/x402.json",
+  "https://market.561.group/.well-known/x402-service.json",
+  "https://market.561.group/v1/catalog",
+  "https://market.561.group/llms.txt",
+  "https://market.561.group/mcp"
+ ];
+ for(const url of urls)assert.equal(estate.machine.filter(x=>x.url===url).length,1);
+ assert.equal(estate.machine.filter(x=>x.url.startsWith("https://market.561.group")).length,6);
+ const market=estate.nodes.find(x=>x.host==="market.561.group");
+ assert.match(market.line,/seller's priced computations|x402 terms/u);
+ assert.doesNotMatch(market.line,/\b\d+\s+skills\b/iu);
 });
 
-test("agents discover a single market's x402, A2A and MCP faces, not new shadow inventories", () => {
-  const expected = [
-    ["GET", "https://market.561.group/.well-known/agent-card.json"],
-    ["GET", "https://market.561.group/.well-known/x402.json"],
-    ["GET", "https://market.561.group/.well-known/x402-service.json"],
-    ["GET", "https://market.561.group/v1/catalog"],
-    ["GET", "https://market.561.group/llms.txt"],
-    ["POST", "https://market.561.group/mcp"],
-  ];
-  for(const [verb,url] of expected) {
-    assert.equal(estate.machine.filter(row => row.verb === verb && row.url === url).length, 1,
-      "one authored endpoint: " + url);
-  }
-  assert.equal(estate.machine.filter(row => row.url.startsWith("https://market.561.group")).length,
-    expected.length,"no alternate market catalogs, signing endpoints or invented escrow wallets");
-  assert.ok(estate.machine.every(row => row.url.startsWith("https://")));
+test("homepage does its proper job instead of displaying the encyclopedia",()=>{
+ const page=human();
+ const main=page.match(/<main id="main">([\s\S]*?)<\/main>/u)?.[1];
+ assert.ok(main,"one main landmark");
+ assert.equal((main.match(/<h1>/gu)||[]).length,1);
+ assert.match(main,/<h1>We make research useful\.<\/h1>/u);
+ assert.match(main,/href="#work">Explore the work/u);
+ assert.match(main,/href="\/contact\/">Get in touch/u);
+ assert.ok(main.length<5500,"reader's core page must remain concise");
+ assert.doesNotMatch(main,/Huidu Guanli|Rendanheyi|transfinitely-valued|MAPE-K|Knaster/u);
+ assert.doesNotMatch(page,/class="ticker"|id="clock"|data-phase=/u);
 });
 
-test("homepage JSON-LD binds one named Group organization to the site and the visible public pages", () => {
-  const page = renderIndex(home, estate);
-  const embedded = page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
-  assert.ok(embedded, "homepage must publish JSON-LD");
-  const graph = JSON.parse(embedded[1]);
-  assert.equal(graph["@context"], "https://schema.org");
-  assert.equal(graph["@graph"].length, 3);
-  const [org, site, list] = graph["@graph"];
-  assert.equal(org["@id"], "https://561.group/#organization");
-  assert.equal(org.name, home.name);
-  assert.equal(org.description, home.description);
-  assert.equal(org.logo, "https://561.group/favicon.svg");
-  assert.deepEqual(org.contactPoint, {
-    "@type": "ContactPoint",
-    contactType: "service intake",
-    url: "https://561.group/contact/",
-  });
-  assert.match(page, /href="\/contact\/"/u, "the contact destination is visible to visitors");
-  assert.equal(site["@id"], "https://561.group/#website");
-  assert.equal(site.publisher["@id"], org["@id"]);
-  assert.equal(site.mainEntity["@id"], list["@id"]);
-  assert.deepEqual(list.itemListElement.map(row => row.item.url),
-    estate.nodes.map(row => row.url ?? `https://${row.host}/`));
-  assert.deepEqual(list.itemListElement.map(row => row.item.name), estate.nodes.map(row => row.name));
-  assert.ok(list.itemListElement.every(row => row.item["@type"] === "WebPage"),
-    "the Group must not claim corporate ownership merely by linking to a page");
+test("each featured link is an actual authored public door with a clear reader action",()=>{
+ const page=human();
+ assert.equal((page.match(/class="card"/gu)||[]).length,5);
+ for(const entry of home.public.featured){
+  const n=estate.nodes.find(n=>n.host===entry.host);
+  assert.ok(estate.doors.includes(n.host));
+  assert.ok(page.includes('href="'+(n.url||"https://"+n.host+"/")+'"'));
+  assert.ok(page.includes(entry.action));
+  assert.ok(page.includes(entry.summary));
+ }
+ assert.match(page,/href="\/work\/">See the full project directory/u);
 });
 
-test("JSON-LD preserves public text without permitting script-breaking markup", () => {
-  const maliciousText = "</script><script>alert('no')</script>";
-  const changed = {
-    ...estate,
-    nodes: [{ ...estate.nodes[0], line: maliciousText }, ...estate.nodes.slice(1)],
-  };
-  const html = renderIndex(home, changed);
-  assert.doesNotMatch(html, /<script>alert\('no'\)<\/script>/u);
-  const captured = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
-  assert.ok(captured);
-  const data = JSON.parse(captured[1]);
-  assert.equal(data["@graph"][2].itemListElement[0].item.description, maliciousText);
+test("directory is a separate page-type and retains every authored public project",()=>{
+ const page=renderWork(home,estate);
+ assert.match(page,/<h1>Find a project\.<\/h1>/u);
+ assert.equal((page.match(/<h1>/gu)||[]).length,1);
+ for(const n of estate.nodes) {
+  assert.ok(page.includes(">"+n.name+" →</a>"),"missing project "+n.name);
+  assert.ok(page.includes(n.line),"missing description "+n.name);
+ }
+ assert.match(page,/\/estate\.json/u);
+ assert.doesNotMatch(page,/<time[^>]*id="derived"/u);
 });
 
-test("accepted Stripe support checkout is visible to people and agents with true monthly terms", () => {
-  const support = home.support;
-  assert.equal(support.monthlyUsd, 10);
-  assert.match(support.checkoutUrl, /^https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+$/u);
-  const page = renderIndex(home, estate);
-  const machineText = renderLlms(home, estate);
-  assert.equal(page.split(`href="${support.checkoutUrl}"`).length - 1, 1, "one real hosted checkout in the public page");
-  assert.match(page, /Support public work · USD \$10\/month/u);
-  assert.match(machineText, /Voluntary USD \$10\/month/u);
-  assert.ok(machineText.includes(support.checkoutUrl), "agent-readable text selects the same checkout");
-  assert.match(page, /until canceled/u);
-  assert.match(page, /not a tax-deductible charitable contribution/u);
-  assert.match(page, /Request private billing help/u);
-  assert.doesNotMatch(page, /href="[^"]*ai-visibility-audit[^"]*"/u, "inactive paid audit remains gated");
+test("research explanation is separate, readable and ordered by actual dependency",()=>{
+ const page=renderApproach(home,estate);
+ assert.match(page,/How our research becomes technology\./u);
+ assert.equal((page.match(/<h1>/gu)||[]).length,1);
+ assert.match(page,/<ol class="steps">/u);
+ let prev=-1;
+ for(let i=0;i<4;i++){
+  const stage=home.foundation.stages[i];
+  const at=page.indexOf('>'+stage.name+'</h2>');
+  assert.ok(at>prev,"source phase order: "+stage.name);prev=at;
+  assert.ok(page.includes(home.public.approachStages[i]));
+  assert.ok(page.includes(stage.sourceUrl));
+  assert.ok(page.includes(stage.limit));
+ }
+ assert.match(page,/What our software accomplishes/u);
 });
 
-test("the support channel refuses spoofed Stripe links or unqualified prices", () => {
-  for (const url of ["http://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02", "https://evil.invalid/collect", "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02?redirect=evil"]) {
-    assert.throws(() => renderIndex({ ...home, support: { ...home.support, checkoutUrl: url } }, estate), /accepted exact Stripe checkout URL/u);
-  }
-  assert.throws(() => renderLlms({ ...home, support: { ...home.support, monthlyUsd: 0 } }, estate), /positive whole-dollar monthly price/u);
+test("metas and JSON-LD use one genuine Organization while preserving source-truth and no script escape",()=>{
+ const page=human();
+ assert.match(page,/<meta name="description" content="[^"]*economic, political, and ecological volatility\."/u);
+ const txt=page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u)?.[1];
+ assert.ok(txt);
+ const data=JSON.parse(txt);
+ const [org,site,list]=data["@graph"];
+ assert.equal(org.description,home.description);
+ assert.equal(site.publisher["@id"],org["@id"]);
+ assert.equal(org.logo,"https://561.group/favicon.svg");
+ assert.deepEqual(list.itemListElement.map(x=>x.item.url),estate.nodes.map(n=>n.url||"https://"+n.host+"/"));
+ assert.ok(list.itemListElement.every(x=>x.item["@type"]==="WebPage"));
+ assert.doesNotMatch(page,/property="og:image"|summary_large_image/u,"outdated social card remains withdrawn");
 });
 
-test("Leader's ordered economic–political–ecological mission propagates into every reader", () => {
-  const exact = "through economic, political, and ecological volatility.";
-  assert.ok(home.description.endsWith(exact));
-  assert.doesNotMatch(home.description, /political, financial, and economic volatility/u);
-  const page = renderIndex(home, estate);
-  const machine = renderLlms(home, estate);
-  assert.match(page, /through economic, political, and ecological volatility/u);
-  assert.match(machine, /through economic, political, and ecological volatility/u);
-  assert.match(page, /<meta name="description" content="[^"]*economic, political, and ecological volatility\."/u);
-  const graph = JSON.parse(page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u)[1])["@graph"];
-  assert.equal(graph[0].description, home.description);
-  assert.equal(graph[1].description, home.description);
+test("agent account provides authoritative real routes, safe scope and the same institutional aim",()=>{
+ const txt=machine();
+ assert.ok(txt.includes(home.public.aim));
+ for(const path of ["/approach/","/contact/","/work/","/estate.json"])assert.ok(txt.includes("https://561.group"+path));
+ for(const n of estate.nodes)assert.ok(txt.includes(n.name),"agent misses "+n.name);
+ for(const m of estate.machine)assert.ok(txt.includes(m.url),"agent misses "+m.url);
+ for(let i=0;i<4;i++) {
+  assert.ok(txt.includes(home.public.approachStages[i]));
+  assert.ok(txt.includes(home.foundation.stages[i].limit));
+ }
+ assert.doesNotMatch(txt,/Huidu Guanli|Rendanheyi/u);
 });
 
-test("MAPE-K visual and semantic reading sequence follows the authored plan", () => {
-  assert.deepEqual(home.design.loop.map(step => step.letter), ["M", "A", "P", "E"]);
-  const page = renderIndex(home, estate);
-  const cells = [...page.matchAll(/<div class="cell" data-letter="([MAPE])">/gu)].map(m => m[1]);
-  assert.deepEqual(cells, ["M", "A", "P", "E"],
-    "page order must not show Execute before Plan or depend on 2-D positioning");
-  const phases = [...page.matchAll(/<span class="phase-name">(0[1-4]) · ([A-Za-z]+)<\/span>/gu)]
-    .map(m => [m[1],m[2]]);
-  assert.deepEqual(phases,[["01","Monitor"],["02","Analyze"],["03","Plan"],["04","Execute"]]);
+test("one genuine support link is readable with its full terms, and spoofed offers are refused",()=>{
+ const url=home.support.checkoutUrl,page=human(),agent=machine();
+ assert.equal(page.split('href="'+url+'"').length-1,1);
+ assert.ok(agent.includes(url));assert.ok(page.includes(home.support.terms));
+ assert.match(page,/USD \$10\/month/u);assert.match(agent,/Voluntary USD \$10\/month/u);
+ for(const fake of ["https://evil.invalid/pay","http://buy.stripe.com/abc","https://buy.stripe.com/xyz?a=1"]){
+  const copy=clone(home);copy.support.checkoutUrl=fake;
+  assert.throws(()=>renderIndex(copy,estate),/accepted exact Stripe checkout URL/u);
+ }
+ const copy=clone(home);copy.support.monthlyUsd=0;
+ assert.throws(()=>renderLlms(copy,estate),/positive whole-dollar monthly price/u);
 });
 
-test("visitor work has native action, declared limit and evidence/repair before design", () => {
-  const page = renderIndex(home, estate);
-  const machine = renderLlms(home, estate);
-  assert.ok(page.indexOf('id="start"') > page.indexOf('class="wrap hero"'));
-  assert.ok(page.indexOf('id="start"') < page.indexOf('id="design"'),
-    "reader should choose an action before parsing the architecture");
-  assert.match(page, /<nav aria-label="Sections">[^<]*<a href="#start">Start<\/a>/u);
-  assert.match(page, /<a href="\/contact\/">Contact<\/a><\/nav>/u);
-  assert.match(page, /<ul class="reader-paths">/u);
-  assert.match(page, /<details class="reader-gutter"><summary>Inspect the supporting route<\/summary>/u);
-  assert.match(page, /What this does not establish:/u);
-  assert.match(page, /<noscript><p class="reading">/u);
-  assert.match(page, /href="\/estate.json">dated HTTP observations/u);
-  assert.match(machine, /## Find your route/u);
-  assert.equal((page.match(/class="reader-card"/gu) ?? []).length, home.readerPaths.length);
-  const ids = ["ask", "explore", "read", "use"];
-  assert.deepEqual(home.readerPaths.map(r => r.id), ids);
-  for (const route of home.readerPaths) {
-    assert.match(page, new RegExp('id="reader-' + route.id + '"'));
-    assert.match(page, new RegExp('href="' + route.href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + '"'));
-    assert.ok(page.includes(route.boundary), "the consequence limit must be visible: " + route.id);
-    assert.ok(machine.includes(route.boundary), "the agent also receives the same limit: " + route.id);
-    assert.ok(machine.includes(new URL(route.href, home.origin + "/").href));
-    assert.ok(machine.includes(new URL(route.evidenceHref, home.origin + "/").href));
-  }
+test("unsafe homepage/source edits refuse rather than silently corrupt a reader path",()=>{
+ const invalid=[
+  c=>{c.public.featured.reverse()},
+  c=>{c.public.featured[0].host="unlisted.invalid"},
+  c=>{c.public.approachStages=[]},
+  c=>{c.public.headline=""},
+  c=>{c.foundation.stages.reverse()},
+  c=>{c.foundation.stages[1].limit=""},
+  c=>{c.foundation.stages[2].sourceUrl="https://github.com.evil.invalid/a/b/blob/main/x"},
+  c=>{c.foundation.stages[2].sourceUrl="javascript:alert(1)"},
+  c=>{c.public.aim="volatility"},
+ ];
+ for(const change of invalid) {
+  const copy=clone(home);change(copy);
+  assert.throws(()=>renderIndex(copy,estate));
+  assert.throws(()=>renderLlms(copy,estate));
+ }
 });
 
-test("first-party reader route admission refuses unsupported or malformed transitions", () => {
-  const reject = (change) => {
-    const changed = structuredClone(home);
-    change(changed);
-    assert.throws(() => renderIndex(changed, estate), /reader/u);
-    assert.throws(() => renderLlms(changed, estate), /reader/u);
-  };
-  reject(h => { h.readerPaths[0].href = "https://untrusted.invalid/intake"; });
-  reject(h => { h.readerPaths[0].href = "javascript:alert(1)"; });
-  reject(h => { h.readerPaths[1].evidenceHref = "//another.host/"; });
-  reject(h => { h.readerPaths[0].id = "bad id"; });
-  reject(h => { h.readerPaths[1].id = "ask"; });
-  reject(h => { h.readerPaths[0].boundary = ""; });
-  reject(h => { h.readerPaths[0].step = "wrong\nnew line"; });
-  reject(h => { h.readerPaths.reverse(); });
-  reject(h => { h.readerPaths = []; });
-  reject(h => { h.readerIntro = ""; });
+test("authored text escapes in HTML but source stays intact in JSON-LD",()=>{
+ const attack='</script><script>alert("untrusted")</script>';
+ const changed=clone(home);changed.public.intro=attack;
+ const html=renderIndex(changed,estate);
+ assert.doesNotMatch(html,/<script>alert\("untrusted"\)<\/script>/u);
+ assert.match(html,/&lt;\/script&gt;&lt;script&gt;alert/u);
+ const estateCopy=clone(estate);estateCopy.nodes[0].line=attack;
+ const page=renderIndex(home,estateCopy);
+ const txt=page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u)?.[1];
+ assert.equal(JSON.parse(txt)["@graph"][2].itemListElement[0].item.description,attack);
 });
 
-test("authored reading text is escaped in HTML while the original choice order stays fixed", () => {
-  const changed = structuredClone(home);
-  const malicious = '<img src=x onerror="doNotRun()">';
-  changed.readerPaths[0].step = malicious;
-  changed.readerPaths[1].boundary = malicious;
-  const page = renderIndex(changed, estate);
-  assert.doesNotMatch(page, /<img src=x onerror=/u);
-  assert.match(page, /&lt;img src=x onerror=&quot;doNotRun\(\)&quot;&gt;/u);
-  assert.match(page, /id="reader-ask"[\s\S]*id="reader-explore"[\s\S]*id="reader-read"[\s\S]*id="reader-use"/u);
-  assert.match(page, /class="reader-boundary"/u);
+test("sitemaps enumerate only real supported page types and retain route parity",()=>{
+ const expected=["https://561.group/","https://561.group/approach/","https://561.group/contact/","https://561.group/work/"];
+ const xml=renderSitemap(home);
+ const plain=renderSitemapText(home);
+ const xmlUrls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/gu)].map(x=>x[1]);
+ assert.deepEqual(xmlUrls,expected);
+ assert.deepEqual(plain.trimEnd().split("\n"),expected);
+ assert.ok(plain.endsWith("\n"));
 });
 
-test("social and structured metadata cannot advertise the superseded mission card", () => {
-  const page = renderIndex(home, estate);
-  const embedded = page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/u);
-  assert.ok(embedded);
-  const [organization] = JSON.parse(embedded[1])["@graph"];
-  assert.equal(organization.description, home.description);
-  assert.ok(!Object.hasOwn(organization, "image"),
-    "old card.png prints political/financial/economic, so it cannot be a source-true identity image");
-  assert.doesNotMatch(page, /property="og:image"/u);
-  assert.doesNotMatch(page, /summary_large_image/u);
-  assert.match(page, /<meta name="twitter:card" content="summary">/u);
-  assert.match(page, /<meta property="og:description" content="[^"]*economic, political, and ecological volatility\."/u);
-});
-
-test("formal mathematical ontology generates the public story before the downstream architecture", () => {
-  const ids = ["relationality", "obsmetrologia", "sign", "agents"];
-  assert.deepEqual(home.foundation.stages.map(stage => stage.id), ids);
-  const page = renderIndex(home, estate);
-  const machine = renderLlms(home, estate);
-  assert.ok(page.indexOf('id="foundation"') > page.indexOf('id="start"'),
-    "visitor choices are alternative next actions before the explanatory dependency");
-  assert.ok(page.indexOf('id="foundation"') < page.indexOf('id="design"'),
-    "mathematical generative dependency must be shown before derived system design");
-  assert.ok(page.indexOf('class="foundation-hero"') < page.indexOf('id="foundation"'));
-  assert.match(page, /<ol class="foundation-chain">/u,
-    "the research-to-agent transition is a true ordered dependency, not unordered marketing themes");
-  assert.match(page, /<a href="#foundation">Foundation<\/a>/u);
-  assert.match(machine, /## Mathematical foundation/u);
-  assert.equal(home.readerPaths[2].href, "#foundation");
-  assert.match(page, /Formal mathematics is the foundation of our agentic world/u);
-  assert.match(machine, /Formal mathematics is the foundation of our agentic world/u);
-  assert.match(page, /Mark → Utterance → Articulating → Predicating → Positing → Settling/u);
-  assert.match(machine, /Mark → Utterance → Articulating → Predicating → Positing → Settling/u);
-  let previous = -1;
-  for (const stage of home.foundation.stages) {
-    const here = page.indexOf('id="foundation-' + stage.id + '"');
-    assert.ok(here > previous, stage.id + " must follow its source predecessor");
-    previous = here;
-    assert.ok(page.includes(stage.sourceUrl), stage.id + " source must be publicly inspectable");
-    assert.ok(machine.includes(stage.sourceUrl), stage.id + " source must be inspectable by agents");
-    assert.ok(page.includes(stage.limit), stage.id + " must carry its local evidence boundary");
-    assert.ok(machine.includes(stage.limit), stage.id + " must preserve its evidence boundary for agents");
-  }
-  assert.match(page, /customer-accepted results are distinct observations/u);
-  assert.match(machine, /Lean-checked theorem, verified software correspondence, installed operation/u);
-});
-
-test("mathematical source admission rejects false order, missing boundaries, spoofed source and injected markup", () => {
-  const reject = change => {
-    const copy = structuredClone(home);
-    change(copy);
-    assert.throws(() => renderIndex(copy, estate), /foundation/u);
-    assert.throws(() => renderLlms(copy, estate), /foundation/u);
-  };
-  reject(copy => { copy.foundation.stages.reverse(); });
-  reject(copy => { copy.foundation.stages[1].limit = ""; });
-  reject(copy => { copy.foundation.stages[2].sourceUrl = "https://github.com.evil.invalid/red-cup-engineering/signcraft"; });
-  reject(copy => { copy.foundation.stages[2].sourceUrl = "javascript:alert(1)"; });
-  reject(copy => { copy.foundation.thesis = ""; });
-  const copy = structuredClone(home);
-  copy.foundation.stages[1].account = '<script>alert("math")</script>';
-  const page = renderIndex(copy, estate);
-  assert.doesNotMatch(page, /<script>alert\("math"\)<\/script>/u);
-  assert.match(page, /&lt;script&gt;alert/u);
-  const machine = renderLlms(copy, estate);
-  assert.ok(machine.includes(copy.foundation.stages[1].account),
-    "the text-facing account preserves literal source text without executing markup");
+test("all three human templates retain accessible navigation, single main, and no JavaScript dependence",()=>{
+ for(const page of [human(),renderApproach(home,estate),renderWork(home,estate)]){
+  assert.match(page,/href="#main">Skip to content/u);
+  assert.match(page,/<main id="main">/u);
+  assert.match(page,/<nav class="site-nav" aria-label="Main">/u);
+  assert.match(page,/<html lang="en">/u);
+  assert.match(page,/@media\(max-width:700px\)/u);
+  assert.doesNotMatch(page,/<script(?! type="application\/ld\+json")/u);
+ }
 });
