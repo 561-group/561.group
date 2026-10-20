@@ -81,7 +81,7 @@ export function renderIndex(home,estate){
  const cards=p.featured.map(x=>{const n=estate.nodes.find(n=>n.host===x.host);return `<li class="card"><h3>${esc(n.name)}</h3><p>${esc(x.summary)}</p><a href="${esc(link(n))}">${esc(x.action)} →</a></li>`}).join("");
  const body=`<header class="wrap hero"><p class="eyebrow">A research & technology institution · Est. ${esc(home.established)}</p>
  <h1>${esc(p.headline)}</h1><p class="intro">${esc(p.intro)}</p>
- <div class="actions"><a class="action primary" href="#work">Explore the work →</a><a class="action" href="/contact/">Get in touch →</a></div>
+ <div class="actions"><a class="action primary" href="#work">Explore the work →</a><a class="action" href="${esc(s.checkoutUrl)}" rel="noopener noreferrer">Support the experiment · USD ${s.monthlyUsd}/month →</a><a class="action" href="/contact/">Get in touch →</a></div>
  <p class="aim">${esc(p.aim)}</p></header>
  <section class="section wrap" id="work"><p class="eyebrow">Public projects</p><h2>${esc(p.workHeadline)}</h2><p class="lead">${esc(p.workIntro)}</p>
  <ul class="cards">${cards}</ul><a class="text-action" href="/work/">See the full project directory →</a></section>
@@ -89,7 +89,7 @@ export function renderIndex(home,estate){
  <div><p>${esc(p.approachIntro)}</p><a class="text-action" href="/approach/">${esc(p.approachAction)} →</a></div></section>
  <section class="section wrap split" id="contact"><div><p class="eyebrow">Work with the Group</p><h2>${esc(p.contactHeadline)}</h2></div>
  <div><p>${esc(p.contactIntro)}</p><a class="text-action" href="/contact/">Contact the Group →</a></div></section>
- <section class="section wrap" id="support"><p class="eyebrow">Sustaining support</p><h2>Keep the research open.</h2><p class="lead">${esc(p.supportIntro)}</p>
+ <section class="section wrap" id="support"><p class="eyebrow">Sustaining support</p><h2>Help keep this experiment going.</h2><p class="lead">${esc(p.supportIntro)}</p>
  <div class="actions"><a class="action" href="${esc(s.checkoutUrl)}" rel="noopener noreferrer">Support public work · USD $${s.monthlyUsd}/month →</a></div>
  <details class="terms"><summary>Subscription and billing terms</summary><p>${esc(s.terms)} <a href="${esc(s.contactUrl)}">Request private billing help</a>.</p></details></section>`;
  return frame(home,estate,"home","561 Group · Research that becomes useful",body);
