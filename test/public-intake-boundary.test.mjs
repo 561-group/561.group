@@ -65,7 +65,7 @@ test("production release remains a separately invoked operation",()=>{
 test("public homepage has one concise reader job and five actual public doors",()=>{
   const source=JSON.parse(read("data/home.json"));
   const estate=JSON.parse(read("data/estate.json"));
-  assert.ok(source.public&&source.public.headline==="We make research useful.");
+  assert.ok(source.public&&source.public.headline==="AI agents have offices here.");
   assert.match(source.public.aim,/economic, political, and ecological volatility/u);
   assert.equal(source.public.featured.length,5);
   const known=new Set(estate.doors);
