@@ -8,9 +8,19 @@ The 561 Group's public research, reusable source, and technical infrastructure a
 
 The checkout displays the current legal seller and exact billing terms. For subscription questions or cancellation assistance, use the [private Group contact route](https://561.group/contact/#private-intake). The support offer is authored in [the original Group homepage source](data/home.json); its public site release and the real payment processor's subscription records have separate receiving conditions. This GitHub publication is an immediately accessible first-party information route, not evidence that the Cloudflare homepage has deployed or anyone has subscribed.
 
+## Reader-first public receiving
+
+The original [homepage audit and reader-closure method](docs/reader-closure-qualification.md) is the operational acceptance contract for this public site. The Group's governing mission describes **economic, political, and ecological volatility**, in that exact order; the whole description in `data/home.json` feeds visible copy, meta description, schema.org identity and `llms.txt`. Do not change that triad to alphabetical order or restore “financial” as the third domain.
+
+The page's early **Choose a path** section derives four honest visitor actions from the existing `data/home.json.readerPaths`: request work, explore public services, read the intended design, or inspect machine routes. Every choice has an explicit reader task, an existing native destination, a visible boundary on what that action does **not** prove, and a linked repair/evidence surface. This uses ordinary semantic HTML and native `<details>` without JavaScript; it is **not** a second TUFTE proof/panel engine or a store of SignGraph/CAIRN claims. `/llms.txt` projects the same statements and links from the same source.
+
+The MAPE-K explanatory cells must render in the original source order **Monitor → Analyze → Plan → Execute**. Visual reordering that places Execute before Plan is a communication defect, even when decorative numeric labels correctly say 04 and 03. The site also gives readers the raw `/estate.json` link when status enhancement is absent or fails; HTTP status is not proof of service effect.
+
+The source-level gate is `node --test test/market-discovery.test.mjs`; the full installed gate is `pnpm test && pnpm build` with the required Play sources and Node >=24.2. Browser/mobile/no-script and real Cloudflare publication are **separate** receiving obligations; a branch, PR, isolated V8 test or GitHub merge cannot claim public deployment. The existing production workflow remains manually gated. The Science [gutter research PR](https://github.com/lenticule-science/561-theory/pull/12) and the Engineering [TUFTE reading projector PR](https://github.com/red-cup-engineering/web-page-tiling-engine/pull/15) supply the adjacent research and reusable UI contracts.
+
 ## Layout
 
-- `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, the four told values, and the live voluntary recurring-support offer.
+- `data/home.json` holds the words: the governing mission triad (exact domain order), visitor routes and audience/task/repair boundaries, the intended-design sentence with its glossed notes, doctrine, four told values, and the live voluntary recurring-support offer.
 - `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
 - `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
   The apex selects only its two public canonical pages; the shared computer-content codec emits the XML and robots formats. A build date is not falsely represented as a significant page modification.
