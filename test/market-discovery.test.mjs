@@ -31,7 +31,10 @@ test("homepage does its proper job instead of displaying the encyclopedia",()=>{
  const main=page.match(/<main id="main">([\s\S]*?)<\/main>/u)?.[1];
  assert.ok(main,"one main landmark");
  assert.equal((main.match(/<h1>/gu)||[]).length,1);
- assert.match(main,/<h1>We make research useful\.<\/h1>/u);
+ assert.ok(home.public.headline.length<=90,"readable source-owned homepage headline");
+ assert.ok(main.includes("<h1>"+home.public.headline+"</h1>"),"current source headline projects to reader");
+ assert.ok(main.includes(home.public.intro),"source-owned introductory claim reaches reader");
+ assert.ok(main.includes(home.public.aim),"source-owned mission reaches reader");
  assert.match(main,/href="#work">Explore the work/u);
  assert.match(main,/href="\/contact\/">Get in touch/u);
  assert.ok(main.length<5500,"reader's core page must remain concise");
@@ -83,7 +86,7 @@ test("research explanation is separate, readable and ordered by actual dependenc
 
 test("metas and JSON-LD use one genuine Organization while preserving source-truth and no script escape",()=>{
  const page=human();
- assert.match(page,/<meta name="description" content="The 561 Group builds and operates software/u);
+ assert.ok(home.public.intro.includes("Lakota-founded"),"preserve founded provenance in the source-owned public description");
  const summaryOf=html=>html.match(/<meta name="description" content="([^"]+)">/u)?.[1];
  assert.equal(summaryOf(page),home.public.intro);
  assert.equal(summaryOf(renderWork(home,estate)),home.public.workDirectoryIntro);
@@ -115,9 +118,11 @@ test("agent account provides authoritative real routes, safe scope and the same 
  assert.doesNotMatch(txt,/Huidu Guanli|Rendanheyi/u);
 });
 
-test("one genuine support link is readable with its full terms, and spoofed offers are refused",()=>{
+test("visible support links share one genuine checkout with full terms, and spoofed offers are refused",()=>{
  const url=home.support.checkoutUrl,page=human(),agent=machine();
- assert.equal(page.split('href="'+url+'"').length-1,1);
+ const checkoutUrls=[...page.matchAll(/href="(https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+)"/gu)].map(match=>match[1]);
+ assert.ok(checkoutUrls.length>=1,"a reader can find voluntary support");
+ assert.deepEqual([...new Set(checkoutUrls)],[url],"every support CTA uses the one authorized checkout");
  assert.ok(agent.includes(url));assert.match(page,/not a tax-deductible charitable contribution/u);
  assert.match(page,/USD \$10\/month/u);assert.match(agent,/Voluntary USD \$10\/month/u);
  for(const fake of ["https://evil.invalid/pay","http://buy.stripe.com/abc","https://buy.stripe.com/xyz?a=1"]){

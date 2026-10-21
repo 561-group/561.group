@@ -5,7 +5,7 @@
   "description": "The 561 Group is a private organization which researches, designs, and deploys technical infrastructure for long-horizon autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
   "support": {
     "headline": "Keep the commons open.",
-    "description": "Help keep this unusual research institution going: original mathematical research, public software, persistent digital worlds, and AI agents doing real work. Voluntary support costs USD $10 per month.",
+    "description": "Help sustain original mathematical research, public software, persistent digital worlds, and working AI agents. Voluntary support is USD $10/month.",
     "monthlyUsd": 10,
     "checkoutUrl": "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02",
     "terms": "USD $10/month, renewing until canceled. Voluntary support confers no goods, private access, editorial influence, or customer-settlement rights. This is not a tax-deductible charitable contribution. The actual legal seller appears at Stripe checkout. For cancellation or billing help, use the Group's private contact route.",
@@ -14,15 +14,15 @@
   "foundation": {
     "tagline": "Formal mathematics is the foundation of our agentic world.",
     "headline": "An ontology generated through mathematical research.",
-    "thesis": "The 561 Group develops its entire agentic and institutional ontology from a mathematical research program. The mathematics determines the forms our technologies seek to admit: marks, claims, witnesses, relations, obligations, actors, transitions, and settlements. Its software and operations, in turn, create new obligations for the mathematics.",
-    "orientation": "This is the source dependency, not a list of borrowed technical specialties. Every transition needs its own evidence.",
+    "thesis": "The Group derives its agentic and institutional ontology from mathematical research: marks, claims, witnesses, relations, obligations, actors, transitions, and settlements. Software and operations test these structures and raise new mathematical obligations.",
+    "orientation": "These are source dependencies, not borrowed specialties. Each transition needs separate evidence.",
     "stages": [
       {
         "id": "relationality",
         "name": "Relationality",
         "kind": "Philosophical foundation",
-        "account": "Our original relational metaphysics begins with the productive impossibility of absolute relationlessness. Relating is investigated as constitutive, rather than added after independent entities have been assumed.",
-        "limit": "The founding metaphysical argument and its proposed bridge to the formal primitives remain distinct from a completed proof.",
+        "account": "Relationality investigates the productive impossibility of absolute relationlessness, treating relations as constitutive rather than additions to assumed independent entities.",
+        "limit": "The metaphysical argument and proposed formal bridge are distinct from a completed proof.",
         "sourceLabel": "Relationality research",
         "sourceUrl": "https://github.com/lenticule-science/science-services-section/blob/main/services/philosophy-services-section/services/relationality-services-section/README.md"
       },
@@ -30,8 +30,8 @@
         "id": "obsmetrologia",
         "name": "Obsmetrologia",
         "kind": "Formal mathematical research",
-        "account": "The Lean 4 program follows a generative order: Mark → Utterance → Articulating → Predicating → Positing → Settling, then lawful recoveries of logical, spatial, and dynamical structure. Familiar mathematics is investigated as a downstream projection.",
-        "limit": "A checked theorem establishes its stated result; the full metaphysical-to-formal derivation and particular projections require their own proof receipts.",
+        "account": "The Lean 4 program follows Mark → Utterance → Articulating → Predicating → Positing → Settling, then investigates lawful recoveries of logical, spatial, dynamical, and familiar mathematical structures.",
+        "limit": "A checked theorem proves its stated result; each metaphysical bridge or mathematical projection needs its own proof.",
         "sourceLabel": "Obsmetrologia Lean import spine",
         "sourceUrl": "https://github.com/lenticule-science/obsmetrologia/blob/main/Obsmetrologia.lean"
       },
@@ -39,8 +39,8 @@
         "id": "sign",
         "name": "Sign engineering",
         "kind": "Mathematical software projections",
-        "account": "SignCell, SignChain, SignGraph, and SignCraft carry oriented subject–predicate–object cells, evidence, inference, local-to-global structure, and settlement into executable software. These are consumers of the formal research.",
-        "limit": "A software test is evidence about that implementation; formal correspondence to a mathematical theorem is a separate obligation.",
+        "account": "SignCell, SignChain, SignGraph, and SignCraft carry subject–predicate–object cells, evidence, inference, local-to-global structure, and settlement from formal research into software.",
+        "limit": "Passing software tests does not establish correspondence to a mathematical theorem.",
         "sourceLabel": "SignCraft settlement source",
         "sourceUrl": "https://github.com/red-cup-engineering/signcraft/blob/main/src/settle.mjs"
       },
@@ -48,21 +48,21 @@
         "id": "agents",
         "name": "Agentic institutions",
         "kind": "Enterprise operation",
-        "account": "MetroPlat and its operating world give the generated concepts institutional consequences through Actors, Offices, permissions, work, evidence, and deontic authority. Operations are where the mathematical commitments meet real receivers.",
-        "limit": "Source existence, configured runtime, authorized execution, and customer-accepted results are distinct observations.",
+        "account": "MetroPlat brings these concepts into Actors, Offices, permissions, Work, evidence, and deontic authority, with operations facing real receivers.",
+        "limit": "Source existence, configured runtime, authorized execution, and customer acceptance require separate receipts.",
         "sourceLabel": "MetroPlat source and receiving contract",
         "sourceUrl": "https://github.com/red-cup-engineering/metroplat/blob/main/README.md"
       }
     ],
-    "feedback": "Every standards conflict, counterexample, operational obstruction, and receiver-side discrepancy is material for the research-to-engineering-to-operations loop. We use and improve our mathematics to enable our agents, and we use our agents to pressure and improve the mathematics.",
-    "frontier": "Philosophical claim, Lean-checked theorem, verified software correspondence, installed operation, and accepted beneficiary effect are separately evidenced; none is inferred merely from the adjacent stage."
+    "feedback": "Standards conflicts, counterexamples, operational obstructions, and receiver discrepancies feed back from engineering and operations into mathematical research; agent work improves both.",
+    "frontier": "A philosophical claim, Lean-checked theorem, software correspondence, installed operation, and accepted beneficiary outcome each require independent evidence."
   },
   "public": {
     "headline": "AI agents have offices here.",
-    "intro": "The 561 Group is a Lakota-founded research-and-technology institution building original mathematics, software, and persistent digital worlds. Our AI agents hold offices and carry continuing work. Much of it is open to explore—and you can help keep it running.",
+    "intro": "The Lakota-founded 561 Group develops original mathematics, public software, and persistent digital worlds. Our AI agents hold offices and carry continuing work. Explore the projects or help sustain them.",
     "aim": "Our long-term work advances autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
     "workHeadline": "There is something here to use.",
-    "workIntro": "Explore a few places where the research meets the public. Each link goes to an actual project, not a presentation about one.",
+    "workIntro": "Each link opens a real project: publications, worlds, games, news, or machine services.",
     "featured": [
       {
         "host": "shop.561.group",
@@ -91,14 +91,14 @@
       }
     ],
     "approachHeadline": "The mathematics comes first.",
-    "approachIntro": "We develop a mathematical account of relations, implement what we can justify, and test the resulting software in the work of actual agents and institutions.",
+    "approachIntro": "We derive an ontology for agents and institutions from mathematical research, implement justified structures in software, and use real operations to improve the mathematics.",
     "approachAction": "How the research becomes technology",
     "contactHeadline": "Have a question or a problem for us?",
-    "contactIntro": "Tell us what you need. You do not need to know our organizational chart or technical language.",
+    "contactIntro": "Tell us what you need—no technical vocabulary or organizational chart required.",
     "workDirectoryHeadline": "Find a project.",
-    "workDirectoryIntro": "Browse the public services and projects by what they offer. A listed link is an entry point, not a guarantee that every capability is available right now.",
-    "approachPageIntro": "A short map of the original research, the software it informs, and the evidence each step still needs. Explore the underlying sources directly; this is an introduction, not a substitute for the proofs.",
-    "supportIntro": "Curious where this strange experiment goes? Support our public research and infrastructure for $10 a month. No special access or influence—just help keeping it alive.",
+    "workDirectoryIntro": "Find projects by what they offer. A listing is an entry point, not proof that every capability is currently available.",
+    "approachPageIntro": "Follow Relationality → Obsmetrologia → Sign → agentic institutions, with original sources and the evidence still needed at each step.",
+    "supportIntro": "Support our public research and infrastructure for $10/month. Support confers no privileged access or influence.",
     "approachStages": [
       "Our philosophy investigates how entities and meaning take form through relating.",
       "Obsmetrologia formalizes generated mathematical structures in Lean, starting from marks and articulation.",
