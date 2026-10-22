@@ -1,0 +1,60 @@
+name: Observe 561.group public delivery (read-only)
+
+# Public evidence only: no secrets, provider mutation, release selection, or automatic promotion.
+# The existing qualified source -> build -> production workflow remains separate.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - scripts/observe-production.mjs
+      - test/observe-production.test.mjs
+      - .github/workflows/public-delivery-witness.yml
+  workflow_dispatch:
+    inputs:
+      expected_source_sha:
+        description: "Optional exact 40-hex release commit for strict public readback"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-delivery-observation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  observer-fixture-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Test public observer decision logic (offline fixtures)
+        run: node --test test/observe-production.test.mjs
+
+  public-delivery-observation:
+    needs: observer-fixture-tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Observe real external public endpoints independently of the build
+        env:
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+        run: node scripts/observe-production.mjs
+      - name: Preserve source-qualified HTTP observations even when checks fail
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 561-group-public-delivery-observation
+          path: observations/561.group-public-delivery.json
+          if-no-files-found: warn
+          retention-days: 30
