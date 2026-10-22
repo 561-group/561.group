@@ -1,11 +1,7 @@
-name: Deploy 561.group
+name: Publish and receive 561.group (TUFTE + LivingWebServer)
 
-# TEMPORARY CONSOLIDATION GATE
-#
-# Do not automatically publish every main-branch change while the 561 Group
-# web estate has multiple competing source/render/deploy implementations.
-# Production deployment is explicit until 561-group/561-group#51 settles a
-# single source → TUFTE render → deploy → public-witness chain for 561.group.
+# One explicit original main-to-production publication. No unsafe bare-checkout
+# Wrangler deploy and no automatic promotion of an unqualified source PR.
 on:
   workflow_dispatch:
 
@@ -18,12 +14,79 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Qualify the original installed supplier closure
+        env:
+          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
+        run: |
+          set -eu
+          node --check src/worker.mjs
+          node --check src/living-home.mjs
+          node --check src/home-tufte.mjs
+          node --check scripts/build.mjs
+          test -f pnpm-workspace.yaml || { echo '::error::Original integrated PNPM workspace unavailable'; exit 1; }
+          test -f pnpm-lock.yaml || { echo '::error::Original supplier lockfile unavailable'; exit 1; }
+          test -n "$PLAY_CATALOG_SOURCES" || { echo '::error::Original Play source roots unavailable'; exit 1; }
+      - name: Build exact source and exercise its actual tests
+        env:
+          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
+        run: |
+          set -eu
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm check
+          pnpm test
+          pnpm build
+      - name: Refuse missing release outputs or wrong commit
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const receipt=JSON.parse(await readFile('public/source-revision.json','utf8'));
+          if(receipt.sourceCommit!==process.env.GITHUB_SHA ||
+             receipt.repository!=='561-group/561.group' ||
+             receipt.renderer!=='TUFTE' || receipt.application!=='LivingWebServer') {
+            throw Error('Original source/build receipt mismatch');
+          }
+          for(const file of ['public/estate-records.json','public/contact/index.html',
+                             'public/llms.txt','public/sitemap.xml','public/robots.txt']){
+            if((await readFile(file)).length<50)throw Error('Missing real original public asset: '+file);
+          }
+          console.log('Source artifacts admitted for exact commit '+receipt.sourceCommit);
+          NODE
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.118.0
+          wranglerVersion: 4.127.1
           command: deploy --config wrangler.jsonc
+      - name: Independently receive the actually served 561.group revision
+        run: |
+          node --input-type=module <<'NODE'
+          const origin='https://561.group';
+          const get=path=>fetch(origin+path,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+          const receiptResponse=await get('/source-revision.json');
+          if(!receiptResponse.ok)throw Error('No public release receipt: '+receiptResponse.status);
+          const receipt=await receiptResponse.json();
+          if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Live source differs from main deployment commit');
+          const page=await get('/');
+          const html=await page.text();
+          if(!page.ok || !html.includes('data-tufte') || !html.includes('Work with us') ||
+             !html.includes('buy.stripe.com') || html.includes('conurbanized ecosystem')){
+            throw Error('The live apex is not the received TUFTE human homepage');
+          }
+          const json=await fetch(origin+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
+          if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')){
+            throw Error('The live TUFTE machine projection was not received');
+          }
+          const contact=await get('/contact/');
+          if(!contact.ok)throw Error('The original confidential contact route is missing');
+          const estate=await get('/estate.json');
+          if(!estate.ok)throw Error('The original estate reading is missing');
+          console.log('Public original source, TUFTE view and existing contact/estate routes received: '+receipt.sourceCommit);
+          NODE
