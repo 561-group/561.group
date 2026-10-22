@@ -117,3 +117,26 @@ test("robots names every AI crawler and keeps the sitemap; the sitemap lists the
   assert.match(sitemap, /<loc>https:\/\/561\.group\/llms\.txt<\/loc><lastmod>2026-10-21<\/lastmod>/u);
   assert.match(sitemap, /<loc>https:\/\/561\.group\/llms-full\.txt<\/loc>/u);
 });
+
+test("the active Group support checkout is discoverable without mistaking it for paid service revenue", () => {
+  const support = home.group.sustainingSupport;
+  assert.equal(support.monthlyUsd, 10);
+  assert.equal(support.verifiedAt, "2026-10-22");
+  assert.match(support.url, /^https:\/\/buy\.stripe\.com\//u);
+  assert.equal(support.billingHelp, "https://561.group/contact/");
+  for (const locale of LOCALES) {
+    const html = page(locale);
+    assert.match(html, /id="sustain"/u);
+    assert.ok(html.includes(`href="${support.url}"`), `checkout link for ${locale}`);
+    assert.ok(html.includes(`$${support.monthlyUsd}\/month`), `price for ${locale}`);
+    assert.ok(html.includes("monthly subscription until canceled"), `recurrence for ${locale}`);
+    assert.ok(html.includes(`href="${support.billingHelp}"`), `cancel help for ${locale}`);
+    assert.ok(html.includes("grants no special access"), `no influence claims for ${locale}`);
+  }
+  for (const prose of [renderLlms(home, estate), renderLlmsFull(home, estate)]) {
+    assert.ok(prose.includes(`[${support.name}](${support.url})`));
+    assert.ok(prose.includes(`$${support.monthlyUsd}\/month recurring subscription`));
+    assert.ok(prose.includes(`[Billing and cancellation help](${support.billingHelp})`));
+    assert.ok(prose.includes("no special access"));
+  }
+});

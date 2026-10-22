@@ -305,6 +305,14 @@
         "what": "Books as EPUB and PDF, with file digests."
       }
     ],
+    "sustainingSupport": {
+      "name": "561 Group Sustaining Support",
+      "url": "https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02",
+      "monthlyUsd": 10,
+      "summary": "Recurring support for 561 Group research and technical infrastructure.",
+      "billingHelp": "https://561.group/contact/",
+      "verifiedAt": "2026-10-22"
+    },
     "indexNowKey": "8d232583e7cba18a83bf5c0325fcc7c9",
     "securityContact": "mailto:cto@561.group"
   }
