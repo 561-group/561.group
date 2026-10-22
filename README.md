@@ -13,7 +13,7 @@ The Group's public face is owned by **`@561-group/561.group`** and hosted by the
 - `src/living-home.mjs` is the one `561.group` application using the **existing** `@red-cup-engineering/living-web-server/fetch` capability. It admits only this Group's public home source, through the original server's per-request rights and HTML/JSON negotiation. No new generic listener, host, funds database or off-site contents source exists here.
 - `src/worker.mjs` routes English `/` GET/HEAD through that application; its existing locale redirect, localized static paths, `/estate.json`, confidential contact and ActivityPub provider routing remain as authored. Extending TUFTE to all locale routes and retiring the old static homepage generator must occur with equivalent translations and consumer readback; do not falsely describe those paths as converted now.
 - `scripts/build.mjs` emits `public/source-revision.json` **only when an exact `GITHUB_SHA` is supplied**. It records the checkout commit, not a fabricated successful deployment. An accepted release compares that revision against the independently served `https://561.group/source-revision.json`.
-- `.github/workflows/deploy.yml` admits only an explicit main-branch, locked supplier-workspace build, real tests and original source roots before deploying the existing Worker. It checks the actual public TUFTE, JSON, contact and estate responses after deployment. The repo alone still lacks an installed PNPM/Play/LivingWebServer workspace; a source-only merge is **not** a production release.
+- `.github/workflows/deploy.yml` admits only an explicit main-branch release with a genuine dependency lock, native tests and the exact built source revision before invoking the existing Worker deployment. Its post-release check reads TUFTE, JSON, contact and estate responses. The current standalone checkout has no committed release lock or received provider deployment: a source-only merge is **not** a production release.
 
 **Normal Work rule:** keep site changes in branches until a qualified source-to-public publication is ready; report any divergence between the current `main` and the actual served commit in the original [site receiving issue #17](https://github.com/561-group/561.group/issues/17). Do not make `main`'s source history, a GitHub Actions success, or a Stripe product standing in for a public-page readback or a customer.
 
@@ -78,7 +78,7 @@ own host. Whether the provider answers is a separate, dated reading.
 ## Build and deploy
 
 ```sh
-pnpm build    # writes public/ from data/ and authored game sources
+pnpm build    # writes public/ from the original site-owned data and curated estate
 pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.group/*)
 ```
 
@@ -100,20 +100,26 @@ The apex reflects the companies as of its build, so redeploy it after they publi
 - `/<key>.txt` serves the IndexNow ownership key (`group.indexNowKey` in `data/home.json`); after a deploy, submit the sitemap URLs to `https://api.indexnow.org/indexnow`.
 - The home page description is the Group's own sentence, kept verbatim even though audits that want 50 to 160 characters flag its length. That is a deliberate exception.
 
-## Source composition
+## Source composition and release inputs
 
-The apex consumes `@causeway-services/play` through its declared catalog,
-presentation and composition exports. Bind the actual Public Games and external
-Science Git checkouts with `PLAY_CATALOG_SOURCES` using the supplier's source-array
-contract; `PLAY_CATALOG_DATE` optionally fixes the real UTC publication date.
-Outside the original integrated checkout, missing source bindings fail the build.
-A checkout that lacks the game sources may instead name an earlier published
-`estate-records.json` in `ESTATE_GAMES_SNAPSHOT`; the build then reuses that record's
-games unchanged and says so on stderr. It is an explicit input, not a default.
-Catalog discovery does not probe public pages during publication. The existing
-Worker's request-time estate readings are unchanged.
+The Group apex keeps one curated link to the separately owned `play.561.group`
+catalog in `data/estate.json`. Its build no longer imports
+`@causeway-services/play`, reads external game checkouts, or accepts a cached
+game-list snapshot. Play's dynamic catalog and its publication pipeline remain
+owned by Causeway; changing them cannot silently change this apex release.
 
-This package requires Node >=24.2.0, matching the received play supplier's runtime
-floor. The workspace dependency declares source composition, not a completed
-package-manager installation or release. Source receiving, installed closure,
-provider version and independent public receiving remain separate.
+The apex genuinely consumes `@red-cup-engineering/l-space` for its three
+language projections and `@red-cup-engineering/living-web-server/fetch` for
+the English root's TUFTE HTTP application. Their actual installed source and
+transitive dependencies must be available. The manual production job requires
+a committed, exact PNPM lock and uses `pnpm install --frozen-lockfile`; a
+`pnpm-workspace.yaml` is necessary only if a declared package actually uses
+`workspace:` resolution. Do not substitute a mock serializer or dummy packages
+for a missing supplier.
+
+`GITHUB_SHA` records the exact site source commit in
+`/source-revision.json` when building the release. Publication still requires
+a qualified native build, an authorized Cloudflare deployment and independent
+readback of that revision, the canonical human/agent views and inherited
+contact/estate routes. The read-only HTTP observer alone does not prove the
+Cloudflare version or independently accepted delivery.
