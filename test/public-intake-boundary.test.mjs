@@ -60,3 +60,16 @@ test("production release remains a separately invoked operation",()=>{
   assert.match(workflow,/^on:\s*\n\s+workflow_dispatch:\s*$/mu);
   assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
 });
+
+test("production deployment consumes the exact dependency lock before provider writes",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const provider=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(provider>0,"the existing provider must be identifiable");
+  const before=workflow.slice(0,provider);
+  assert.match(before,/test -s package-lock\.json/u,"absence of the native lock must refuse publication");
+  assert.match(before,/npm ci --ignore-scripts/u,"production must use a frozen npm install");
+  assert.doesNotMatch(before,/npm install --ignore-scripts/u,"unlocked npm install is not a release");
+  for(const command of ["npm run check","npm test","npm run build","public/source-revision.json"]){
+    assert.ok(before.includes(command),"native build/receipt is required before Wrangler: "+command);
+  }
+});
