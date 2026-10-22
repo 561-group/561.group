@@ -4,7 +4,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { renderHumans, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
+import { renderHumans, renderSecurity, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { readFeeds, mergeItems, renderJsonFeed, renderAtom, renderRss } from "../src/feed.mjs";
 import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
@@ -75,6 +75,8 @@ const files = {
   "public/feed.rss.xml": renderRss(home, items),
   "public/llms.txt": renderLlms(home, estate, facts),
   "public/llms-full.txt": renderLlmsFull(home, estate, facts),
+  "public/.well-known/security.txt": renderSecurity(home, new Date(`${updated}T00:00:00Z`)),
+  [`public/${home.group.indexNowKey}.txt`]: `${home.group.indexNowKey}\n`,
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),
