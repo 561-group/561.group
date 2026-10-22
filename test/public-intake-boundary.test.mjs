@@ -61,6 +61,22 @@ test("production release remains a separately invoked operation",()=>{
   assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
 });
 
+test("a production deploy has a main-ref and predeploy safety boundary",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  assert.match(workflow,/if:\\s*github\\.ref == 'refs\\/heads\\/main'/u,
+    "a manual dispatch on another ref must never deploy the apex");
+  const publish=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(publish>0,"the existing provider deployment must remain explicit");
+  const before=workflow.slice(0,publish);
+  const legacyInterlock=/Refuse unqualified standalone deployment/u.test(before) &&
+    /exit 1/u.test(before);
+  const qualifiedRelease=/pnpm install --frozen-lockfile/u.test(before) &&
+    /pnpm test/u.test(before) && /pnpm build/u.test(before) &&
+    /source-revision\\.json/u.test(before);
+  assert.ok(legacyInterlock||qualifiedRelease,
+    "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
+});
+
 test("ordinary buyer and supplier opportunities use the same private intake without becoming orders",()=>{
   const page=read("public/contact/index.html");
   assert.match(page, /<h2 id="work">Request paid work or offer to supply it<\/h2>/u);
