@@ -42,5 +42,4 @@ test("the three formats carry every item", () => {
   assert.equal(json.items.length, 1);
   assert.match(renderAtom(home, items), /<entry>\s*<id>a&amp;b<\/id>[\s\S]*<published>2026-10-10T00:00:00Z<\/published>/u);
   assert.match(renderRss(home, items), /<guid isPermaLink="false">a&amp;b<\/guid>[\s\S]*<pubDate>Sat, 10 Oct 2026 00:00:00 GMT<\/pubDate>/u);
-  assert.doesNotMatch(renderJsonFeed(home, []) + renderAtom(home, []) + renderRss(home, []), /morgan|sennhauser|emsenn/iu);
 });

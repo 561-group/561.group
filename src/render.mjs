@@ -1,5 +1,5 @@
 // Renders the 561.group public files from data/home.json and data/estate.json, in every language the site serves.
-// Pure: data and a locale's speaker (src/locales.mjs) in, file contents out. No person is named anywhere on this site.
+// Pure: data and a locale's speaker (src/locales.mjs) in, file contents out.
 
 import { locale as localeFaces, sitemapXml, trustedHtml } from "@red-cup-engineering/l-space";
 import { DEFAULT_LOCALE, LOCALES, localePath } from "./locales.mjs";

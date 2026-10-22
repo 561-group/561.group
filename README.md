@@ -32,7 +32,7 @@ The reading is cached for 300 s. The page fetches it and colours each tile. `com
 
 ## Stealth
 
-No person is named anywhere on this site, and nothing here may link to a person's accounts, repositories or sites. Authority is held by offices.
+Stealth runs one way (Leader, 2026-10-22): the Group's surfaces may name the Leader, but the Leader's own web properties (emsenn.net and his personal public profiles) carry no association with the Group. Nothing on this site is required to name a person; the Group's copy holds authority in offices. The enforcement is in the other direction: `gate-stealth` in bare-cedar-fog-services-section refuses a candidate that adds the Group's name to a declared personal surface.
 
 - `workers_dev` and `preview_urls` stay `false`. The account's workers.dev subdomain must never appear on a public surface.
 - Before listing a node in `data/estate.json`, read its public pages for personal names, handles, repo paths and workers.dev URLs.

@@ -93,7 +93,6 @@ test("the apex is a hub for search and answer engines: graph, head, follow block
   for (const handle of ["@group@561.group", "@science@science.561.group", "@engineering@engineering.561.group", "@operations@operations.561.group", "@services@services.561.group"]) assert.ok(html.includes(`>${handle}</a>`), handle);
   for (const url of ["https://science.561.group/", "https://engineering.561.group/", "https://operations.561.group/", "https://services.561.group/", "https://market.561.group/x402/"]) assert.ok(html.includes(`href="${url}"`), url);
   assert.ok(html.includes(home.description));
-  assert.doesNotMatch(html, /morgan|sennhauser|emsenn/iu);
 });
 
 test("llms.txt maps the whole Group and takes the market's offer count from the caller, never from the source", () => {
@@ -108,7 +107,6 @@ test("llms.txt maps the whole Group and takes the market's offer count from the 
   for (const quote of home.doctrine) assert.ok(full.includes(quote.text));
   for (const note of Object.values(home.design.notes)) assert.ok(full.includes(note));
   for (const told of home.told) assert.ok(full.includes(told.label));
-  assert.doesNotMatch(llms + full, /morgan|sennhauser|emsenn/iu);
 });
 
 test("robots names every AI crawler and keeps the sitemap; the sitemap lists the llms files", () => {
