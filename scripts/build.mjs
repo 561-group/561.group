@@ -5,6 +5,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { renderHumans, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
+import { readFeeds, mergeItems, renderJsonFeed, renderAtom, renderRss } from "../src/feed.mjs";
 import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
 import { discoverCatalog } from "@causeway-services/play/catalog";
@@ -46,6 +47,8 @@ const marketOffers = await (async () => {
   }
 })();
 const facts = { marketOffers };
+// What the Group is publishing: the companies' feeds, merged; any that cannot be read are skipped.
+const items = mergeItems(await readFeeds(home.group.companies));
 const estate = { ...authored, nodes: [...authored.nodes, ...games] };
 estate.revision = createHash("sha256").update(JSON.stringify(estate)).digest("hex");
 
@@ -66,7 +69,10 @@ const space = siteSpace({
 const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, tag, { origin: home.origin })]));
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
-  ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag])])),
+  ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
+  "public/feed.json": renderJsonFeed(home, items),
+  "public/feed.atom.xml": renderAtom(home, items),
+  "public/feed.rss.xml": renderRss(home, items),
   "public/llms.txt": renderLlms(home, estate, facts),
   "public/llms-full.txt": renderLlmsFull(home, estate, facts),
   "public/humans.txt": renderHumans(home, updated),

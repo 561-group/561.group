@@ -77,6 +77,12 @@ After deploying, check three things. `https://561.group/` should answer 200. `ht
 
 `data/home.json` also holds `group`: the four companies (name, URL, GitHub organization, fediverse handle, feeds), the market addresses and the topics the Organization knows about. The renderer turns it into the JSON-LD graph (Organization with `subOrganization`, WebSite, DefinedTermSet of the glossed design terms), the "The Group" section with the Follow block, and the companies in `llms.txt` and `llms-full.txt`. `scripts/build.mjs` reads the market's offer count from its x402 discovery at build time and leaves the number out of the llms files when it cannot be read; it is never written by hand. `robots.txt` names the AI crawlers explicitly.
 
+## What the Group is publishing
+
+`scripts/build.mjs` reads `feed.json` of each of the four companies (`src/feed.mjs`), merges the items newest first (60 at most, each item's own id, url, title, summary, dates and tags, with the company as author) and writes `/feed.json`, `/feed.atom.xml` and `/feed.rss.xml`, the "Latest from the Group" list on the home page and the feed lines in `llms.txt`. A feed that cannot be read is logged and skipped; the build never fails for it. The ActivityPub host projects the outbox of `@group@561.group` from `https://561.group/feed.json`.
+
+The apex reflects the companies as of its build, so redeploy it after they publish: let the companies' sites go live first, then run `pnpm build && pnpm deploy` here. The build can be rerun at any time.
+
 ## Source composition
 
 The apex consumes `@causeway-services/play` through its declared catalog,

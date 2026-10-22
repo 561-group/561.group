@@ -85,6 +85,11 @@ a:focus-visible{outline:3px solid var(--alarm);outline-offset:3px}
 .companies .kind{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--alarm-ink)}
 .companies p{font-size:.9rem;color:var(--ink-soft);margin:.4rem 0 .6rem}
 .companies .links{font-family:var(--mono);font-size:.75rem;display:flex;flex-wrap:wrap;gap:.4rem 1rem}
+.latest{max-width:var(--measure);margin-bottom:2rem}
+.latest h3{font-family:var(--sans);font-size:1.15rem}
+.latest ul{list-style:none;margin:.6rem 0}
+.latest li{padding:.25rem 0;border-bottom:1px solid var(--rule)}
+.latest li span,.latest p{font-family:var(--mono);font-size:.75rem;color:var(--ink-soft)}
 .follow{border-top:3px solid var(--ink);padding-top:1rem;max-width:var(--measure)}
 .follow h3{font-family:var(--sans);font-size:1.15rem}
 .follow ul{list-style:none;font-family:var(--mono);font-size:.85rem;margin:.6rem 0}
@@ -289,7 +294,7 @@ function scriptWords(home, say) {
 }
 
 /** The home page in one locale. `say` is that locale's speaker (src/locales.mjs). */
-export function renderIndex(home, estate, say) {
+export function renderIndex(home, estate, say, items = []) {
   const d = home.design;
   const tag = say.tag;
   const t = (key, values) => say.text(key, values);
@@ -382,6 +387,9 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
 <link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
 <link rel="alternate" type="text/plain" title="For language models, in full" href="/llms-full.txt">
 <link rel="alternate" type="application/json" title="Estate reading" href="/estate.json">
+<link rel="alternate" type="application/feed+json" title="What the Group is publishing" href="/feed.json">
+<link rel="alternate" type="application/atom+xml" title="What the Group is publishing (Atom)" href="/feed.atom.xml">
+<link rel="alternate" type="application/rss+xml" title="What the Group is publishing (RSS)" href="/feed.rss.xml">
 <link rel="author" href="/humans.txt">
 <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/roboto-slab.woff2" as="font" type="font/woff2" crossorigin>
@@ -498,6 +506,13 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
     ${g.companies.map((c) => `<li><span class="kind">${esc(c.kind)}</span><h3><a href="${esc(c.url)}">${esc(c.name)}</a></h3><p>${esc(c.role)}</p><span class="links"><a href="${esc(c.url)}">${esc(c.url.replace(/^https:\/\//, "").replace(/\/$/, ""))}</a><a href="${esc(c.github)}">GitHub</a><a href="${esc(c.feeds.json)}">feed</a></span></li>`).join("\n    ")}
   </ul>
   <p class="group-lead">Causeway Services also runs ${g.storefronts.map((x) => `<a href="${esc(x.url)}">${esc(x.name)}</a>`).join(", ")}. New to paying by protocol? <a href="${esc(g.marketGuide)}">Read the x402 guide</a>.</p>
+  ${items.length ? `<div class="latest">
+    <h3>Latest from the Group</h3>
+    <ul>
+      ${items.slice(0, 12).map((i) => `<li><a href="${esc(i.url)}">${esc(i.title)}</a> <span>${esc(i.authors[0].name)}${i.date_published ? ` · <time datetime="${esc(i.date_published)}">${esc(i.date_published.slice(0, 10))}</time>` : ""}</span></li>`).join("\n      ")}
+    </ul>
+    <p><a href="/feed.json">JSON Feed</a> · <a href="/feed.atom.xml">Atom</a> · <a href="/feed.rss.xml">RSS</a></p>
+  </div>` : ""}
   <div class="follow">
     <h3>Follow</h3>
     <p>The Group and its companies speak ActivityPub. Search for any handle from a fediverse account.</p>
@@ -572,6 +587,8 @@ ${designTerms(home).map(({ text, gloss }) => `- ${text}: ${gloss}`).join("\n")}
 ## The companies
 
 ${companyLines(g)}
+
+What the Group is publishing, merged from the four companies: [JSON Feed](${home.origin}/feed.json), [Atom](${home.origin}/feed.atom.xml), [RSS](${home.origin}/feed.rss.xml).
 
 GitHub organization of the parent: ${g.githubOrg}. Full prose, doctrine and told values: [llms-full.txt](${home.origin}/llms-full.txt).
 
@@ -692,4 +709,5 @@ export const renderSitemap = (home, updated, alternates = []) =>
     { loc: `${home.origin}/contact/`, lastmod: updated },
     { loc: `${home.origin}/llms.txt`, lastmod: updated },
     { loc: `${home.origin}/llms-full.txt`, lastmod: updated },
+    { loc: `${home.origin}/feed.json`, lastmod: updated },
   ]);
