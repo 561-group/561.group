@@ -1,36 +1,65 @@
-name: Public intake trust-boundary assay
+name: 561.group source, public-intake and TUFTE consumer qualification
 on:
   push:
     paths:
-      - public/contact/index.html
-      - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
-      - test/public-intake-boundary.test.mjs
-      - src/worker.mjs
-      - src/told.mjs
-      - test/worker.mjs
+      - .github/ISSUE_TEMPLATE/**
+      - public/contact/**
+      - data/**
+      - locales/**
+      - src/**
+      - scripts/**
+      - test/**
+      - package.json
+      - wrangler.jsonc
   pull_request:
     paths:
-      - public/contact/index.html
-      - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
-      - test/public-intake-boundary.test.mjs
-      - src/worker.mjs
-      - src/told.mjs
-      - test/worker.mjs
+      - .github/ISSUE_TEMPLATE/**
+      - public/contact/**
+      - data/**
+      - locales/**
+      - src/**
+      - scripts/**
+      - test/**
+      - package.json
+      - wrangler.jsonc
 permissions:
   contents: read
 jobs:
-  public-report-boundary:
+  qualify-original-apex:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Assay public reporting is read-only and production remains separately authorized
+      - name: Preserve original untrusted-public-input and manual-release boundary
         run: node --test test/public-intake-boundary.test.mjs
-      - name: Exercise the original-source TUFTE homepage model without upstream installation
+      - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
-      - name: Exercise the actual Worker, canonical estate and signed federation fallback
-        run: node --experimental-vm-modules test/worker.mjs
+      - name: Install original published dependencies and pinned LivingWebServer source
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Qualify one original Worker, renderer and generated public artifact graph
+        run: |
+          npm run check
+          npm test
+          npm run build
+      - name: Inspect release source and canonical published source inputs
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const read=async path=>readFile(path,'utf8');
+          const source=JSON.parse(await read('public/source-revision.json'));
+          if(source.sourceCommit!==process.env.GITHUB_SHA || source.repository!=='561-group/561.group') {
+            throw Error('Generated site is not this exact source revision');
+          }
+          const authored=JSON.parse(await read('data/estate.json'));
+          const built=JSON.parse(await read('public/estate-records.json'));
+          if(JSON.stringify(authored.nodes)!==JSON.stringify(built.nodes)) {
+            throw Error('A foreign game catalog silently changed the Group public estate');
+          }
+          const html=await read('public/index.html');
+          if(!html.includes('<html'))throw Error('Missing localized static fallback build');
+          console.log('Original source artifact graph qualified; no live Cloudflare deployment claimed.');
+          NODE
