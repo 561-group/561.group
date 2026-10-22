@@ -6,7 +6,7 @@
   "description": "The Group's public face: curated service doors and games discovered from their authored records, with HTTP readings of their exact entry paths.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs",
+    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs && node --check src/home-tufte.mjs && node --check src/living-home.mjs",
     "dev": "node scripts/build.mjs && wrangler dev",
     "deploy": "node scripts/build.mjs && wrangler deploy",
     "test": "node --test test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
@@ -19,7 +19,6 @@
     "wrangler": "4.127.1"
   },
   "dependencies": {
-    "@causeway-services/play": "workspace:*",
     "@red-cup-engineering/l-space": "0.1.0",
     "@red-cup-engineering/living-web-server": "workspace:*"
   },
