@@ -46,6 +46,10 @@ jobs:
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
       - name: Install original published dependencies and pinned LivingWebServer source
+        timeout-minutes: 4
+        env:
+          npm_config_fetch_retries: '0'
+          npm_config_fetch_timeout: '15000'
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Qualify one original Worker, renderer and generated public artifact graph
         run: |
