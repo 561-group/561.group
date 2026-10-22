@@ -22,20 +22,25 @@ jobs:
         with:
           node-version: '24'
       - name: Qualify the original installed supplier closure
-        env:
-          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
         run: |
           set -eu
           node --check src/worker.mjs
           node --check src/living-home.mjs
           node --check src/home-tufte.mjs
           node --check scripts/build.mjs
-          test -f pnpm-workspace.yaml || { echo '::error::Original integrated PNPM workspace unavailable'; exit 1; }
-          test -f pnpm-lock.yaml || { echo '::error::Original supplier lockfile unavailable'; exit 1; }
-          test -n "$PLAY_CATALOG_SOURCES" || { echo '::error::Original Play source roots unavailable'; exit 1; }
+          # The apex no longer composes the independent Play catalog. Require
+          # only the real release lock and any genuinely declared workspace roots.
+          test -f pnpm-lock.yaml || { echo '::error::Exact supplier lockfile unavailable'; exit 1; }
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          const p=JSON.parse(readFileSync('package.json','utf8'));
+          const deps=Object.values({...p.dependencies,...p.devDependencies});
+          if(deps.some(value=>typeof value==='string'&&value.startsWith('workspace:')) &&
+             !existsSync('pnpm-workspace.yaml')) {
+            throw Error('Declared workspace packages require their original workspace manifest');
+          }
+          NODE
       - name: Build exact source and exercise its actual tests
-        env:
-          PLAY_CATALOG_SOURCES: ${{ vars.PLAY_CATALOG_SOURCES }}
         run: |
           set -eu
           corepack enable
