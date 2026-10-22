@@ -1,5 +1,10 @@
 # 561.group
 
+<!-- 561-group-standards:badges:start -->
+[![561 Group](https://img.shields.io/badge/561%20Group-561%20Group-1c282a)](https://github.com/561-group)
+[![License: 561 Group 1.0](https://img.shields.io/badge/license-561%20Group%201.0-1c282a)](LICENSE)
+<!-- 561-group-standards:badges:end -->
+
 The Group's public face: one Cloudflare Worker on the `561.group` zone. It serves the page, sends `www.561.group` to the apex, and answers `/estate.json`.
 
 ## Layout
