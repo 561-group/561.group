@@ -112,10 +112,10 @@ The apex genuinely consumes `@red-cup-engineering/l-space` for its three
 language projections and `@red-cup-engineering/living-web-server/fetch` for
 the English root's TUFTE HTTP application. Their actual installed source and
 transitive dependencies must be available. The manual production job requires
-a committed, exact PNPM lock and uses `pnpm install --frozen-lockfile`; a
-`pnpm-workspace.yaml` is necessary only if a declared package actually uses
-`workspace:` resolution. Do not substitute a mock serializer or dummy packages
-for a missing supplier.
+a committed, exact `package-lock.json` and uses
+`npm ci --ignore-scripts --no-audit --no-fund`. Candidate `npm install`
+resolution without a received lock is not a production release. Do not
+substitute a mock serializer or dummy packages for a missing supplier.
 
 `GITHUB_SHA` records the exact site source commit in
 `/source-revision.json` when building the release. Publication still requires
