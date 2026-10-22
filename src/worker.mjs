@@ -111,6 +111,10 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === "/estate.json") return withHeaders(await estateReading(request, ctx));
+    // The old generated /index.html must not remain a second public homepage.
+    if (url.pathname === "/index.html" && (request.method === "GET" || request.method === "HEAD")) {
+      return withHeaders(Response.redirect("https://561.group/" + url.search, 301));
+    }
     // The root goes to a reader's preferred served language (a stored `lang` choice first); every other path is exact.
     const redirect = localeRedirect(request, { locales: LOCALES });
     if (redirect) return withHeaders(redirect);
