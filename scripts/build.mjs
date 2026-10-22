@@ -19,7 +19,7 @@ const authored = await read("data/estate.json");
 // Visitors reach that live catalog through the one curated play.561.group entry.
 // A homepage release must not require installing every independent game checkout.
 const publicationDay = process.env.SITE_PUBLICATION_DATE;
-if (publicationDay && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(publicationDay) ||
+if (publicationDay && (!/^\d{4}-\d{2}-\d{2}$/.test(publicationDay) ||
     new Date(publicationDay + "T00:00:00Z").toISOString().slice(0, 10) !== publicationDay)) {
   throw new Error("SITE_PUBLICATION_DATE must be one real YYYY-MM-DD UTC day");
 }
