@@ -47,6 +47,34 @@ jobs:
         run: node --test test/public-intake-boundary.test.mjs
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
+      - name: Probe exact house npm package and pinned Git supplier
+        timeout-minutes: 1
+        run: |
+          set -eu
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const pkg=JSON.parse(readFileSync('package.json','utf8'));
+          const cfg=readFileSync('.npmrc','utf8');
+          const registry=cfg.match(/^@red-cup-engineering:registry=(https:\/\/[^\s]+)$/mu)?.[1];
+          const version=pkg.dependencies?.['@red-cup-engineering/l-space'];
+          const living=pkg.dependencies?.['@red-cup-engineering/living-web-server'];
+          if(!registry || !/^\d+\.\d+\.\d+$/u.test(version??'') ||
+             !/^git\+https:\/\/github\.com\/red-cup-engineering\/living-web-server\.git#[a-f\d]{40}$/iu.test(living??'')){
+            throw Error('The original publisher requires a qualified house registry, language version and exact LivingWebServer source commit');
+          }
+          const url=new URL('@red-cup-engineering%2fl-space',registry);
+          const response=await fetch(url,{redirect:'error',headers:{accept:'application/json'},
+            signal:AbortSignal.timeout(10000)});
+          console.log('Original registry package metadata HTTP '+response.status);
+          if(!response.ok)throw Error('House language package cannot be resolved: HTTP '+response.status);
+          if(Number(response.headers.get('content-length')||0)>2000000)throw Error('Registry metadata exceeds read bound');
+          const metadata=await response.json();
+          const release=metadata?.versions?.[version];
+          if(!release?.dist?.integrity || !release.dist?.tarball)throw Error('Pinned language package has no published integrity/asset evidence');
+          console.log('House language package '+version+' has published integrity metadata');
+          NODE
+          GIT_TERMINAL_PROMPT=0 timeout 12s git -c credential.helper= ls-remote https://github.com/red-cup-engineering/living-web-server.git HEAD >/dev/null
+          echo "Pinned LivingWebServer Git origin is reachable (revision selected in package.json)"
       - name: Install original published dependencies and pinned LivingWebServer source
         timeout-minutes: 4
         env:
