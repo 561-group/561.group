@@ -12,11 +12,11 @@ const source=path.join(scratch,'source');await mkdir(source);git(source,'init','
 for(const [id,entry] of Object.entries({new:record('new','fixture.invalid','/nested/game'),curated:record('curated','play.561.group'),terminal:record('terminal','terminal.invalid',null)})) {await mkdir(path.join(source,id));await writeFile(path.join(source,id,'catalog-entry.json'),JSON.stringify(entry));}
 const app=path.join(scratch,'app');await cp(ROOT,app,{recursive:true,filter:s=>!s.includes('node_modules')});await mkdir(path.join(app,'node_modules/@causeway-services'),{recursive:true});await symlink(path.dirname(fileURLToPath(import.meta.resolve('@causeway-services/play/package.json'))),path.join(app,'node_modules/@causeway-services/play'));await mkdir(path.join(app,'node_modules/@red-cup-engineering'),{recursive:true});await symlink(path.dirname(fileURLToPath(import.meta.resolve('@red-cup-engineering/l-space/package.json'))),path.join(app,'node_modules/@red-cup-engineering/l-space'));
 const preload=path.join(scratch,'offline.mjs');await writeFile(preload,`globalThis.fetch = () => { throw new Error('Public network forbidden in local qualification'); };`);
-const base={...process.env,PLAY_CATALOG_SOURCES:JSON.stringify([{repositoryRoot:source,catalogRoots:['.'],gameSiteRoots:[]}]),PLAY_CATALOG_DATE:'2026-10-12'};
+const base={...process.env,PLAY_CATALOG_SOURCES:JSON.stringify([{repositoryRoot:source,catalogRoots:['.'],gameSiteRoots:[]}]),PLAY_CATALOG_DATE:'2026-10-12',GITHUB_SHA:'0123456789abcdef0123456789abcdef01234567'};
 const run=(extra={})=>spawnSync(process.execPath,['--import',preload,'scripts/build.mjs'],{cwd:app,env:{...base,...extra},encoding:'utf8'});
 let passed=0;const check=(name,fn)=>{fn();passed++;console.log('PASS',name)};
 const first=run();check('actual CLI with genuine supplier export imports',()=>assert.equal(first.status,0,first.stderr));
-const names=['estate-records.json','index.html','zh-hans/index.html','lkt/index.html','llms.txt','llms-full.txt','feed.json','feed.atom.xml','feed.rss.xml','.well-known/security.txt','8d232583e7cba18a83bf5c0325fcc7c9.txt','humans.txt','robots.txt','sitemap.xml'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
+const names=['source-revision.json','estate-records.json','index.html','zh-hans/index.html','lkt/index.html','llms.txt','llms-full.txt','feed.json','feed.atom.xml','feed.rss.xml','.well-known/security.txt','8d232583e7cba18a83bf5c0325fcc7c9.txt','humans.txt','robots.txt','sitemap.xml'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
 const estate=JSON.parse(before['estate-records.json']);const original=JSON.parse(await readFile(path.join(ROOT,'data/estate.json'),'utf8'));
 check('all original curated nodes preserved unchanged',()=>assert.deepEqual(estate.nodes.slice(0,original.nodes.length),original.nodes));
 check('same existing URL not duplicated',()=>assert.equal(estate.nodes.filter(n=>n.host==='play.561.group').length,1));
@@ -24,6 +24,14 @@ check('new authored browser entry preserves exact path',()=>assert.equal(estate.
 check('terminal-only source not substituted as browser page',()=>assert.equal(estate.nodes.some(n=>n.host==='terminal.invalid'),false));
 check('original machines and featured doors preserved',()=>{assert.deepEqual(estate.machines,original.machines);assert.deepEqual(estate.doors,original.doors)});
 check('publication date bound',()=>assert.match(before['sitemap.xml'],/2026-10-12/));
+check('published source receipt binds the exact qualifying source revision',()=>{
+  const release=JSON.parse(before['source-revision.json']);
+  assert.equal(release.sourceCommit,'0123456789abcdef0123456789abcdef01234567');
+  assert.equal(release.repository,'561-group/561.group');
+  assert.equal(release.renderer,'TUFTE');
+  assert.equal(release.application,'LivingWebServer');
+  assert.equal(release.origin,'https://561.group');
+});
 const second=run();check('repeat actual build succeeds',()=>assert.equal(second.status,0,second.stderr));const after=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
 check('all outputs, in every language, identical on repeat',()=>assert.deepEqual(after,before));
 for(const [name,extra,pattern] of [['missing source', {PLAY_CATALOG_SOURCES:undefined},/sources are required/],['empty source',{PLAY_CATALOG_SOURCES:'[]'},/nonempty/],['invalid date',{PLAY_CATALOG_DATE:'2026-02-30'},/real UTC date/]]) {const r=run(extra);check(name+' refuses',()=>{assert.notEqual(r.status,0);assert.match(r.stderr,pattern)});}
