@@ -21,9 +21,15 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - name: Refuse a production release without the original exact package lock
+        run: |
+          test -s package-lock.json || {
+            echo '::error::The original source has no committed npm lockfile; do not deploy a best-effort install.'
+            exit 1
+          }
       - name: Install original 561 registry suppliers and pinned LivingWebServer
         timeout-minutes: 6
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Qualify the actual original Worker, TUFTE and other retained routes
         run: |
           npm run check
