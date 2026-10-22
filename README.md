@@ -5,7 +5,17 @@
 [![License: 561 Group 1.0](https://img.shields.io/badge/license-561%20Group%201.0-1c282a)](LICENSE)
 <!-- 561-group-standards:badges:end -->
 
-The Group's public face: one Cloudflare Worker on the `561.group` zone. It serves the page, sends `www.561.group` to the apex, and answers `/estate.json`.
+The Group's public face is owned by **`@561-group/561.group`** and hosted by the existing Cloudflare Worker on `561.group`. The homepage's proposed source path consumes **LivingWebServer's Fetch-only application and TUFTE renderer** over the original `data/home.json` and `data/estate.json` resources. The Worker retains `www` redirection, `/estate.json`, static contact/discovery resources and the original ActivityPub fallback. This is a source integration until installed, deployed and independently read at the public origin.
+
+## Single apex publication and release identity
+
+- `src/home-tufte.mjs` projects the accepted reader-first public introduction and five original featured estate entries into one small TUFTE model. It does **not** copy the 33-game directory, enterprise archive, proofs or old framework glossary into the opening page.
+- `src/living-home.mjs` is the one `561.group` application using the **existing** `@red-cup-engineering/living-web-server/fetch` capability. It admits only this Group's public home source, through the original server's per-request rights and HTML/JSON negotiation. No new generic listener, host, funds database or off-site contents source exists here.
+- `src/worker.mjs` routes English `/` GET/HEAD through that application; its existing locale redirect, localized static paths, `/estate.json`, confidential contact and ActivityPub provider routing remain as authored. Extending TUFTE to all locale routes and retiring the old static homepage generator must occur with equivalent translations and consumer readback; do not falsely describe those paths as converted now.
+- `scripts/build.mjs` emits `public/source-revision.json` **only when an exact `GITHUB_SHA` is supplied**. It records the checkout commit, not a fabricated successful deployment. An accepted release compares that revision against the independently served `https://561.group/source-revision.json`.
+- `.github/workflows/deploy.yml` admits only an explicit main-branch, locked supplier-workspace build, real tests and original source roots before deploying the existing Worker. It checks the actual public TUFTE, JSON, contact and estate responses after deployment. The repo alone still lacks an installed PNPM/Play/LivingWebServer workspace; a source-only merge is **not** a production release.
+
+**Normal Work rule:** keep site changes in branches until a qualified source-to-public publication is ready; report any divergence between the current `main` and the actual served commit in the original [site receiving issue #17](https://github.com/561-group/561.group/issues/17). Do not make `main`'s source history, a GitHub Actions success, or a Stripe product standing in for a public-page readback or a customer.
 
 ## Layout
 
