@@ -15,6 +15,9 @@ import { catalogSourcesFromEnvironment, publicationDateFromEnvironment } from "@
 const root = new URL("../", import.meta.url);
 const read = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 const home = await read("data/home.json");
+// A release advertises the exact site-source commit supplied by its original GitHub checkout.
+const sourceCommit = process.env.GITHUB_SHA;
+if (sourceCommit !== undefined && !/^[0-9a-f]{40}$/iu.test(sourceCommit)) throw new Error("GITHUB_SHA must be one exact source commit");
 const authored = await read("data/estate.json");
 // Bind the same authored catalog through its owning package. Outside the
 // integrated checkout, callers provide explicit source roots; discovery refuses
@@ -68,6 +71,9 @@ const space = siteSpace({
 });
 const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, tag, { origin: home.origin })]));
 const files = {
+  ...(sourceCommit ? { "public/source-revision.json": JSON.stringify({
+    repository: "561-group/561.group", sourceCommit, renderer: "TUFTE", application: "LivingWebServer", origin: home.origin,
+  }, null, 2) + "\n" } : {}),
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
   ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
   "public/feed.json": renderJsonFeed(home, items),
