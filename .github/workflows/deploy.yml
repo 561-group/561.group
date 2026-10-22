@@ -18,9 +18,22 @@ concurrency:
 
 jobs:
   deploy:
+    # A manual dispatch on an unreviewed ref must not write production.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      # Temporary production release interlock. This repository's standalone
+      # checkout lacks the original pinned PNPM/Play/LivingWebServer closure;
+      # public/ build outputs are untracked. Invoking Wrangler directly here
+      # could replace the working site with incomplete assets. This fails
+      # closed until the original source-qualified build -> test -> release ->
+      # independent public-witness chain in PR #21 and issue #17 is accepted.
+      - name: Refuse unqualified standalone deployment
+        run: |
+          echo "::error::The bare checkout is not a qualified production artifact. Recover the pinned integrated workspace, run the native tests/build and receive the exact public revision before enabling deployment (PR #21; issue #17)."
+          exit 1
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
