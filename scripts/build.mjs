@@ -60,7 +60,8 @@ const files = {
     repository: "561-group/561.group", sourceCommit, renderer: "TUFTE", application: "LivingWebServer", origin: home.origin,
   }, null, 2) + "\n" } : {}),
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
-  ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
+  // English / is served by TUFTE + LivingWebServer, never by a competing static index.
+  ...Object.fromEntries(LOCALES.filter(tag => tag !== "en").map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
   "public/feed.json": renderJsonFeed(home, items),
   "public/feed.atom.xml": renderAtom(home, items),
   "public/feed.rss.xml": renderRss(home, items),
