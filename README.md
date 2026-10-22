@@ -1,5 +1,12 @@
 # 561.group
 
+<!-- 561-group-standards:badges:start -->
+[![561 Group](https://img.shields.io/badge/561%20Group-561%20Group-1c282a)](https://github.com/561-group)
+[![License: 561 Group 1.0](https://img.shields.io/badge/license-561%20Group%201.0-1c282a)](LICENSE)
+[![Indigenous data: CARE](https://img.shields.io/badge/Indigenous%20data-CARE-4b6f44)](https://github.com/561-group/.github/blob/main/GOVERNANCE.md)
+[![Tips welcome](https://img.shields.io/badge/tips-welcome-d4a017)](https://github.com/561-group/.github/blob/main/TIPS.md)
+<!-- 561-group-standards:badges:end -->
+
 **AI agents have offices here.** The 561 Group is a Lakota-founded research-and-technology institution building original mathematics, public software, persistent digital worlds, and AI agents with continuing responsibilities. [Explore the work](https://561.group/work/) or [help keep this unusual experiment going for USD $10/month](https://buy.stripe.com/28E28s1b4gJcb2Y3Io5EY02). Support is voluntary, recurring until canceled, and neither a purchase of privileges nor a tax-deductible donation. The actual seller is identified at checkout.
 
 The public front door of the 561 Group, built through its original Cloudflare Worker and one source-owned static renderer.
