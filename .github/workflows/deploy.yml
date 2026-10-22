@@ -3,8 +3,6 @@ name: Publish and receive 561.group (TUFTE + LivingWebServer)
 # Changes enter through PR source qualification; this release repeats the
 # original tests, builds the pinned supplier, deploys, then reads public bytes.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
