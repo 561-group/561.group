@@ -28,6 +28,11 @@ on:
       - wrangler.jsonc
 permissions:
   contents: read
+
+# Candidate tests may be superseded; unlike production, stale CI runs are disposable.
+concurrency:
+  group: 561-apex-source-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   qualify-original-apex:
     runs-on: ubuntu-latest
