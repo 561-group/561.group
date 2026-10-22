@@ -507,7 +507,7 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
     ${g.companies.map((c) => `<li><span class="kind">${esc(c.kind)}</span><h3><a href="${esc(c.url)}">${esc(c.name)}</a></h3><p>${esc(c.role)}</p><span class="links"><a href="${esc(c.url)}">${esc(c.url.replace(/^https:\/\//, "").replace(/\/$/, ""))}</a><a href="${esc(c.github)}">GitHub</a><a href="${esc(c.feeds.json)}">feed</a></span></li>`).join("\n    ")}
   </ul>
   <p class="group-lead">Causeway Services also runs ${g.storefronts.map((x) => `<a href="${esc(x.url)}">${esc(x.name)}</a>`).join(", ")}. New to paying by protocol? <a href="${esc(g.marketGuide)}">Read the x402 guide</a>.</p>
-  <p class="group-lead" id="sustain"><strong>Support public work.</strong> ${esc(g.sustainingSupport.summary)} <a href="${esc(g.sustainingSupport.url)}">${esc(g.sustainingSupport.name)} — ${esc(g.sustainingSupport.monthlyUsd)}/month</a>. This is a monthly subscription until canceled; it grants no special access, influence over findings, or claim on customer settlements. <a href="${esc(g.sustainingSupport.billingHelp)}">Billing and cancellation help</a>.</p>
+  <p class="group-lead" id="sustain"><strong>Support public work.</strong> ${esc(g.sustainingSupport.summary)} <a href="${esc(g.sustainingSupport.url)}">${esc(g.sustainingSupport.name)} — $${esc(g.sustainingSupport.monthlyUsd)}/month</a>. This is a monthly subscription until canceled; it grants no special access, influence over findings, or claim on customer settlements. <a href="${esc(g.sustainingSupport.billingHelp)}">Billing and cancellation help</a>.</p>
   ${items.length ? `<div class="latest">
     <h3>Latest from the Group</h3>
     <ul>
@@ -550,7 +550,7 @@ function supportSection(g) {
   const s = g.sustainingSupport;
   return `## Sustaining public work
 
-[${s.name}](${s.url}) is a ${s.monthlyUsd}/month recurring subscription supporting 561 Group research and technical infrastructure. It continues until canceled. Support confers no special access, influence over findings, or claim on customer settlements. [Billing and cancellation help](${s.billingHelp}).`;
+[${s.name}](${s.url}) is a $${s.monthlyUsd}/month recurring subscription supporting 561 Group research and technical infrastructure. It continues until canceled. Support confers no special access, influence over findings, or claim on customer settlements. [Billing and cancellation help](${s.billingHelp}).`;
 }
 
 function companyLines(g) {
