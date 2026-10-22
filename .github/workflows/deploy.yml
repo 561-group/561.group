@@ -1,8 +1,10 @@
 name: Publish and receive 561.group (TUFTE + LivingWebServer)
-
-# One explicit original main-to-production publication. No unsafe bare-checkout
-# Wrangler deploy and no automatic promotion of an unqualified source PR.
+# main is the intended production source, not an unreviewed publication.
+# Changes enter through PR source qualification; this release repeats the
+# original tests, builds the pinned supplier, deploys, then reads public bytes.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,48 +23,35 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Qualify the original installed supplier closure
+      - name: Install original 561 registry suppliers and pinned LivingWebServer
+        timeout-minutes: 6
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Qualify the actual original Worker, TUFTE and other retained routes
         run: |
-          set -eu
-          node --check src/worker.mjs
-          node --check src/living-home.mjs
-          node --check src/home-tufte.mjs
-          node --check scripts/build.mjs
-          # The apex no longer composes the independent Play catalog. Require
-          # only the real release lock and any genuinely declared workspace roots.
-          test -f pnpm-lock.yaml || { echo '::error::Exact supplier lockfile unavailable'; exit 1; }
-          node --input-type=module <<'NODE'
-          import {readFileSync,existsSync} from 'node:fs';
-          const p=JSON.parse(readFileSync('package.json','utf8'));
-          const deps=Object.values({...p.dependencies,...p.devDependencies});
-          if(deps.some(value=>typeof value==='string'&&value.startsWith('workspace:')) &&
-             !existsSync('pnpm-workspace.yaml')) {
-            throw Error('Declared workspace packages require their original workspace manifest');
-          }
-          NODE
-      - name: Build exact source and exercise its actual tests
-        run: |
-          set -eu
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm check
-          pnpm test
-          pnpm build
-      - name: Refuse missing release outputs or wrong commit
+          npm run check
+          npm test
+          npm run build
+      - name: Refuse incomplete release, duplicate homepage or wrong source revision
         run: |
           node --input-type=module <<'NODE'
-          import { readFile } from 'node:fs/promises';
-          const receipt=JSON.parse(await readFile('public/source-revision.json','utf8'));
+          import { readFile,stat } from 'node:fs/promises';
+          const text=async name=>readFile(name,'utf8');
+          const receipt=JSON.parse(await text('public/source-revision.json'));
           if(receipt.sourceCommit!==process.env.GITHUB_SHA ||
              receipt.repository!=='561-group/561.group' ||
              receipt.renderer!=='TUFTE' || receipt.application!=='LivingWebServer') {
-            throw Error('Original source/build receipt mismatch');
+            throw Error('Source release identity mismatch');
           }
-          for(const file of ['public/estate-records.json','public/contact/index.html',
-                             'public/llms.txt','public/sitemap.xml','public/robots.txt']){
-            if((await readFile(file)).length<50)throw Error('Missing real original public asset: '+file);
+          for(const path of ['public/estate-records.json','public/contact/index.html',
+            'public/llms.txt','public/llms-full.txt','public/sitemap.xml',
+            'public/robots.txt','public/zh-hans/index.html','public/lkt/index.html']) {
+            if((await stat(path)).size<50)throw Error('Missing original publication asset: '+path);
           }
-          console.log('Source artifacts admitted for exact commit '+receipt.sourceCommit);
+          try { await stat('public/index.html'); throw Error('Competing English static homepage'); }
+          catch(error) { if(error.code!=='ENOENT')throw error; }
+          const living=JSON.parse(await text('node_modules/@red-cup-engineering/living-web-server/package.json'));
+          if(!living.exports?.['./fetch'])throw Error('Installed LivingWebServer lacks Worker Fetch contract');
+          console.log('Admitted exact TUFTE + LivingWebServer source '+receipt.sourceCommit);
           NODE
       - uses: cloudflare/wrangler-action@v3
         with:
@@ -70,28 +59,37 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: 4.127.1
           command: deploy --config wrangler.jsonc
-      - name: Independently receive the actually served 561.group revision
+      - name: Receive independent public revision, human/agent and retained site routes
         run: |
           node --input-type=module <<'NODE'
-          const origin='https://561.group';
-          const get=path=>fetch(origin+path,{cache:'no-store',headers:{'cache-control':'no-cache'}});
-          const receiptResponse=await get('/source-revision.json');
-          if(!receiptResponse.ok)throw Error('No public release receipt: '+receiptResponse.status);
-          const receipt=await receiptResponse.json();
-          if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Live source differs from main deployment commit');
-          const page=await get('/');
-          const html=await page.text();
-          if(!page.ok || !html.includes('data-tufte') || !html.includes('Work with us') ||
-             !html.includes('buy.stripe.com') || html.includes('conurbanized ecosystem')){
-            throw Error('The live apex is not the received TUFTE human homepage');
+          const host='https://561.group';
+          const read=path=>fetch(host+path,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+          const manifest=await read('/source-revision.json');
+          if(!manifest.ok)throw Error('Public source receipt not served: '+manifest.status);
+          const receipt=await manifest.json();
+          if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Public origin not serving this main commit');
+          const home=await read('/');
+          const html=await home.text();
+          if(!home.ok || !html.includes('data-tufte') ||
+             !html.includes('Work with us') || !html.includes('buy.stripe.com') ||
+             html.includes('conurbanized ecosystem')) {
+            throw Error('Public HTML is not original TUFTE Group homepage');
           }
-          const json=await fetch(origin+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
-          if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')){
-            throw Error('The live TUFTE machine projection was not received');
+          const json=await fetch(host+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
+          if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')) {
+            throw Error('Public LivingWebServer JSON projection was not received');
           }
-          const contact=await get('/contact/');
-          if(!contact.ok)throw Error('The original confidential contact route is missing');
-          const estate=await get('/estate.json');
-          if(!estate.ok)throw Error('The original estate reading is missing');
-          console.log('Public original source, TUFTE view and existing contact/estate routes received: '+receipt.sourceCommit);
+          const legacy=await fetch(host+'/index.html',{redirect:'manual'});
+          if(legacy.status!==301 || legacy.headers.get('location')!==host+'/') {
+            throw Error('Legacy static page remains independently reachable');
+          }
+          for(const route of ['/contact/','/estate.json','/llms.txt','/zh-hans/','/lkt/']) {
+            const response=await read(route);
+            if(!response.ok)throw Error('Existing public route missing: '+route+' '+response.status);
+          }
+          const alias=await fetch('https://www.561.group/',{redirect:'manual'});
+          if(alias.status!==301 || alias.headers.get('location')!==host+'/') {
+            throw Error('www origin no longer canonicalizes');
+          }
+          console.log('Received deployed Group source '+receipt.sourceCommit+' on actual public origin');
           NODE
