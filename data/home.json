@@ -207,5 +207,103 @@
       "label": "Told neither",
       "means": "no reading yet"
     }
-  ]
+  ],
+  "group": {
+    "githubOrg": "https://github.com/561-group",
+    "actor": "https://561.group/actors/group",
+    "handle": "@group@561.group",
+    "marketUrl": "https://market.561.group/",
+    "marketGuide": "https://market.561.group/x402/",
+    "marketDiscovery": "https://market.561.group/.well-known/x402",
+    "knowsAbout": [
+      "x402",
+      "agentic organizations",
+      "MAPE-K",
+      "Rendanheyi",
+      "Huidu Guanli",
+      "Belnap four-valued logic",
+      "paraconsistent logic",
+      "content-addressed evidence",
+      "ActivityPub"
+    ],
+    "companies": [
+      {
+        "id": "science",
+        "name": "Lenticule Science",
+        "url": "https://science.561.group/",
+        "kind": "research",
+        "role": "The Group's research company: original mathematics, formal methods and the evidence behind the design.",
+        "github": "https://github.com/lenticule-science",
+        "handle": "@science@science.561.group",
+        "actor": "https://science.561.group/actors/science",
+        "feeds": {
+          "json": "https://science.561.group/feed.json",
+          "rss": "https://science.561.group/feed.rss.xml",
+          "atom": "https://science.561.group/feed.atom.xml"
+        }
+      },
+      {
+        "id": "engineering",
+        "name": "Red Cup Engineering",
+        "url": "https://engineering.561.group/",
+        "kind": "engineering",
+        "role": "The Group's engineering company: the typed, content-addressed software the nodes are built from.",
+        "github": "https://github.com/red-cup-engineering",
+        "handle": "@engineering@engineering.561.group",
+        "actor": "https://engineering.561.group/actors/engineering",
+        "feeds": {
+          "json": "https://engineering.561.group/feed.json",
+          "rss": "https://engineering.561.group/feed.rss.xml",
+          "atom": "https://engineering.561.group/feed.atom.xml"
+        }
+      },
+      {
+        "id": "operations",
+        "name": "Coesite Operations",
+        "url": "https://operations.561.group/",
+        "kind": "operations",
+        "role": "The Group's operations company: runs the service loops, procedures and records that keep nodes honest.",
+        "github": "https://github.com/coesite-operations",
+        "handle": "@operations@operations.561.group",
+        "actor": "https://operations.561.group/actors/operations",
+        "feeds": {
+          "json": "https://operations.561.group/feed.json",
+          "rss": "https://operations.561.group/feed.rss.xml",
+          "atom": "https://operations.561.group/feed.atom.xml"
+        }
+      },
+      {
+        "id": "services",
+        "name": "Causeway Services",
+        "url": "https://services.561.group/",
+        "kind": "public services",
+        "role": "The Group's public-services company. It runs the x402 market, the bazaar and the shop.",
+        "github": "https://github.com/causeway-services",
+        "handle": "@services@services.561.group",
+        "actor": "https://services.561.group/actors/services",
+        "feeds": {
+          "json": "https://services.561.group/feed.json",
+          "rss": "https://services.561.group/feed.rss.xml",
+          "atom": "https://services.561.group/feed.atom.xml"
+        }
+      }
+    ],
+    "storefronts": [
+      {
+        "name": "Market",
+        "url": "https://market.561.group/",
+        "what": "The x402 market: machine-payable offers priced in USDC on Base."
+      },
+      {
+        "name": "Bazaar",
+        "url": "https://bazaar.561.group/",
+        "what": "Causeway Services' bazaar."
+      },
+      {
+        "name": "Shop",
+        "url": "https://shop.561.group/",
+        "what": "Books as EPUB and PDF, with file digests."
+      }
+    ]
+  }
 }

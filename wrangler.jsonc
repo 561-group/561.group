@@ -14,5 +14,7 @@
     { "pattern": "561.group/*", "zone_name": "561.group" },
     { "pattern": "www.561.group/*", "zone_name": "561.group" }
   ],
+  // Add once the Worker `activitypub-561-group` exists on the account (deploy fails while it does not):
+  // "services": [{ "binding": "ACTIVITYPUB_INSTANCE", "service": "activitypub-561-group" }],
   "observability": { "enabled": true, "head_sampling_rate": 0.1 }
 }

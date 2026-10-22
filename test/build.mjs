@@ -16,7 +16,7 @@ const base={...process.env,PLAY_CATALOG_SOURCES:JSON.stringify([{repositoryRoot:
 const run=(extra={})=>spawnSync(process.execPath,['--import',preload,'scripts/build.mjs'],{cwd:app,env:{...base,...extra},encoding:'utf8'});
 let passed=0;const check=(name,fn)=>{fn();passed++;console.log('PASS',name)};
 const first=run();check('actual CLI with genuine supplier export imports',()=>assert.equal(first.status,0,first.stderr));
-const names=['estate-records.json','index.html','zh-hans/index.html','lkt/index.html','llms.txt','humans.txt','robots.txt','sitemap.xml'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
+const names=['estate-records.json','index.html','zh-hans/index.html','lkt/index.html','llms.txt','llms-full.txt','humans.txt','robots.txt','sitemap.xml'];const before=Object.fromEntries(await Promise.all(names.map(async n=>[n,await readFile(path.join(app,'public',n),'utf8')])));
 const estate=JSON.parse(before['estate-records.json']);const original=JSON.parse(await readFile(path.join(ROOT,'data/estate.json'),'utf8'));
 check('all original curated nodes preserved unchanged',()=>assert.deepEqual(estate.nodes.slice(0,original.nodes.length),original.nodes));
 check('same existing URL not duplicated',()=>assert.equal(estate.nodes.filter(n=>n.host==='play.561.group').length,1));

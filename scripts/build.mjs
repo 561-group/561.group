@@ -4,7 +4,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { renderHumans, renderIndex, renderLlms, renderRobots, renderSitemap } from "../src/render.mjs";
+import { renderHumans, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
 import { discoverCatalog } from "@causeway-services/play/catalog";
@@ -21,11 +21,31 @@ const authored = await read("data/estate.json");
 const sources = catalogSourcesFromEnvironment();
 const date = publicationDateFromEnvironment() ?? new Date();
 const updated = date.toISOString().slice(0, 10);
-const { catalog } = await discoverCatalog({ sources, generatedDate: updated, observePages: false });
 // Keep curated non-game doors; the authored game records own their names and entry paths.
 const knownUrls = new Set(authored.nodes.map((n) => n.url ?? `https://${n.host}/`));
-const games = catalog.games.filter(hasBrowser).filter((game) => !knownUrls.has(playUrl(game)))
-  .map((game) => ({ host: new URL(playUrl(game)).host, url: playUrl(game), name: game.displayName, group: "games", line: game.description }));
+let games;
+if (sources === undefined && process.env.ESTATE_GAMES_SNAPSHOT) {
+  // Explicit, named fallback for a checkout without the game sources: reuse the games of an
+  // earlier published estate-records.json, unchanged. Never a default; discovery stays the rule.
+  const earlier = JSON.parse(await readFile(process.env.ESTATE_GAMES_SNAPSHOT, "utf8"));
+  games = earlier.nodes.filter((n) => n.group === "games" && !knownUrls.has(n.url ?? `https://${n.host}/`));
+  console.warn(`games taken from the earlier published record ${process.env.ESTATE_GAMES_SNAPSHOT}, not from discovery`);
+} else {
+  const { catalog } = await discoverCatalog({ sources, generatedDate: updated, observePages: false });
+  games = catalog.games.filter(hasBrowser).filter((game) => !knownUrls.has(playUrl(game)))
+    .map((game) => ({ host: new URL(playUrl(game)).host, url: playUrl(game), name: game.displayName, group: "games", line: game.description }));
+}
+// The market's live offer count, read from its x402 discovery; absent (never guessed) when unreadable.
+const marketOffers = await (async () => {
+  try {
+    const response = await fetch(home.group.marketDiscovery, { signal: AbortSignal.timeout(8000), headers: { accept: "application/json" } });
+    const { resources } = response.ok ? await response.json() : {};
+    return Array.isArray(resources) ? resources.length : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const facts = { marketOffers };
 const estate = { ...authored, nodes: [...authored.nodes, ...games] };
 estate.revision = createHash("sha256").update(JSON.stringify(estate)).digest("hex");
 
@@ -47,7 +67,8 @@ const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, ta
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
   ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag])])),
-  "public/llms.txt": renderLlms(home, estate),
+  "public/llms.txt": renderLlms(home, estate, facts),
+  "public/llms-full.txt": renderLlmsFull(home, estate, facts),
   "public/humans.txt": renderHumans(home, updated),
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),

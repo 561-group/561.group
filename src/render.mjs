@@ -17,6 +17,13 @@ const sectionLabel = (n, titleHtml) =>
 
 const nodeUrl = (node) => node.url ?? `https://${node.host}/`;
 
+/** Every glossed term of the design, in sentence order, with its note: { text, note, gloss }. */
+function designTerms(home) {
+  const d = home.design;
+  const parts = [d.sentence, ...d.loop.map((l) => l.line), d.knowledge.line, d.whole].flat();
+  return parts.filter((p) => typeof p !== "string").map((p) => ({ text: p.text, note: p.note, gloss: d.notes[p.note] }));
+}
+
 // A node's name or line in the page's language when there is a message for it; an authored game record's own words otherwise.
 const nodeWords = (say, node, field) => (say.has(`estate.node.${node.host}.${field}`) ? say.html(`estate.node.${node.host}.${field}`) : esc(node[field]));
 
@@ -69,6 +76,19 @@ a:focus-visible{outline:3px solid var(--alarm);outline-offset:3px}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
 .mono{font-family:var(--mono)}
+
+/* the group: companies and follow */
+.group-lead{max-width:var(--measure);margin-bottom:1.5rem}
+.companies{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:2rem}
+.companies li{background:var(--surface);padding:1.1rem 1.2rem}
+.companies h3{font-family:var(--sans);font-size:1.15rem;letter-spacing:-.01em}
+.companies .kind{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--alarm-ink)}
+.companies p{font-size:.9rem;color:var(--ink-soft);margin:.4rem 0 .6rem}
+.companies .links{font-family:var(--mono);font-size:.75rem;display:flex;flex-wrap:wrap;gap:.4rem 1rem}
+.follow{border-top:3px solid var(--ink);padding-top:1rem;max-width:var(--measure)}
+.follow h3{font-family:var(--sans);font-size:1.15rem}
+.follow ul{list-style:none;font-family:var(--mono);font-size:.85rem;margin:.6rem 0}
+.follow li{padding:.15rem 0}
 
 /* ticker */
 .ticker{background:var(--ink);color:var(--surface);font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;padding:.55rem 0}
@@ -290,16 +310,46 @@ export function renderIndex(home, estate, say) {
   const canonical = `${home.origin}${localePath(tag)}`;
   const alternates = say.alternates();
   const faces = localeFaces(tag);
+  const g = home.group;
+  const termSet = {
+    "@type": "DefinedTermSet",
+    "@id": `${home.origin}/#design-terms`,
+    name: "The 561 Group's design terms",
+    inLanguage: "en",
+    hasDefinedTerm: designTerms(home).map(({ text, note, gloss }) => ({
+      "@type": "DefinedTerm", name: text, description: gloss, inDefinedTermSet: `${home.origin}/#design-terms`, url: `${home.origin}/#n${note}`,
+    })),
+  };
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name,
-    url: `${home.origin}/`,
-    description,
-    foundingDate: home.established,
-    logo: `${home.origin}/card.png`,
-    inLanguage: tag,
-    knowsLanguage: [...LOCALES],
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${home.origin}/#organization`,
+        name,
+        url: `${home.origin}/`,
+        description,
+        foundingDate: home.established,
+        logo: `${home.origin}/card.png`,
+        sameAs: [g.githubOrg, g.actor],
+        knowsAbout: g.knowsAbout,
+        subOrganization: g.companies.map((c) => ({ "@type": "Organization", "@id": `${c.url}#organization`, name: c.name, url: c.url, sameAs: [c.github, c.actor] })),
+        subjectOf: { "@id": `${home.origin}/#design-terms` },
+        mainEntityOfPage: { "@id": `${home.origin}/#website` },
+        inLanguage: tag,
+        knowsLanguage: [...LOCALES],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${home.origin}/#website`,
+        name,
+        url: `${home.origin}/`,
+        description,
+        publisher: { "@id": `${home.origin}/#organization` },
+        inLanguage: [...LOCALES],
+      },
+      termSet,
+    ],
   };
   const switcher = `<nav class="langs" aria-label="${esc(t("ui.languages"))}">${LOCALES.map((other) => `<a href="${localePath(other)}" hreflang="${other}" lang="${other}"${other === tag ? ' aria-current="true"' : ""}>${esc(localeFaces(other).autonym)}</a>`).join("")}</nav>`;
   const original = tag === DEFAULT_LOCALE ? "" : ' hreflang="en"';
@@ -327,7 +377,10 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
 <meta property="og:image:alt" content="${esc(t("ui.cardAlt"))}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="fediverse:creator" content="${esc(g.handle)}">
+<link rel="me" href="${esc(g.actor)}">
 <link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
+<link rel="alternate" type="text/plain" title="For language models, in full" href="/llms-full.txt">
 <link rel="alternate" type="application/json" title="Estate reading" href="/estate.json">
 <link rel="author" href="/humans.txt">
 <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
@@ -346,7 +399,7 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
   <strong>561.group</strong>
   <span class="phase-wrap">${h("ui.bar.loop")} ▸ <span class="phase" id="phase">${h("home.design.loop.M.phase")}</span></span>
   <span>${h("ui.bar.utc")} <time id="clock">--:--:--</time></span>
-  <nav aria-label="${esc(t("ui.nav.sections"))}"><a href="#design">${h("ui.nav.design")}</a><a href="#estate">${h("ui.nav.estate")}</a><a href="#doctrine">${h("ui.nav.doctrine")}</a><a href="#agents">${h("ui.nav.agents")}</a></nav>
+  <nav aria-label="${esc(t("ui.nav.sections"))}"><a href="#design">${h("ui.nav.design")}</a><a href="#estate">${h("ui.nav.estate")}</a><a href="#doctrine">${h("ui.nav.doctrine")}</a><a href="#agents">${h("ui.nav.agents")}</a><a href="#group" lang="en">Group</a></nav>
   ${switcher}
 </div>
 
@@ -437,6 +490,23 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
     </ul>
   </div>
 </section>
+<section class="wrap sec" id="group" aria-labelledby="group-h" lang="en">
+  ${sectionLabel(5, "The Group")}
+  <h2 class="visually-hidden" id="group-h">The Group</h2>
+  <p class="group-lead">The 561 Group is the parent of four companies, one for each stage from knowledge to public service, and its public services include an x402 market that agents can pay in USDC on Base.</p>
+  <ul class="companies">
+    ${g.companies.map((c) => `<li><span class="kind">${esc(c.kind)}</span><h3><a href="${esc(c.url)}">${esc(c.name)}</a></h3><p>${esc(c.role)}</p><span class="links"><a href="${esc(c.url)}">${esc(c.url.replace(/^https:\/\//, "").replace(/\/$/, ""))}</a><a href="${esc(c.github)}">GitHub</a><a href="${esc(c.feeds.json)}">feed</a></span></li>`).join("\n    ")}
+  </ul>
+  <p class="group-lead">Causeway Services also runs ${g.storefronts.map((x) => `<a href="${esc(x.url)}">${esc(x.name)}</a>`).join(", ")}. New to paying by protocol? <a href="${esc(g.marketGuide)}">Read the x402 guide</a>.</p>
+  <div class="follow">
+    <h3>Follow</h3>
+    <p>The Group and its companies speak ActivityPub. Search for any handle from a fediverse account.</p>
+    <ul>
+      <li><a rel="me" href="${esc(g.actor)}">${esc(g.handle)}</a></li>
+      ${g.companies.map((c) => `<li><a href="${esc(c.actor)}">${esc(c.handle)}</a></li>`).join("\n      ")}
+    </ul>
+  </div>
+</section>
 </main>
 
 <footer class="wrap">
@@ -453,28 +523,73 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
 `;
 }
 
-export function renderLlms(home, estate) {
+const designSentence = (d) => `${plain(d.sentence)} ${d.loopLead} ${d.loop
+    .map((l) => `${l.phase.toLowerCase()}: ${plain(l.line)}`)
+    .join("; ")}; through ${plain(d.knowledge.line)}. ${plain(d.whole)}`;
+
+const offersPhrase = (count) => (Number.isInteger(count) ? `${count} machine-payable offers` : "machine-payable offers");
+
+function companyLines(g) {
+  return g.companies.map((c) => `- [${c.name}](${c.url}): ${c.role} Fediverse: ${c.handle}. Source: ${c.github}. Feeds: [JSON](${c.feeds.json}), [RSS](${c.feeds.rss}), [Atom](${c.feeds.atom}).`).join("\n");
+}
+
+function fediverseLines(g) {
+  return [`- ${g.handle} (${g.actor}): the 561 Group`, ...g.companies.map((c) => `- ${c.handle} (${c.actor}): ${c.name}`)].join("\n");
+}
+
+function marketSection(g, offers) {
+  return `## The x402 market
+
+[market.561.group](${g.marketUrl}) is run by Causeway Services. It lists ${offersPhrase(offers)}, each paid per call in USDC on Base over x402 (HTTP 402): request an offer's route without payment to receive its payment challenge. Confirm exact current terms before paying. Agents are welcome.
+
+- [How x402 works, and how to buy here](${g.marketGuide})
+- [Discovery (x402 v2)](${g.marketDiscovery}) and [catalog](https://market.561.group/v1/catalog)
+- [The market's own llms.txt](https://market.561.group/llms.txt), [agent card](https://market.561.group/.well-known/agent-card.json), MCP at https://market.561.group/mcp
+- Also: ${g.storefronts.filter((x) => x.name !== "Market").map((x) => `[${x.name}](${x.url})`).join(", ")}`;
+}
+
+/** llms.txt: the map of the Group for a language model. `facts.marketOffers` is the live count, or absent when it could not be read. */
+export function renderLlms(home, estate, facts = {}) {
   const d = home.design;
+  const g = home.group;
   const byGroup = estate.groups
-    .map((g) => ({ g, nodes: estate.nodes.filter((n) => n.group === g.id) }))
+    .map((grp) => ({ grp, nodes: estate.nodes.filter((n) => n.group === grp.id) }))
     .filter((x) => x.nodes.length);
   return `# ${home.name}
 
 > ${home.description}
 
-Intended design: ${plain(d.sentence)} ${d.loopLead} ${d.loop
-    .map((l) => `${l.phase.toLowerCase()}: ${plain(l.line)}`)
-    .join("; ")}; through ${plain(d.knowledge.line)}. ${plain(d.whole)}
+${home.name} (${home.origin}/) is a ${home.masthead[0].toLowerCase()}, established ${home.established}. It is a parent of four companies, and authority in it is held by offices, not persons: no persons are listed anywhere.
+
+Intended design: ${designSentence(d)}
 
 ${d.caveat}
 
+## Terms of the design
+
+${designTerms(home).map(({ text, gloss }) => `- ${text}: ${gloss}`).join("\n")}
+
+## The companies
+
+${companyLines(g)}
+
+GitHub organization of the parent: ${g.githubOrg}. Full prose, doctrine and told values: [llms-full.txt](${home.origin}/llms-full.txt).
+
+${marketSection(g, facts.marketOffers)}
+
+## Fediverse
+
+${fediverseLines(g)}
+
 ## Public nodes
 
-${byGroup.map(({ g, nodes }) => `### ${g.title}\n\n${nodes.map((n) => `- [${n.name}](${nodeUrl(n)}): ${n.line}`).join("\n")}`).join("\n\n")}
+${byGroup.map(({ grp, nodes }) => `### ${grp.title}\n\n${nodes.map((n) => `- [${n.name}](${nodeUrl(n)}): ${n.line}`).join("\n")}`).join("\n\n")}
 
 ## Machine-readable
 
 ${estate.machine.map((m) => `- [${m.url.replace(/^https:\/\//, "")}](${m.url}): ${m.what}`).join("\n")}
+- [${home.origin.replace(/^https:\/\//, "")}/llms-full.txt](${home.origin}/llms-full.txt): This account in full.
+- [${home.origin.replace(/^https:\/\//, "")}/sitemap.xml](${home.origin}/sitemap.xml): Every page, with its languages.
 
 ## Doctrine
 
@@ -483,6 +598,73 @@ ${home.doctrine.map((q) => `- ${q.text}`).join("\n")}
 ## Languages
 
 ${LOCALES.map((tag) => `- [${localeFaces(tag).autonym}](${home.origin}${localePath(tag)})`).join("\n")}
+`;
+}
+
+/** llms-full.txt: the whole of the home page's prose for a language model. */
+export function renderLlmsFull(home, estate, facts = {}) {
+  const d = home.design;
+  const g = home.group;
+  return `# ${home.name}: in full
+
+> ${home.description}
+
+This is the long form of [llms.txt](${home.origin}/llms.txt). Everything here is public.
+
+## What the Group is
+
+${home.masthead.join(". ")}. ${home.address}
+
+## The intended design
+
+${designSentence(d)}
+
+${d.caveat}
+
+### The loop
+
+${d.loop.map((l) => `- ${l.letter}, ${l.phase}: ${plain(l.line)}`).join("\n")}
+- ${d.knowledge.letter}, ${d.knowledge.phase}: ${plain(d.knowledge.line)}
+
+### Each term, explained
+
+${designTerms(home).map(({ text, note, gloss }) => `${note}. ${text}: ${gloss}`).join("\n\n")}
+
+## Doctrine
+
+${home.doctrine.map((q) => `- "${q.text}" (${q.source})`).join("\n")}
+
+## What "told" means
+
+Each public node's status is derived by the Worker at ${home.origin}/estate.json, which asks the node and tells the answer in Belnap's four values. It is a reading, not a delivery or a promise.
+
+${home.told.map((t) => `- ${t.glyph} ${t.label}: ${t.means}`).join("\n")}
+
+## The companies
+
+${companyLines(g)}
+
+${marketSection(g, facts.marketOffers)}
+
+## Fediverse
+
+${fediverseLines(g)}
+
+## Every public node
+
+${estate.groups
+    .map((grp) => ({ grp, nodes: estate.nodes.filter((n) => n.group === grp.id) }))
+    .filter((x) => x.nodes.length)
+    .map(({ grp, nodes }) => `### ${grp.title}\n\n${nodes.map((n) => `- [${n.name}](${nodeUrl(n)}): ${n.line}`).join("\n")}`)
+    .join("\n\n")}
+
+## Machine endpoints
+
+${estate.machine.map((m) => `- ${m.verb} ${m.url}: ${m.what}`).join("\n")}
+
+## Contact
+
+Public reports and private intake: ${home.origin}/contact/. A submission is not an accepted work order.
 `;
 }
 
@@ -498,11 +680,16 @@ Fonts: Space Grotesk, Roboto Slab, JetBrains Mono (SIL Open Font License 1.1)
 `;
 }
 
-export const renderRobots = (home) => `User-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
+const AI_CRAWLERS = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"];
+
+export const renderRobots = (home) =>
+  `${AI_CRAWLERS.map((agent) => `User-agent: ${agent}\nAllow: /\n`).join("\n")}\nUser-agent: *\nAllow: /\n\nSitemap: ${home.origin}/sitemap.xml\n`;
 
 /** The sitemap: each language's home page with its alternates, and the contact page. */
 export const renderSitemap = (home, updated, alternates = []) =>
   sitemapXml([
     ...LOCALES.map((tag) => ({ loc: `${home.origin}${localePath(tag)}`, lastmod: updated, alternates })),
     { loc: `${home.origin}/contact/`, lastmod: updated },
+    { loc: `${home.origin}/llms.txt`, lastmod: updated },
+    { loc: `${home.origin}/llms-full.txt`, lastmod: updated },
   ]);

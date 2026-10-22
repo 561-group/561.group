@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { report } from "@red-cup-engineering/l-space";
-import { renderIndex, renderLlms, renderSitemap } from "../src/render.mjs";
+import { renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { LOCALES, POLICY, siteSpace, speaker } from "../src/locales.mjs";
 import { contentMessages } from "../src/words.mjs";
 
@@ -70,4 +70,50 @@ test("the sitemap lists every language with its alternates; llms.txt names them"
   assert.match(sitemap, /<url><loc>https:\/\/561\.group\/zh-hans\/<\/loc><lastmod>2026-10-19<\/lastmod><xhtml:link rel="alternate" hreflang="en" href="https:\/\/561\.group\/"\/>/u);
   assert.match(sitemap, /<url><loc>https:\/\/561\.group\/contact\/<\/loc>/u);
   assert.match(renderLlms(home, estate), /## Languages\n\n- \[English\]\(https:\/\/561\.group\/\)\n- \[简体中文\]\(https:\/\/561\.group\/zh-hans\/\)/u);
+});
+
+test("the apex is a hub for search and answer engines: graph, head, follow block, llms files, robots, sitemap", () => {
+  const html = page("en");
+  const graph = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/su.exec(html)[1])["@graph"];
+  const org = graph.find((n) => n["@type"] === "Organization");
+  assert.equal(org["@id"], "https://561.group/#organization");
+  assert.equal(org.description, home.description, "R1: the description is verbatim");
+  assert.equal(org.foundingDate, "2018");
+  assert.deepEqual(org.sameAs, ["https://github.com/561-group", "https://561.group/actors/group"]);
+  assert.equal(org.subOrganization.length, 4);
+  for (const sub of org.subOrganization) assert.ok(sub.name && sub.url && sub.sameAs.length === 2);
+  for (const topic of ["x402", "MAPE-K", "Rendanheyi", "Huidu Guanli", "Belnap four-valued logic", "ActivityPub"]) assert.ok(org.knowsAbout.includes(topic));
+  assert.equal(graph.find((n) => n["@type"] === "WebSite")["@id"], "https://561.group/#website");
+  assert.equal(graph.find((n) => n["@type"] === "DefinedTermSet").hasDefinedTerm.length, 13);
+  assert.match(html, /<meta name="fediverse:creator" content="@group@561\.group">/u);
+  assert.match(html, /<link rel="me" href="https:\/\/561\.group\/actors\/group">/u);
+  assert.match(html, /<link rel="alternate" type="text\/plain" title="For language models" href="\/llms\.txt">/u);
+  for (const handle of ["@group@561.group", "@science@science.561.group", "@engineering@engineering.561.group", "@operations@operations.561.group", "@services@services.561.group"]) assert.ok(html.includes(`>${handle}</a>`), handle);
+  for (const url of ["https://science.561.group/", "https://engineering.561.group/", "https://operations.561.group/", "https://services.561.group/", "https://market.561.group/x402/"]) assert.ok(html.includes(`href="${url}"`), url);
+  assert.ok(html.includes(home.description));
+  assert.doesNotMatch(html, /morgan|sennhauser|emsenn/iu);
+});
+
+test("llms.txt maps the whole Group and takes the market's offer count from the caller, never from the source", () => {
+  const llms = renderLlms(home, estate, { marketOffers: 130 });
+  assert.ok(llms.includes(home.description));
+  for (const url of ["https://science.561.group/", "https://engineering.561.group/", "https://operations.561.group/", "https://services.561.group/", "https://market.561.group/x402/"]) assert.ok(llms.includes(url), url);
+  assert.match(llms, /It lists 130 machine-payable offers/u);
+  assert.match(llms, /@science@science\.561\.group/u);
+  assert.doesNotMatch(llms, /Sixty-one|sixty-one/u);
+  assert.doesNotMatch(renderLlms(home, estate), /\d+ machine-payable offers/u, "an unreadable count is omitted, not guessed");
+  const full = renderLlmsFull(home, estate, { marketOffers: 130 });
+  for (const quote of home.doctrine) assert.ok(full.includes(quote.text));
+  for (const note of Object.values(home.design.notes)) assert.ok(full.includes(note));
+  for (const told of home.told) assert.ok(full.includes(told.label));
+  assert.doesNotMatch(llms + full, /morgan|sennhauser|emsenn/iu);
+});
+
+test("robots names every AI crawler and keeps the sitemap; the sitemap lists the llms files", () => {
+  const robots = renderRobots(home);
+  for (const bot of ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"]) assert.match(robots, new RegExp(`User-agent: ${bot}\\nAllow: /\\n`, "u"));
+  assert.match(robots, /Sitemap: https:\/\/561\.group\/sitemap\.xml\n$/u);
+  const sitemap = renderSitemap(home, "2026-10-21");
+  assert.match(sitemap, /<loc>https:\/\/561\.group\/llms\.txt<\/loc><lastmod>2026-10-21<\/lastmod>/u);
+  assert.match(sitemap, /<loc>https:\/\/561\.group\/llms-full\.txt<\/loc>/u);
 });

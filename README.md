@@ -6,7 +6,7 @@ The Group's public face: one Cloudflare Worker on the `561.group` zone. It serve
 
 - `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, and the four told values.
 - `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
-- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
+- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `llms-full.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
 - `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
 - `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
 - `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
@@ -50,10 +50,14 @@ It must accept only `https://561.group` as its canonical origin; a
 Do not publish bearer credentials in Worker source or treat static WebFinger
 JSON as an ActivityPub server.
 
-**Not yet installed:** the current `wrangler.jsonc` does not declare an
-`ACTIVITYPUB_INSTANCE` service binding and no public live federation
-receiving is asserted. Configure and independently receive a real upstream
-provider and Worker binding before advertising an ActivityPub actor.
+**Not yet installed:** `wrangler.jsonc` declares no `ACTIVITYPUB_INSTANCE`
+service binding, because the Worker `activitypub-561-group` did not exist on the
+account when this site was last deployed (2026-10-21). The page already advertises
+the actor (`fediverse:creator`, `rel="me"`, the Follow block, llms.txt), and
+`https://561.group/actors/group` answers 404 until the binding is added. When the
+provider Worker exists, uncomment the `services` block in `wrangler.jsonc` and
+redeploy; the forwarding code needs no change. The handles are
+`@group@561.group` and one per company on its own host.
 
 ## Build and deploy
 
@@ -64,6 +68,10 @@ pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.grou
 
 After deploying, check three things. `https://561.group/` should answer 200. `https://www.561.group/x` should return a 301 to `https://561.group/x`. `https://561.group/estate.json` should list every node with a `told` value.
 
+## The Group as a hub
+
+`data/home.json` also holds `group`: the four companies (name, URL, GitHub organization, fediverse handle, feeds), the market addresses and the topics the Organization knows about. The renderer turns it into the JSON-LD graph (Organization with `subOrganization`, WebSite, DefinedTermSet of the glossed design terms), the "The Group" section with the Follow block, and the companies in `llms.txt` and `llms-full.txt`. `scripts/build.mjs` reads the market's offer count from its x402 discovery at build time and leaves the number out of the llms files when it cannot be read; it is never written by hand. `robots.txt` names the AI crawlers explicitly.
+
 ## Source composition
 
 The apex consumes `@causeway-services/play` through its declared catalog,
@@ -71,6 +79,9 @@ presentation and composition exports. Bind the actual Public Games and external
 Science Git checkouts with `PLAY_CATALOG_SOURCES` using the supplier's source-array
 contract; `PLAY_CATALOG_DATE` optionally fixes the real UTC publication date.
 Outside the original integrated checkout, missing source bindings fail the build.
+A checkout that lacks the game sources may instead name an earlier published
+`estate-records.json` in `ESTATE_GAMES_SNAPSHOT`; the build then reuses that record's
+games unchanged and says so on stderr. It is an explicit input, not a default.
 Catalog discovery does not probe public pages during publication. The existing
 Worker's request-time estate readings are unchanged.
 
