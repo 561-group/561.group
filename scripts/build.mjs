@@ -8,10 +8,6 @@ import { renderHumans, renderSecurity, renderIndex, renderLlms, renderLlmsFull, 
 import { readFeeds, mergeItems, renderJsonFeed, renderAtom, renderRss } from "../src/feed.mjs";
 import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
-import { discoverCatalog } from "@causeway-services/play/catalog";
-import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
-import { catalogSourcesFromEnvironment, publicationDateFromEnvironment } from "@causeway-services/play/composition";
-
 const root = new URL("../", import.meta.url);
 const read = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 const home = await read("data/home.json");
@@ -19,26 +15,15 @@ const home = await read("data/home.json");
 const sourceCommit = process.env.GITHUB_SHA;
 if (sourceCommit !== undefined && !/^[0-9a-f]{40}$/iu.test(sourceCommit)) throw new Error("GITHUB_SHA must be one exact source commit");
 const authored = await read("data/estate.json");
-// Bind the same authored catalog through its owning package. Outside the
-// integrated checkout, callers provide explicit source roots; discovery refuses
-// missing sources rather than replacing the games with a static shortlist.
-const sources = catalogSourcesFromEnvironment();
-const date = publicationDateFromEnvironment() ?? new Date();
-const updated = date.toISOString().slice(0, 10);
-// Keep curated non-game doors; the authored game records own their names and entry paths.
-const knownUrls = new Set(authored.nodes.map((n) => n.url ?? `https://${n.host}/`));
-let games;
-if (sources === undefined && process.env.ESTATE_GAMES_SNAPSHOT) {
-  // Explicit, named fallback for a checkout without the game sources: reuse the games of an
-  // earlier published estate-records.json, unchanged. Never a default; discovery stays the rule.
-  const earlier = JSON.parse(await readFile(process.env.ESTATE_GAMES_SNAPSHOT, "utf8"));
-  games = earlier.nodes.filter((n) => n.group === "games" && !knownUrls.has(n.url ?? `https://${n.host}/`));
-  console.warn(`games taken from the earlier published record ${process.env.ESTATE_GAMES_SNAPSHOT}, not from discovery`);
-} else {
-  const { catalog } = await discoverCatalog({ sources, generatedDate: updated, observePages: false });
-  games = catalog.games.filter(hasBrowser).filter((game) => !knownUrls.has(playUrl(game)))
-    .map((game) => ({ host: new URL(playUrl(game)).host, url: playUrl(game), name: game.displayName, group: "games", line: game.description }));
+// The Group front door is independently publishable; Play owns its full game catalog.
+// Visitors reach that live catalog through the one curated play.561.group entry.
+// A homepage release must not require installing every independent game checkout.
+const publicationDay = process.env.SITE_PUBLICATION_DATE;
+if (publicationDay && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(publicationDay) ||
+    new Date(publicationDay + "T00:00:00Z").toISOString().slice(0, 10) !== publicationDay)) {
+  throw new Error("SITE_PUBLICATION_DATE must be one real YYYY-MM-DD UTC day");
 }
+const updated = publicationDay ?? new Date().toISOString().slice(0, 10);
 // The market's live offer count, read from its x402 discovery; absent (never guessed) when unreadable.
 const marketOffers = await (async () => {
   try {
@@ -52,7 +37,7 @@ const marketOffers = await (async () => {
 const facts = { marketOffers };
 // What the Group is publishing: the companies' feeds, merged; any that cannot be read are skipped.
 const items = mergeItems(await readFeeds(home.group.companies));
-const estate = { ...authored, nodes: [...authored.nodes, ...games] };
+const estate = { ...authored, nodes: [...authored.nodes] };
 estate.revision = createHash("sha256").update(JSON.stringify(estate)).digest("hex");
 
 const hosts = new Set(estate.nodes.map((n) => n.host));
