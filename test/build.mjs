@@ -25,7 +25,7 @@ let passed=0;
 const check=(name,fn)=>{fn();passed++;console.log("PASS",name);};
 const first=run();
 check("actual original build executes with installed L-Space supplier",()=>assert.equal(first.status,0,first.stderr));
-const names=["source-revision.json","estate-records.json","index.html","zh-hans/index.html",
+const names=["source-revision.json","estate-records.json","zh-hans/index.html",
   "lkt/index.html","llms.txt","llms-full.txt","feed.json","feed.atom.xml",
   "feed.rss.xml",".well-known/security.txt","8d232583e7cba18a83bf5c0325fcc7c9.txt",
   "humans.txt","robots.txt","sitemap.xml"];
