@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@red-cup-engineering/l-space": "0.1.0",
-    "@red-cup-engineering/living-web-server": "workspace:*"
+    "@red-cup-engineering/living-web-server": "git+https://github.com/red-cup-engineering/living-web-server.git#5c111e584f609327cfcd73abef9964895eab4641"
   },
   "repository": {
     "type": "git",
