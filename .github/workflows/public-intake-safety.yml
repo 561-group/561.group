@@ -61,7 +61,7 @@ jobs:
           if(JSON.stringify(authored.nodes)!==JSON.stringify(built.nodes)) {
             throw Error('A foreign game catalog silently changed the Group public estate');
           }
-          const html=await read('public/index.html');
-          if(!html.includes('<html'))throw Error('Missing localized static fallback build');
+          const translated=await read('public/zh-hans/index.html');
+          if(!translated.includes('<html'))throw Error('Missing original localized static fallback');
           console.log('Original source artifact graph qualified; no live Cloudflare deployment claimed.');
           NODE
