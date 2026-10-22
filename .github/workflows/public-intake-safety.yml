@@ -30,5 +30,7 @@ jobs:
           node-version: '24'
       - name: Assay public reporting is read-only and production remains separately authorized
         run: node --test test/public-intake-boundary.test.mjs
+      - name: Exercise the original-source TUFTE homepage model without upstream installation
+        run: node --test test/home-tufte.test.mjs
       - name: Exercise the actual Worker, canonical estate and signed federation fallback
         run: node --experimental-vm-modules test/worker.mjs
