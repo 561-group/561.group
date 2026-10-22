@@ -79,6 +79,8 @@ test("the apex is a hub for search and answer engines: graph, head, follow block
   assert.equal(org["@id"], "https://561.group/#organization");
   assert.equal(org.description, home.description, "R1: the description is verbatim");
   assert.equal(org.foundingDate, "2018");
+  assert.equal(org.logo.url, "https://561.group/logo.png");
+  assert.match(html, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/u);
   assert.deepEqual(org.sameAs, ["https://github.com/561-group", "https://561.group/actors/group"]);
   assert.equal(org.subOrganization.length, 4);
   for (const sub of org.subOrganization) assert.ok(sub.name && sub.url && sub.sameAs.length === 2);

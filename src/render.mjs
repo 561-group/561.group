@@ -335,7 +335,7 @@ export function renderIndex(home, estate, say, items = []) {
         url: `${home.origin}/`,
         description,
         foundingDate: home.established,
-        logo: `${home.origin}/card.png`,
+        logo: { "@type": "ImageObject", url: `${home.origin}/logo.png`, width: 512, height: 512 },
         sameAs: [g.githubOrg, g.actor],
         knowsAbout: g.knowsAbout,
         subOrganization: g.companies.map((c) => ({ "@type": "Organization", "@id": `${c.url}#organization`, name: c.name, url: c.url, sameAs: [c.github, c.actor] })),
@@ -382,6 +382,7 @@ ${LOCALES.filter((other) => other !== tag).map((other) => `<meta property="og:lo
 <meta property="og:image:alt" content="${esc(t("ui.cardAlt"))}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="fediverse:creator" content="${esc(g.handle)}">
 <link rel="me" href="${esc(g.actor)}">
 <link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
