@@ -60,3 +60,19 @@ test("production release remains a separately invoked operation",()=>{
   assert.match(workflow,/^on:\s*\n\s+workflow_dispatch:\s*$/mu);
   assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
 });
+
+test("ordinary buyer and supplier opportunities use the same private intake without becoming orders",()=>{
+  const page=read("public/contact/index.html");
+  assert.match(page, /<h2 id="work">Request paid work or offer to supply it<\/h2>/u);
+  assert.match(page, /<option>Paid service inquiry<\/option>/u);
+  assert.match(page, /<option>Supplier or subcontractor offer<\/option>/u);
+  assert.match(page, /name="budget"/u);
+  assert.match(page, /name="timing"/u);
+  assert.match(page, /name="reply-channel"/u);
+  assert.match(page, /\[561 Group sales inquiry\] Request a scope and quote/u);
+  assert.match(page, /\[561 Group procurement\] Supplier capacity proposal/u);
+  assert.match(page, /const body = fields\.map/u);
+  assert.match(page, /const base = `mailto:emsenn@561\.group\?subject=/u);
+  assert.match(page, /does not create a purchase, authorize outside contact, assign a job, or record revenue/u);
+  assert.match(page, /No GitHub account is needed/u);
+});
