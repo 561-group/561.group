@@ -38,6 +38,11 @@ check('a stored English choice reaches the one TUFTE Living Web site',()=>{asser
 check('root response comes from the TUFTE source, not static assets',()=>assert.equal(response.headers.get('content-type'),'text/html; charset=utf-8'));
 response=await fetchWorker(new Request('https://561.group/',{headers:{'accept':'application/json',cookie:'lang=en'}}),env,ctx);
 check('the same root preserves machine JSON negotiation',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-language'),'en');assert.equal(livingCalls[1].accept,'application/json')});
+response=await fetchWorker(new Request('https://561.group/index.html?read=1'),env,ctx);
+check('old static index canonicalizes to the one original TUFTE page',()=>{
+  assert.equal(response.status,301);
+  assert.equal(response.headers.get('location'),'https://561.group/?read=1');
+});
 response=await fetchWorker(new Request('https://561.group/lkt/'),env,ctx);
 check('a locale path is served as is and says its language',()=>{assert.equal(response.status,200);assert.equal(assetRequest.url,'https://561.group/lkt/');assert.equal(response.headers.get('content-language'),'lkt')});
 response=await fetchWorker(new Request('https://www.561.group/contact/?a=b'),env,ctx);
