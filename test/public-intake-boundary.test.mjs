@@ -70,9 +70,10 @@ test("a production deploy has a main-ref and predeploy safety boundary",()=>{
   const before=workflow.slice(0,publish);
   const legacyInterlock=/Refuse unqualified standalone deployment/u.test(before) &&
     /exit 1/u.test(before);
-  const qualifiedRelease=/pnpm install --frozen-lockfile/u.test(before) &&
-    /pnpm test/u.test(before) && /pnpm build/u.test(before) &&
-    /source-revision\.json/u.test(before);
+  const qualifiedRelease=/test -s package-lock\.json/u.test(before) &&
+    /npm ci --ignore-scripts/u.test(before) &&
+    /npm run check/u.test(before) && /npm test/u.test(before) &&
+    /npm run build/u.test(before) && /source-revision\.json/u.test(before);
   assert.ok(legacyInterlock||qualifiedRelease,
     "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
 });
@@ -91,4 +92,17 @@ test("ordinary buyer and supplier opportunities use the same private intake with
   assert.match(page, /const base = `mailto:emsenn@561\.group\?subject=/u);
   assert.match(page, /does not create a purchase, authorize outside contact, assign a job, or record revenue/u);
   assert.match(page, /No GitHub account is needed/u);
+});
+
+test("production deployment consumes the exact dependency lock before provider writes",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const provider=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(provider>0,"the existing provider must be identifiable");
+  const before=workflow.slice(0,provider);
+  assert.match(before,/test -s package-lock\.json/u,"absence of the native lock must refuse publication");
+  assert.match(before,/npm ci --ignore-scripts/u,"production must use a frozen npm install");
+  assert.doesNotMatch(before,/npm install --ignore-scripts/u,"unlocked npm install is not a release");
+  for(const command of ["npm run check","npm test","npm run build","public/source-revision.json"]){
+    assert.ok(before.includes(command),"native build/receipt is required before Wrangler: "+command);
+  }
 });

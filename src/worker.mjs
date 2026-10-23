@@ -2,6 +2,8 @@
 // every public node's status on request (cached briefly) instead of asserting it.
 
 import estate from "../public/estate-records.json";
+import home from "../data/home.json";
+import { create561GroupLivingApplication } from "./living-home.mjs";
 import { toldOf } from "./told.mjs";
 import { localeOfPath, localeRedirect } from "@red-cup-engineering/l-space/http";
 
@@ -10,6 +12,8 @@ const LOCALES = ["en", "zh-Hans", "lkt"];
 const APEX = "561.group";
 const PROBE_TIMEOUT_MS = 4000;
 const ESTATE_TTL_S = 300;
+// TUFTE is the root-page producer; the existing Worker still owns routing and federation fallback.
+const livingHome = create561GroupLivingApplication({ readHome: () => home, readEstate: () => estate });
 
 const SECURITY_HEADERS = {
   "content-security-policy":
@@ -107,9 +111,19 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === "/estate.json") return withHeaders(await estateReading(request, ctx));
+    // The old generated /index.html must not remain a second public homepage.
+    if (url.pathname === "/index.html" && (request.method === "GET" || request.method === "HEAD")) {
+      return withHeaders(Response.redirect("https://561.group/" + url.search, 301));
+    }
     // The root goes to a reader's preferred served language (a stored `lang` choice first); every other path is exact.
     const redirect = localeRedirect(request, { locales: LOCALES });
     if (redirect) return withHeaders(redirect);
+    // The exact Group homepage is one public LivingWebServer/TUFTE application.
+    // No second HTTP listener, router, Actor inbox or asset store is introduced.
+    if (url.pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+      const response = await livingHome.fetch(request);
+      return withHeaders(response, { "content-language": "en", vary: "Accept, Accept-Language, Cookie" });
+    }
     const language = url.pathname === "/" ? "en" : localeOfPath(url.pathname, LOCALES);
     return withHeaders(await websiteOrFederation(request, env), {
       ...(language ? { "content-language": language } : {}),
