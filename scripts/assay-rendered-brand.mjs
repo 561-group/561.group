@@ -23,7 +23,7 @@ const FONT_ROUTE=new Map([
 ]);
 const rgb=(r,g,b)=>"rgb("+[r,g,b].join(", ")+")";
 
-export function qualifyRenderedBrand(value) {
+export function qualifyRenderedBrand(value,{path="/"}={}) {
   const errors=[];
   const need=(truth,claim)=>{if(!truth)errors.push(claim)};
   need(value?.houseStyle===true,"Original Group CSS not emitted into real TUFTE head");
@@ -39,8 +39,9 @@ export function qualifyRenderedBrand(value) {
   need(value?.fontFaces?.every(x=>x.status==="loaded") &&
        expectedFontNames.every(name=>value.fontFaces.some(x=>x.family===name)),
        "A local required font was not loaded");
-  need(value?.introBackground===rgb(10,10,10),"Introduction lost black-ink mass");
-  need(value?.tileCount>=5,"A real public visitor route lost its content tiles");
+  if(path==="/")need(value?.introBackground===rgb(10,10,10),"Homepage introduction lost black-ink mass");
+  else need(value?.hasLead===true,"Non-home visitor page lost its own lead section");
+  need(value?.tileCount>=(path==="/"?5:3),"A real public visitor route lost its content tiles");
   need(value?.hasNavigation===true,"Useful public navigation disappeared");
   need(value?.hasContact===true,"An actual contact pathway disappeared");
   need(value?.focusWidth>=3,"Keyboard focus has no sufficiently visible outline");
@@ -139,7 +140,7 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             introBackground:intro?getComputedStyle(intro).backgroundColor:"",
             houseStyle:!!el('style[data-561-house="visual-design-bible-v0.4-candidate"]'),
             tufte:!!el(".tufte-shell[data-tufte]"),
-            tileCount:tileElements.length,
+            tileCount:tileElements.length,hasLead:!!el("#lead"),
             hasNavigation:!!el("[data-tufte-navigation] a"),
             hasContact:!![...document.querySelectorAll("a")].find(a=>a.getAttribute("href")==="/contact/"),
             focusWidth:Number.isFinite(focusWidth)?focusWidth:0,
@@ -149,8 +150,11 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             title:document.title
           };
         });
-        const result=qualifyRenderedBrand(reading);
+        const result=qualifyRenderedBrand(reading,{path:item.path});
         const screenshot=join(output,item.name+".png");
+        // Keep keyboard-focus evidence in the JSON, but collect the visual
+        // specimen without the test harness leaving a skip-link focus box.
+        await page.evaluate(()=>document.activeElement?.blur());
         await page.screenshot({path:screenshot,fullPage:true,animations:"disabled"});
         const hash=createHash("sha256").update(await readFile(screenshot)).digest("hex");
         cases.push({name:item.name,path:item.path,viewport:{width:item.width,height:item.height},
