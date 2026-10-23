@@ -1,0 +1,107 @@
+{
+  "schema": "561.group/public-frontdoor/v1",
+  "proposition": "Research you can use. Systems you can inspect.",
+  "promise": "Original science, working technology, accountable operations and useful public services—in one organization.",
+  "firstStep": "Tell us the outcome you want. We will assess the scope, the right provider, and the terms before any work is agreed.",
+  "paths": [
+    {
+      "id": "hire",
+      "title": "Bring us a problem",
+      "detail": "Research, engineering, AI operations, governance and practical public services.",
+      "action": "See what we can scope",
+      "href": "/work/"
+    },
+    {
+      "id": "buy",
+      "title": "Buy or use something",
+      "detail": "A storefront, a multi-provider bazaar, and machine-readable market offers are different ways to participate.",
+      "action": "See buying venues",
+      "href": "/projects/#trade"
+    },
+    {
+      "id": "explore",
+      "title": "Explore a project",
+      "detail": "Visit worlds, games, tools, experiments and publications from the Group.",
+      "action": "Browse the projects",
+      "href": "/projects/"
+    },
+    {
+      "id": "read",
+      "title": "Follow the work",
+      "detail": "Read systems-focused reporting and follow current public work at its source.",
+      "action": "Read Koios.News",
+      "href": "https://koios.news/"
+    }
+  ],
+  "offers": [
+    {
+      "id": "agent-operations",
+      "title": "Persistent AI systems",
+      "provider": "services",
+      "scope": "Commission agent workflows, roles, handoffs, review, failure recovery and human oversight.",
+      "example": "Agent operations and practical team training"
+    },
+    {
+      "id": "ai-discovery",
+      "title": "AI-ready websites and discovery",
+      "provider": "services",
+      "scope": "Improve a business's factual visibility and usability for search, answer engines and authorized agents.",
+      "example": "GEO/AEO audits, evidence and agent-readable offers"
+    },
+    {
+      "id": "indigenous-data",
+      "title": "Indigenous data governance",
+      "provider": "services",
+      "scope": "Review consent, provenance, authority and CARE-aware use of Indigenous data in technology projects.",
+      "example": "Data governance and licensing reviews"
+    },
+    {
+      "id": "software",
+      "title": "Software and agent engineering",
+      "provider": "engineering",
+      "scope": "Convert bounded requirements into testable sites, APIs, interoperable services and automation.",
+      "example": "Web/agent integrations and repairs"
+    },
+    {
+      "id": "research",
+      "title": "Research and formal methods",
+      "provider": "science",
+      "scope": "Investigate complex questions with original models, mathematical methods and source-qualified evidence.",
+      "example": "Research and requirements derivation"
+    },
+    {
+      "id": "reliability",
+      "title": "Operational reliability",
+      "provider": "operations",
+      "scope": "Improve how services are deployed, maintained, repaired and independently checked.",
+      "example": "Operational procedures and service receiving"
+    }
+  ],
+  "steps": [
+    {
+      "number": "01",
+      "title": "Describe the outcome",
+      "detail": "Tell us what should change, who benefits, and the constraints that matter."
+    },
+    {
+      "number": "02",
+      "title": "Find the accountable provider",
+      "detail": "The appropriate company assesses the request and its capacity. An inquiry is not an order."
+    },
+    {
+      "number": "03",
+      "title": "Agree on scope and terms",
+      "detail": "Authority, deliverables, costs, timing and permissions are decided before execution."
+    },
+    {
+      "number": "04",
+      "title": "Receive the useful result",
+      "detail": "A provider's completion claim is distinct from an accepted outcome."
+    }
+  ],
+  "readers": {
+    "humans": "You can explore without knowing our organizational structure. An inquiry is not a contract.",
+    "agents": "Public machine endpoints may be inspected without treating their presence as permission to buy, publish or execute.",
+    "availability": "An HTTP response is a connectivity observation, not proof of a working service or satisfied buyer."
+  }
+}

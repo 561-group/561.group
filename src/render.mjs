@@ -2,6 +2,7 @@
 // Pure: data and a locale's speaker (src/locales.mjs) in, file contents out.
 
 import { locale as localeFaces, sitemapXml, trustedHtml, DEFAULT_LOCALE, LOCALES, localePath } from "./locales.mjs";
+import { PUBLIC_ROUTES } from "./home-tufte.mjs";
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -571,6 +572,24 @@ function marketSection(g, offers) {
 - Also: ${g.storefronts.filter((x) => x.name !== "Market").map((x) => `[${x.name}](${x.url})`).join(", ")}`;
 }
 
+// A source-owned visitor/agent guide, not a second page renderer.
+function publicGuide(home, editorial) {
+  if (!editorial) return "";
+  const providers = Object.fromEntries(home.group.companies.map(c => [c.id,c]));
+  return [
+    "## Start with the real service and project entry points", "",
+    "- [Work with us](" + home.origin + "/work/): accountable providers, scoping and terms.",
+    "- [Projects](" + home.origin + "/projects/): tools, books, games, worlds, news and commerce.",
+    "- [About](" + home.origin + "/about/): four companies and work method.",
+    "- [For agents](" + home.origin + "/for-agents/): public machine interfaces and permissions.",
+    "- [Contact](" + home.origin + "/contact/): human inquiries and public reports.", "",
+    "## Areas the companies can scope", "",
+    ...editorial.offers.map(x =>
+      "- " + x.title + " (" + providers[x.provider].name + "): " + x.scope),
+    "", "An advertised capability is not an accepted contract, verified quote or customer outcome.", ""
+  ].join("\n");
+}
+
 /** llms.txt: the map of the Group for a language model. `facts.marketOffers` is the live count, or absent when it could not be read. */
 export function renderLlms(home, estate, facts = {}) {
   const d = home.design;
@@ -582,11 +601,13 @@ export function renderLlms(home, estate, facts = {}) {
 
 > ${home.description}
 
-${home.name} (${home.origin}/) is a ${home.masthead[0].toLowerCase()}, established ${home.established}. It is a parent of four companies, and authority in it is held by offices, not persons: no persons are listed anywhere.
+${home.name} (${home.origin}/) is a ${home.masthead[0].toLowerCase()}, established ${home.established}. It is a parent of four companies, and The public site represents accountable offices and companies; an inquiry never grants authority.
 
 Intended design: ${designSentence(d)}
 
 ${d.caveat}
+
+${publicGuide(home, facts.frontdoor)}
 
 ## Terms of the design
 
@@ -637,6 +658,8 @@ export function renderLlmsFull(home, estate, facts = {}) {
 > ${home.description}
 
 This is the long form of [llms.txt](${home.origin}/llms.txt). Everything here is public.
+
+${publicGuide(home, facts.frontdoor)}
 
 ## What the Group is
 
@@ -729,6 +752,8 @@ export const renderRobots = (home) =>
 export const renderSitemap = (home, updated, alternates = []) =>
   sitemapXml([
     ...LOCALES.map((tag) => ({ loc: `${home.origin}${localePath(tag)}`, lastmod: updated, alternates })),
+    ...PUBLIC_ROUTES.filter(path => path !== "/").map(path =>
+      ({ loc: home.origin + path, lastmod: updated })),
     { loc: `${home.origin}/contact/`, lastmod: updated },
     { loc: `${home.origin}/llms.txt`, lastmod: updated },
     { loc: `${home.origin}/llms-full.txt`, lastmod: updated },

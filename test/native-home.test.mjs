@@ -1,68 +1,107 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { create561GroupLivingApplication } from "../src/living-home.mjs";
+import {readFileSync} from "node:fs";
+import {create561GroupLivingApplication,PUBLIC_ROUTES} from "../src/living-home.mjs";
 
 const read=path=>JSON.parse(readFileSync(new URL("../"+path,import.meta.url),"utf8"));
 const home=read("data/home.json");
-const estate={...read("data/estate.json"),revision:"site-genuine-tufte-fixture"};
+const estate={...read("data/estate.json"),revision:"installed-editorial-fixture"};
+const frontdoor=read("data/frontdoor.json");
 function fixture(){
-  const events=[];
+  const reads=[];
   const app=create561GroupLivingApplication({
     releaseHome:home,
-    readHome:async context=>{events.push({source:"home",method:context.request.method});return home;},
-    readEstate:async context=>{events.push({source:"estate",method:context.request.method});return estate;}
+    readHome:async context=>{reads.push(["home",context.request.method]);return home;},
+    readEstate:async context=>{reads.push(["estate",context.request.method]);return estate;},
+    readFrontdoor:async context=>{reads.push(["frontdoor",context.request.method]);return frontdoor;}
   });
-  const request=(path="/",init={})=>app.fetch(new Request("https://561.group"+path,init));
-  return {app,events,request};
+  const request=(path="/",options={})=>app.fetch(new Request("https://561.group"+path,options));
+  return {app,reads,request};
 }
-test("the installed original LivingWebServer and TUFTE produce real human HTML",async()=>{
+test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline receipt",async()=>{
   const f=fixture();
   const response=await f.request("/",{headers:{accept:"text/html"}});
   assert.equal(response.status,200);
-  assert.match(response.headers.get("content-type")??"",/text\/html/);
+  assert.match(response.headers.get("content-type")??"",/text\/html/u);
   const html=await response.text();
   assert.match(html,/<main[^>]*data-tufte/u);
-  assert.match(html,/AI agents have offices here/u);
-  assert.match(html,/Work with us/u);
-  assert.match(html,/https:\/\/buy\.stripe\.com\//u);
+  assert.ok(html.includes(frontdoor.proposition));
+  for(const term of ["Work with us","Bring us a problem","Persistent AI systems",
+    "Indigenous data governance","Shop","Bazaar","Market","Support the Group"]) {
+    assert.ok(html.includes(term),"a visitor needs to see "+term);
+  }
+  for(const path of ["/work/","/projects/","/about/","/for-agents/"])
+    assert.ok(html.includes('href="'+path+'"'),"one-click meaningful journey "+path);
   assert.match(html,/rel="canonical" href="https:\/\/561\.group\/"/u);
   assert.match(html,/name="fediverse:creator"/u);
   assert.match(html,/type="application\/ld\+json"/u);
-  assert.doesNotMatch(html,/conurbanized ecosystem/u);
-  assert.deepEqual(f.events.map(e=>e.source),["home","estate"]);
+  assert.ok(html.includes(":focus-visible"));
+  assert.ok(html.includes("max-width:430px"));
+  assert.doesNotMatch(html,/conurbanized ecosystem|default Theme/i);
+  assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
 });
-test("the exact same original source negotiates machine-readable TUFTE JSON",async()=>{
+test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   const f=fixture();
   const response=await f.request("/",{headers:{accept:"application/json"}});
   assert.equal(response.status,200);
-  assert.match(response.headers.get("content-type")??"",/application\/json/);
+  assert.match(response.headers.get("content-type")??"",/application\/json/u);
   const model=await response.json();
   assert.equal(model.kind,"tufte.projection");
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
-  assert.deepEqual(model.tiles.map(t=>t.id),["introduction","contact","explore","support","companies"]);
+  assert.deepEqual(model.tiles.map(t=>t.id),
+    ["introduction","paths","services","method","explore","trade","companies","agents","support"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
-  assert.deepEqual(f.events.map(e=>e.source),["home","estate"]);
+  assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
 });
-test("a different origin never reaches the Group's private-source decision",async()=>{
+test("each substantive source-owned page renders different useful HTML AND JSON",async()=>{
   const f=fixture();
-  const response=await f.app.fetch(new Request("https://other.example/"));
-  assert.equal(response.status,421);
-  assert.deepEqual(f.events,[]);
+  const cells=[
+    {path:"/work/",phrase:"Areas we can scope",id:"services"},
+    {path:"/projects/",phrase:"Shop, Bazaar and Market",id:"trade"},
+    {path:"/about/",phrase:"The four accountable companies",id:"companies"},
+    {path:"/for-agents/",phrase:"Published machine-readable interfaces",id:"endpoints"}
+  ];
+  for(const {path,phrase,id} of cells){
+    const page=await f.request(path,{headers:{accept:"text/html"}});
+    assert.equal(page.status,200,path);
+    const html=await page.text();
+    assert.ok(html.includes(phrase),path+" human task");
+    assert.ok(html.includes('href="https://561.group'+path+'"'),path+" canonical metadata");
+    const machine=await f.request(path,{headers:{accept:"application/json"}});
+    assert.equal(machine.status,200,path+" JSON");
+    const data=await machine.json();
+    assert.equal(data.kind,"tufte.projection");
+    assert.equal(data.metadata.canonical,"https://561.group"+path);
+    assert.ok(data.tiles.some(t=>t.id===id),path+" relevant TUFTE model");
+  }
+  assert.equal(f.reads.length,3*cells.length*2);
 });
-test("unadmitted methods and unrelated routes cannot read a Group public home",async()=>{
+test("origin, method and undeclared URL cannot acquire a public source read",async()=>{
   const f=fixture();
-  const post=await f.request("/",{method:"POST"});
-  assert.notEqual(post.status,200);
-  const unknown=await f.request("/not-an-authored-group-page");
-  assert.notEqual(unknown.status,200);
-  assert.deepEqual(f.events,[]);
+  const offsite=await f.app.fetch(new Request("https://other.example/"));
+  assert.equal(offsite.status,421);
+  assert.deepEqual(f.reads,[]);
+  for(const path of ["/","/work/","/projects/","/about/","/for-agents/"]){
+    const post=await f.request(path,{method:"POST"});
+    assert.notEqual(post.status,200);
+  }
+  assert.notEqual((await f.request("/private/")).status,200);
+  assert.notEqual((await f.request("/contact/")).status,200,
+    "contact is retained by the original Worker assets, not duplicated by LWS");
+  assert.deepEqual(f.reads,[]);
 });
-test("a Worker HEAD request has no HTML response body",async()=>{
+test("all admitted pages implement native HEAD without leaking response body",async()=>{
   const f=fixture();
-  const r=await f.request("/",{method:"HEAD"});
-  assert.equal(r.status,200);
-  assert.equal(await r.text(),"");
+  for(const path of PUBLIC_ROUTES){
+    const response=await f.request(path,{method:"HEAD"});
+    assert.equal(response.status,200,path);
+    assert.equal(await response.text(),"",path+" HEAD response");
+  }
+});
+test("new front-door reader is required; missing source cannot yield a vague blank homepage",()=>{
+  assert.throws(()=>create561GroupLivingApplication({
+    readHome:()=>home,readEstate:()=>estate,releaseHome:home
+  }),/readFrontdoor/);
 });
