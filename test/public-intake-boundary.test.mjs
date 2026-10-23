@@ -116,6 +116,21 @@ test("production deployment consumes the exact dependency lock before provider w
   }
 });
 
+test("the production receiver accepts the current authored civilizational story, not the displaced generic slogan",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const editorial=JSON.parse(read("data/frontdoor.json"));
+  assert.ok(editorial.proposition.includes("Another civilization"));
+  assert.deepEqual(editorial.vision.frontiers.map(f=>f.id),["union-of-harmonious-colonies","bicameral-biology"]);
+  assert.ok(workflow.includes("html.includes(frontdoor.proposition)"));
+  assert.ok(workflow.includes("frontdoor.vision.frontiers.map"));
+  assert.ok(!workflow.includes("!html.includes('Research you can use.')"),
+    "a retired promotional line may not veto an accepted present-purpose homepage");
+  assert.ok(workflow.includes("html.includes('buy.stripe.com')"),
+    "original genuine support receipt and visitor access must survive the copy correction");
+  assert.ok(workflow.includes("receipt.artifactDigests"),
+    "editorial relevance must not weaken original release byte verification");
+});
+
 test("production independently reads human HTML using browser content negotiation, not an ambiguous default",()=>{
   const workflow=readFileSync(fileURLToPath(new URL("../.github/workflows/deploy.yml",import.meta.url)),"utf8");
   assert.match(workflow,/const home=await read\('\/','text\/html'\)/u);
