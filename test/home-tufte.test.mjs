@@ -25,7 +25,8 @@ test("the accepted concise public homepage is one TUFTE model over original Grou
   assert.deepEqual(model.navigation.map(x=>x.href),
     ["/#explore","/#physical-world","/#companies","/contact/","/zh-hans/","/lkt/"]);
   assert.deepEqual(model.tiles.map(t => t.id), ["introduction","contact","explore","physical-world","support","companies"]);
-  assert.match(model.tiles[0].html, /Lakota-founded 561 Group/u);
+  assert.match(model.tiles[0].html, /The 561 Group develops original mathematics/u);
+  assert.doesNotMatch(model.tiles[0].html, /Lakota-founded/u);
   assert.ok(model.tiles[1].html.includes('href="/contact/"'));
   const exploration = model.tiles[2].html;
   for (const item of home.public.featured) {
@@ -71,6 +72,11 @@ test("TUFTE projection escapes public values and refuses missing or unsafe sourc
 
 test("genuine TUFTE document head keeps the Group's original federation, feed and locale discovery",()=>{
   const head=project561GroupHead(home);
+  assert.ok(head.includes('data-561-house="visual-design-bible-v0.4-candidate"'));
+  for(const token of ["#F2EAD8","#0A0A0A","#FF4530","#3D5588","Space Grotesk","Roboto Slab","JetBrains Mono"])
+    assert.ok(head.includes(token), "561 visual token missing: "+token);
+  assert.ok(head.includes('.tufte-masthead::before'));
+  assert.match(head,/prefers-reduced-motion:reduce/u);
   assert.match(head,/name="fediverse:creator" content="@group@561\.group"/u);
   assert.match(head,/rel="me" href="https:\/\/561\.group\/actors\/group"/u);
   for(const route of ["/llms.txt","/feed.json","/feed.atom.xml","/feed.rss.xml","/estate.json"]){
