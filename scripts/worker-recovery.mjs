@@ -24,7 +24,7 @@ function singleVersion(deployment) {
   return version.version_id.toLowerCase();
 }
 
-function deploymentsOf(payload) {
+export function deploymentsOf(payload) {
   // The Cloudflare v4 API documents the newest deployment first.
   if (payload?.success !== true || !Array.isArray(payload?.result?.deployments) ||
       payload.result.deployments.length === 0) {
