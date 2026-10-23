@@ -8,6 +8,7 @@ const probes=[],puts=[],waits=[],keys=[];let cached;
 const statuses=[200,301,401,402,403,404,500];
 const context=vm.createContext({Request,Response,URL,AbortSignal,Date,JSON,Promise,fetch:async(url,init)=>{probes.push({url,init});if(probes.length===8)throw Error('fixture timeout');return new Response('fixture',{status:statuses[(probes.length-1)%statuses.length]})},caches:{default:{match:async key=>{keys.push(key.url);return cached},put:async(key,value)=>{puts.push({key:key.url,value})}}}});
 const told=new vm.SourceTextModule(await readFile(path.join(root,'src/told.mjs'),'utf8'),{context,identifier:'authored-told'});
+const sourceRevision=new vm.SourceTextModule(await readFile(path.join(root,'src/source-revision.mjs'),'utf8'),{context,identifier:'source-revision'});
 const data=new vm.SyntheticModule(['default'],function(){this.setExport('default',estate)},{context,identifier:'fixture-estate-records'});
 const homeData=JSON.parse(await readFile(path.join(root,'data/home.json'),'utf8'));
 const homeModule=new vm.SyntheticModule(['default'],function(){this.setExport('default',homeData)},{context,identifier:'fixture-public-home'});
@@ -28,9 +29,34 @@ const { fileURLToPath, pathToFileURL } = await import('node:url');
 const loaded=new Map();
 const moduleAt=async file=>{if(!loaded.has(file))loaded.set(file,new vm.SourceTextModule(await readFile(file,'utf8'),{context,identifier:file}));return loaded.get(file)};
 const resolveFrom=(spec,referrer)=>spec.startsWith('.')?fileURLToPath(new URL(spec,pathToFileURL(referrer))):fileURLToPath(import.meta.resolve(spec));
-await worker.link(async(spec,referrer)=>{if(spec==='../public/estate-records.json')return data;if(spec==='../data/home.json')return homeModule;if(spec==='./living-home.mjs')return livingModule;if(spec==='./told.mjs')return told;if(spec.startsWith('@red-cup-engineering/l-space/')||referrer.identifier.startsWith('/'))return moduleAt(resolveFrom(spec,referrer.identifier));throw Error('unexpected dependency '+spec)});await worker.evaluate();
+await worker.link(async(spec,referrer)=>{if(spec==='../public/estate-records.json')return data;if(spec==='../data/home.json')return homeModule;if(spec==='./living-home.mjs')return livingModule;if(spec==='./told.mjs')return told;if(spec==='./source-revision.mjs')return sourceRevision;if(spec.startsWith('@red-cup-engineering/l-space/')||referrer.identifier.startsWith('/'))return moduleAt(resolveFrom(spec,referrer.identifier));throw Error('unexpected dependency '+spec)});await worker.evaluate();
 let count=0;const check=(n,f)=>{f();count++;console.log('PASS',n)};const fetchWorker=worker.namespace.default.fetch;const ctx={waitUntil:p=>waits.push(p)};let assetRequest;
 const env={ASSETS:{fetch:async request=>{assetRequest=request;return new Response('original asset body',{status:200,headers:{'content-type':'text/html'}})}}};
+const originalReceipt={repository:'561-group/561.group',origin:'https://561.group',
+  sourceCommit:'0123456789abcdef0123456789abcdef01234567',renderer:'TUFTE',application:'LivingWebServer'};
+const originalVersion='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+const receiptMethods=[];
+const releaseEnv={CF_VERSION_METADATA:{id:originalVersion},ASSETS:{fetch:async request=>{
+  receiptMethods.push(request.method);
+  return Response.json(originalReceipt);
+}}};
+let versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json'),releaseEnv,ctx);
+const deliveredReceipt=await versionResponse.json();
+check('original source receipt is enriched with the executing Cloudflare version',()=>{
+  assert.equal(versionResponse.status,200);
+  assert.equal(versionResponse.headers.get('cache-control'),'no-store');
+  assert.equal(versionResponse.headers.get('x-content-type-options'),'nosniff');
+  assert.deepEqual(deliveredReceipt,{...originalReceipt,workerVersionId:originalVersion});
+});
+versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json',{method:'HEAD'}),releaseEnv,ctx);
+check('HEAD is bound to the same exact original release with no body',()=>{
+  assert.equal(versionResponse.status,200);
+  assert.deepEqual(receiptMethods,['GET','GET']);
+});
+assert.equal(await versionResponse.text(),'');
+versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json'),{ASSETS:releaseEnv.ASSETS},ctx);
+check('absence of platform version binding refuses release equivalence',()=>assert.equal(versionResponse.status,503));
+
 let response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN,zh;q=0.9,en;q=0.5'}}),env,ctx);
 check('a reader preferring Mandarin is sent from the root to the Mandarin page',()=>{assert.equal(response.status,302);assert.equal(response.headers.get('location'),'https://561.group/zh-hans/');assert.equal(response.headers.get('vary'),'Accept-Language, Cookie');assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
 response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN',cookie:'lang=en'}}),env,ctx);

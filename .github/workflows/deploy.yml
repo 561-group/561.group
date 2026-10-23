@@ -64,6 +64,9 @@ jobs:
           wranglerVersion: 4.127.1
           command: deploy --config wrangler.jsonc
       - name: Receive independent public revision, human/agent and retained site routes
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           node --input-type=module <<'NODE'
           const host='https://561.group';
@@ -72,6 +75,26 @@ jobs:
           if(!manifest.ok)throw Error('Public source receipt not served: '+manifest.status);
           const receipt=await manifest.json();
           if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Public origin not serving this main commit');
+          // Cloudflare's native active version is distinct from the site's source claim.
+          const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/iu;
+          if(!uuid.test(receipt.workerVersionId??''))throw Error('Public receipt lacks executing Worker version metadata');
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
+          if(!/^[a-f0-9]{32}$/iu.test(account??'')||!token)
+            throw Error('Qualified provider read credential unavailable for manual release receiving');
+          const provider=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+
+            '/workers/scripts/561-group-site/deployments?per_page=10',{
+            method:'GET',redirect:'error',cache:'no-store',
+            headers:{authorization:'Bearer '+token,accept:'application/json'},
+            signal:AbortSignal.timeout(15000)
+          });
+          if(!provider.ok)throw Error('Cloudflare active-deployment read refused: HTTP '+provider.status);
+          const data=await provider.json(),latest=data?.result?.deployments?.[0];
+          if(data?.success!==true||!uuid.test(latest?.id??'')||
+             latest?.versions?.length!==1||latest.versions[0].percentage!==100||
+             latest.versions[0].version_id?.toLowerCase()!==receipt.workerVersionId.toLowerCase()){
+            throw Error('Published Worker version is not the Cloudflare active 100%-traffic version');
+          }
+
           const home=await read('/');
           const html=await home.text();
           if(!home.ok || !html.includes('data-tufte') ||

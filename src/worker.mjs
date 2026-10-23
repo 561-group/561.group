@@ -5,6 +5,7 @@ import estate from "../public/estate-records.json";
 import home from "../data/home.json";
 import { create561GroupLivingApplication } from "./living-home.mjs";
 import { toldOf } from "./told.mjs";
+import { readSourceRevision } from "./source-revision.mjs";
 import { localeOfPath, localeRedirect } from "@red-cup-engineering/l-space/http";
 
 const LOCALES = ["en", "zh-Hans", "lkt"];
@@ -111,6 +112,9 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === "/estate.json") return withHeaders(await estateReading(request, ctx));
+    if (url.pathname === "/source-revision.json" && (request.method === "GET" || request.method === "HEAD")) {
+      return withHeaders(await readSourceRevision(request, env));
+    }
     // The old generated /index.html must not remain a second public homepage.
     if (url.pathname === "/index.html" && (request.method === "GET" || request.method === "HEAD")) {
       return withHeaders(Response.redirect("https://561.group/" + url.search, 301));

@@ -47,6 +47,8 @@ jobs:
         run: node --test test/public-intake-boundary.test.mjs
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
+      - name: Exercise original source-to-Worker-version receipt without registry dependencies
+        run: node --test test/source-revision.test.mjs
       - name: Probe exact house npm package and pinned Git supplier
         timeout-minutes: 1
         run: |

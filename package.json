@@ -9,7 +9,7 @@
     "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs && node --check src/home-tufte.mjs && node --check src/living-home.mjs",
     "dev": "node scripts/build.mjs && wrangler dev",
     "deploy": "node scripts/build.mjs && wrangler deploy",
-    "test": "node --test test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
+    "test": "node --test test/source-revision.test.mjs && node --test test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
     "source-catalog": "node scripts/source-catalog.mjs"
   },
   "engines": {

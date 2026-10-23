@@ -118,7 +118,15 @@ resolution without a received lock is not a production release. Do not
 substitute a mock serializer or dummy packages for a missing supplier.
 
 `GITHUB_SHA` records the exact site source commit in
-`/source-revision.json` when building the release. Publication still requires
+`/source-revision.json` when building the release.
+Cloudflare's `CF_VERSION_METADATA` binding adds the **executing Worker
+version ID** to the public response (never to the authored source file).
+That response is uncached and refuses to assert release identity if either
+the generated source record or the runtime version binding is unavailable.
+The authorized production workflow compares the returned Worker version
+with Cloudflare's separate active-deployment API reading at 100% traffic.
+Neither this cross-check nor a provider version alone is independent user
+acceptance. Publication still requires
 a qualified native build, an authorized Cloudflare deployment and independent
 readback of that revision, the canonical human/agent views and inherited
 contact/estate routes. The read-only HTTP observer alone does not prove the
