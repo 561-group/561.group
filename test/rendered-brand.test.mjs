@@ -16,7 +16,7 @@ const good=()=>({
     {family:"Roboto Slab",status:"loaded"},
     {family:"JetBrains Mono",status:"loaded"}
   ],
-  tileCount:11,hasNavigation:true,hasContact:true,focusWidth:3,
+  tileCount:11,hasLead:false,hasNavigation:true,hasContact:true,focusWidth:3,
   overflowX:false,identityAppeal:false
 });
 test("rendered Chromium observation has a passable explicit conformance shape",()=>{
@@ -50,4 +50,15 @@ test("the original user-visible regression is independently rejected",()=>{
 test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
   const mobile={...good(),viewportWidth:390,markSize:136.5};
   assert.equal(qualifyRenderedBrand(mobile).passed,true);
+});
+
+test("a real secondary visitor page uses its own lead and independent tile count",()=>{
+  const work={...good(),tileCount:4,hasLead:true,introBackground:""};
+  assert.equal(qualifyRenderedBrand(work,{path:"/work/"}).passed,true);
+  const noLead={...work,hasLead:false};
+  assert.ok(qualifyRenderedBrand(noLead,{path:"/work/"}).errors.some(x=>
+    x.includes("own lead section")));
+  const about={...work,tileCount:6,identityAppeal:true};
+  assert.ok(qualifyRenderedBrand(about,{path:"/about/"}).errors.some(x=>
+    x.includes("identity")));
 });
