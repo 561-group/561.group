@@ -300,7 +300,7 @@ function projectsPage(home, estate, frontdoor, source) {
 function aboutPage(home, frontdoor) {
   return [
     panel("lead","About the 561 Group",
-      lead("ESTABLISHED 2018 / LAKOTA-FOUNDED",
+      lead("ESTABLISHED 2018 / RESEARCH · TECHNOLOGY · PRACTICE",
         "An institution built around useful work.",
         "The 561 Group brings research, engineering, operations and public services together without pretending that a proposal is a finished product.",
         [{href:"/work/",label:"Work with the Group"},{href:"/projects/",label:"Explore the public estate"}]),12),
