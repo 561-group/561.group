@@ -85,6 +85,12 @@ jobs:
           persist-credentials: false
       - name: Reject original-house visual drift at the installed TUFTE consumer
         run: node scripts/verify-brand-source.mjs .brand-source
+      - name: Install pinned headless Chromium for the original brand release gate
+        timeout-minutes: 4
+        run: npx playwright install --only-shell chromium
+      - name: Refuse to publish a visually regressed TUFTE consumer
+        timeout-minutes: 4
+        run: npm run test:visual
       - name: Refuse incomplete release, duplicate homepage or wrong source revision
         run: |
           node --input-type=module <<'NODE'

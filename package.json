@@ -6,19 +6,21 @@
   "description": "Original 561 Group public homepage: TUFTE and LivingWebServer over authored estate; site-owned ARB/ICU locale projection.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs && node --check src/apex-house-style.mjs && node --check scripts/verify-brand-source.mjs && node --check src/home-tufte.mjs && node --check src/living-home.mjs && node --check scripts/release-preflight.mjs",
+    "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs && node --check src/apex-house-style.mjs && node --check scripts/verify-brand-source.mjs && node --check src/home-tufte.mjs && node --check src/living-home.mjs && node --check scripts/release-preflight.mjs && node --check scripts/assay-rendered-brand.mjs",
     "dev": "node scripts/build.mjs && wrangler dev",
     "deploy": "npm run check && npm test && npm run build && node scripts/release-preflight.mjs && wrangler deploy",
-    "test": "node --test test/brand-source.test.mjs && node --test test/source-revision.test.mjs && node --test test/release-preflight.test.mjs test/locales-runtime.test.mjs test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs && node --test test/native-home.test.mjs",
+    "test": "node --test test/brand-source.test.mjs && node --test test/source-revision.test.mjs && node --test test/release-preflight.test.mjs test/locales-runtime.test.mjs test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs && node --test test/native-home.test.mjs && node --test test/rendered-brand.test.mjs",
     "source-catalog": "node scripts/source-catalog.mjs",
     "test:source": "node --test test/public-intake-boundary.test.mjs test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs test/home-tufte.test.mjs test/fetch-source-contract.test.mjs",
-    "check:brand-source": "node scripts/verify-brand-source.mjs .brand-source"
+    "check:brand-source": "node scripts/verify-brand-source.mjs .brand-source",
+    "test:visual": "node --test test/rendered-brand.test.mjs && node scripts/assay-rendered-brand.mjs"
   },
   "engines": {
     "node": ">=24.2.0"
   },
   "devDependencies": {
-    "wrangler": "4.127.1"
+    "wrangler": "4.127.1",
+    "playwright": "1.62.1"
   },
   "dependencies": {
     "@red-cup-engineering/living-web-server": "git+https://github.com/red-cup-engineering/living-web-server.git#9e6d657fda9df3bd50744294eb3bbd1412b854ad"
