@@ -78,3 +78,13 @@ test('provider observation is excluded from PR jobs and separately retained',()=
   assert.match(job,/observations\/561\.group-provider-deployment\.json/u);
   assert.doesNotMatch(job,/wrangler-action|wrangler deploy|wrangler rollback/u);
 });
+
+test('provider witness never receives a production deployment credential',()=>{
+  const workflow=requireWorkflow(new URL('../.github/workflows/public-delivery-witness.yml',import.meta.url));
+  const source=readFileSync(new URL('../scripts/observe-provider-deployment.mjs',import.meta.url),'utf8');
+  const job=workflow.slice(workflow.indexOf('  public-delivery-observation:'));
+  assert.match(job,/secrets\.CLOUDFLARE_READ_API_TOKEN/u);
+  assert.doesNotMatch(job,/secrets\.CLOUDFLARE_API_TOKEN/u);
+  assert.doesNotMatch(source,/process\.env\.CLOUDFLARE_API_TOKEN/u);
+  assert.match(source,/apiToken:process\.env\.CLOUDFLARE_READ_API_TOKEN/u);
+});
