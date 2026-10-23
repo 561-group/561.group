@@ -143,8 +143,11 @@ The source tests are deliberately executable without a private package registry.
 `@red-cup-engineering/living-web-server/fetch` and its native TUFTE HTML/JSON
 rendering over the same authored home/estate records; no fake implementation
 qualifies this test. The site pins the independent upstream Fetch-only release
-`9e6d657fda9df3bd50744294eb3bbd1412b854ad`. Installation excludes
-optional Node HTTP transport dependencies. CI retains the generated lockfile
+`9e6d657fda9df3bd50744294eb3bbd1412b854ad`. Installation includes npm's platform-specific optional runtime binaries required by
+Wrangler/workerd and esbuild. LivingWebServer's Node HTTP listener remains an
+optional peer in its source package, but npm's resolved dependency graph can
+also include it transitively; a Fetch-only API is not proof of a Node-free
+package closure. CI retains the generated lockfile
 for independent review once the original package registry is reachable; a
 missing lock, failed native test, wrong source commit, or missing provider
 receipt still prevents the manual production release.

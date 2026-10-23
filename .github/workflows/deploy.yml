@@ -38,7 +38,7 @@ jobs:
           }
       - name: Install original 561 registry suppliers and pinned LivingWebServer
         timeout-minutes: 6
-        run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Qualify the actual original Worker, TUFTE and other retained routes
         run: |
           npm run check

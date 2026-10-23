@@ -101,9 +101,9 @@ jobs:
           npm_config_fetch_timeout: '15000'
         run: |
           if test -s package-lock.json; then
-            npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+            npm ci --ignore-scripts --no-audit --no-fund
           else
-            npm install --omit=optional --ignore-scripts --no-audit --no-fund
+            npm install --ignore-scripts --no-audit --no-fund
           fi
       - name: Qualify one original Worker, renderer and generated public artifact graph
         run: |

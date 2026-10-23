@@ -71,7 +71,7 @@ test("a production deploy has a main-ref and predeploy safety boundary",()=>{
   const legacyInterlock=/Refuse unqualified standalone deployment/u.test(before) &&
     /exit 1/u.test(before);
   const qualifiedRelease=/test -s package-lock\.json/u.test(before) &&
-    /npm ci --omit=optional --ignore-scripts/u.test(before) &&
+    /npm ci --ignore-scripts/u.test(before) &&
     /npm run check/u.test(before) && /npm test/u.test(before) &&
     /npm run build/u.test(before) && /source-revision\.json/u.test(before);
   assert.ok(legacyInterlock||qualifiedRelease,
@@ -100,7 +100,7 @@ test("production deployment consumes the exact dependency lock before provider w
   assert.ok(provider>0,"the existing provider must be identifiable");
   const before=workflow.slice(0,provider);
   assert.match(before,/test -s package-lock\.json/u,"absence of the native lock must refuse publication");
-  assert.match(before,/npm ci --omit=optional --ignore-scripts/u,"production must use a frozen edge-only npm install");
+  assert.match(before,/npm ci --ignore-scripts/u,"production must use a frozen npm install with required native platform binaries");
   assert.doesNotMatch(before,/npm install --ignore-scripts/u,"unlocked npm install is not a release");
   for(const command of ["npm run check","npm test","npm run build","public/source-revision.json"]){
     assert.ok(before.includes(command),"native build/receipt is required before Wrangler: "+command);
