@@ -4,6 +4,7 @@
 import {createServer} from "node:http";
 import {readFile,mkdir,writeFile} from "node:fs/promises";
 import {createHash} from "node:crypto";
+import {execFileSync} from "node:child_process";
 import {resolve,join} from "node:path";
 import {pathToFileURL} from "node:url";
 import {create561GroupLivingApplication} from "../src/living-home.mjs";
@@ -22,6 +23,7 @@ const FONT_ROUTE=new Map([
   ["/fonts/jetbrains-mono.woff2","jetbrains-mono.woff2"]
 ]);
 const rgb=(r,g,b)=>"rgb("+[r,g,b].join(", ")+")";
+const OBSERVER_ROUTE="/__source-owned-color-observation.mjs";
 
 export function qualifyRenderedBrand(value,{path="/"}={}) {
   const errors=[];
@@ -62,6 +64,11 @@ async function servedOriginalApplication() {
   const server=createServer(async(req,res)=>{
     try{
       const pathname=new URL(req.url??"/","http://127.0.0.1").pathname;
+      if(pathname===OBSERVER_ROUTE){
+        const bytes=await readFile(new URL("../.visual-observer-source/src/theming-computer/color-coverage.mjs",import.meta.url));
+        res.writeHead(200,{"content-type":"text/javascript; charset=utf-8","cache-control":"no-store"});
+        res.end(bytes);return;
+      }
       if(FONT_ROUTE.has(pathname)){
         const bytes=await readFile(new URL("../public/fonts/"+FONT_ROUTE.get(pathname),import.meta.url));
         res.writeHead(200,{"content-type":"font/woff2","cache-control":"no-store"});
@@ -141,6 +148,15 @@ export function visualReviewPacket(witness){
 
 export async function receiveBrowserVisuals({output="artifacts/brand-visual",sourceCommit=process.env.GITHUB_SHA??null}={}) {
   const {chromium}=await import("playwright");
+  const observer=await readJson("data/visual-observation-source.json");
+  if(observer.schema!=="561.group/visual-observation-source/v1" ||
+     observer.owner!=="red-cup-engineering/web-theming-service" ||
+     !/^[a-f0-9]{40}$/u.test(observer.commit) ||
+     observer.entry!=="src/theming-computer/color-coverage.mjs")
+    throw Error("Apex lacks qualified original visual observation source");
+  const mounted=execFileSync("git",["-C",".visual-observer-source","rev-parse","HEAD"],
+    {encoding:"utf8",timeout:10000}).trim();
+  if(mounted!==observer.commit)throw Error("Rendered color instrument differs from selected Engineering source");
   const host=await servedOriginalApplication();
   let browser;
   try{
