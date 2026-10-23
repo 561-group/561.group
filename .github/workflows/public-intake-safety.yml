@@ -123,7 +123,7 @@ jobs:
           npm run build
       - name: Install pinned minimal Chromium browser for real visual reading
         timeout-minutes: 4
-        run: npx playwright install --with-deps --only-shell chromium
+        run: npx playwright install --only-shell chromium
       - name: Read actual original TUFTE pages at desktop and mobile viewports
         timeout-minutes: 4
         run: npm run test:visual
