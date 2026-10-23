@@ -76,6 +76,15 @@ jobs:
           npm run check
           npm test
           npm run build
+      - name: Read pinned original Group brand authority before deploy
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: 561-group/561-group-content-design-services-section
+          ref: a5269ac3034b4a6ebaa6c1ccdfa2023b03071d2c
+          path: .brand-source
+          persist-credentials: false
+      - name: Reject original-house visual drift at the installed TUFTE consumer
+        run: node scripts/verify-brand-source.mjs .brand-source
       - name: Refuse incomplete release, duplicate homepage or wrong source revision
         run: |
           node --input-type=module <<'NODE'
