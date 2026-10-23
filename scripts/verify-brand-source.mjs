@@ -69,6 +69,8 @@ export function verifyApexBrand({
     if(!Array.isArray(expected) ||
         JSON.stringify(normalizeFamily(actual??""))!==JSON.stringify(expected))
       throw new Error("Apex "+variable+" breaks the source-owned "+key+" type channel");
+    if(!houseStyles.includes('font-family:"'+expected[0]+'";src:url("/fonts/'))
+      throw new Error("Apex missing self-hosted display/reading/evidence font "+expected[0]);
   }
   if(values.get("--tufte-radius")!=="0")
     throw new Error("Apex replaced square-corner institutional geometry");
