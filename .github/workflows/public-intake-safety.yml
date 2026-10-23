@@ -11,6 +11,7 @@ on:
       - scripts/**
       - test/**
       - package.json
+      - package-lock.json
       - .npmrc
       - wrangler.jsonc
   pull_request:
@@ -24,6 +25,7 @@ on:
       - scripts/**
       - test/**
       - package.json
+      - package-lock.json
       - .npmrc
       - wrangler.jsonc
 permissions:
@@ -97,7 +99,12 @@ jobs:
         env:
           npm_config_fetch_retries: '0'
           npm_config_fetch_timeout: '15000'
-        run: npm install --omit=optional --ignore-scripts --no-audit --no-fund
+        run: |
+          if test -s package-lock.json; then
+            npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+          else
+            npm install --omit=optional --ignore-scripts --no-audit --no-fund
+          fi
       - name: Qualify one original Worker, renderer and generated public artifact graph
         run: |
           npm run check
@@ -128,3 +135,63 @@ jobs:
           if(!translated.includes('<html'))throw Error('Missing original localized static fallback');
           console.log('Original source artifact graph qualified; no live Cloudflare deployment claimed.');
           NODE
+
+  receive-original-exact-dependency-lock:
+    # Public PR authors never receive write authority. Only the original
+    # same-repo, exact branch's fully passing source/native build can advance
+    # its OWN candidate lockfile. Never touches main or Cloudflare.
+    needs: qualify-original-apex
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/apex-tufte-living-web-source-20261022'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Receive this exact native CI run's immutable lockfile artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 561-apex-exact-lock-candidate
+          path: .
+      - name: Admit only the exact verified house dependency closure
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const pkg=JSON.parse(readFileSync('package.json','utf8'));
+          const lock=JSON.parse(readFileSync('package-lock.json','utf8'));
+          if(lock.lockfileVersion!==3||lock.name!==pkg.name||
+             Object.keys(lock.packages??{}).length<100||
+             JSON.stringify(lock.packages['']?.dependencies)!==JSON.stringify(pkg.dependencies)||
+             JSON.stringify(lock.packages['']?.devDependencies)!==JSON.stringify(pkg.devDependencies)) {
+            throw Error('Native installed dependency lock does not match this original site source');
+          }
+          const tufte=lock.packages['node_modules/@red-cup-engineering/web-page-tiling-engine'];
+          const living=lock.packages['node_modules/@red-cup-engineering/living-web-server'];
+          if(tufte?.version!=='0.15.1'||
+             !tufte.resolved?.startsWith('https://registry.561.group/')||
+             !living?.resolved?.endsWith('9e6d657fda9df3bd50744294eb3bbd1412b854ad')||
+             living.peerDependenciesMeta?.['@red-cup-engineering/computer-web-server']?.optional!==true) {
+            throw Error('TUFTE or LivingWebServer package source identity differs from native receiving');
+          }
+          const current=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+          if(current!==process.env.GITHUB_SHA)throw Error('Branch moved during native CI receipt');
+          console.log('Exact original dependency lock accepted from this installed CI run: '+current);
+          NODE
+      - name: Commit only new dependency lock onto the original review branch
+        run: |
+          git config user.name '561 Group native CI receiver'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Already received exact native lock; no source write.'
+            exit 0
+          fi
+          git diff --cached --name-only | grep -x 'package-lock.json'
+          git commit -m "Receive exact native TUFTE/LivingWebServer dependency lock"
+          git push origin HEAD:refs/heads/feat/apex-tufte-living-web-source-20261022
