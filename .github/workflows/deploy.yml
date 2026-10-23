@@ -46,6 +46,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
       - name: Select one source-qualified UTC publication day
         run: |
           node --input-type=module <<'NODE'
@@ -62,7 +64,12 @@ jobs:
             exit 1
           }
       - name: Install original 561 registry suppliers and pinned LivingWebServer
-        timeout-minutes: 6
+        timeout-minutes: 7
+        env:
+          npm_config_fetch_retries: '2'
+          npm_config_fetch_retry_mintimeout: '1500'
+          npm_config_fetch_retry_maxtimeout: '8000'
+          npm_config_fetch_timeout: '45000'
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Qualify the actual original Worker, TUFTE and other retained routes
         run: |

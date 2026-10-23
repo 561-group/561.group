@@ -40,12 +40,14 @@ jobs:
   qualify-original-apex:
     runs-on: ubuntu-latest
     # Source CI cannot consume an unbounded registry outage or Git fetch.
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
       - name: Select one source-qualified UTC publication day
         run: |
           node --input-type=module <<'NODE'
@@ -96,10 +98,12 @@ jobs:
           GIT_TERMINAL_PROMPT=0 timeout 12s git -c credential.helper= ls-remote https://github.com/red-cup-engineering/living-web-server.git HEAD >/dev/null
           echo "Pinned LivingWebServer Git origin is reachable (revision selected in package.json)"
       - name: Install original TUFTE dependencies and pinned LivingWebServer source
-        timeout-minutes: 4
+        timeout-minutes: 7
         env:
-          npm_config_fetch_retries: '0'
-          npm_config_fetch_timeout: '15000'
+          npm_config_fetch_retries: '2'
+          npm_config_fetch_retry_mintimeout: '1500'
+          npm_config_fetch_retry_maxtimeout: '8000'
+          npm_config_fetch_timeout: '45000'
         run: |
           test -s package-lock.json || { echo '::error::Missing received source lockfile'; exit 1; }
           npm ci --ignore-scripts --no-audit --no-fund
