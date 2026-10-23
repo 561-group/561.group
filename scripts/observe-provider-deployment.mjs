@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Read the live Cloudflare deployment identity for the same Worker that serves 561.group.
 // Provider-native observation; NOT an assertion that any Git commit was published.
-// This unattended read MUST NOT inherit a production publish/rollback credential.
+// Unattended observer uses only a dedicated read token, not production deployment authority.
 import {mkdir,writeFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {deploymentsOf,fetchDeployments} from './worker-recovery.mjs';

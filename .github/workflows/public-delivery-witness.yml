@@ -1,6 +1,7 @@
 name: Observe 561.group public delivery (read-only)
 
-# Public evidence only: no secrets, provider mutation, release selection, or automatic promotion.
+# Read-only public evidence: main selects its own exact commit for comparison.
+# No secrets, provider mutation or automatic promotion.
 # The existing qualified source -> build -> production workflow remains separate.
 on:
   push:
@@ -51,15 +52,15 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Observe real external public endpoints independently of the build
-        env:
-          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
-        run: node scripts/observe-production.mjs
       - name: Read provider-native active Worker version using dedicated metadata-read token
         env:
           CLOUDFLARE_READ_API_TOKEN: ${{ secrets.CLOUDFLARE_READ_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node scripts/observe-provider-deployment.mjs
+      - name: Observe real external public endpoints independently of the build
+        env:
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha || github.sha }}
+        run: node scripts/observe-production.mjs
       - name: Preserve source-qualified HTTP observations even when checks fail
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
