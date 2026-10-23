@@ -44,7 +44,7 @@ test("the original user-visible regression is independently rejected",()=>{
     hasNavigation:false,tileCount:0};
   const result=qualifyRenderedBrand(bad);
   assert.equal(result.passed,false);
-  for(const fragment of ["Lakota-founded","horizontally","keyboard focus","navigation","content tiles"])
+  for(const fragment of ["Lakota-founded","horizontally","Keyboard focus","navigation","content tiles"])
     assert.ok(result.errors.some(x=>x.includes(fragment)),fragment);
 });
 test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
