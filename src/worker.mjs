@@ -6,7 +6,7 @@ import home from "../data/home.json";
 import { create561GroupLivingApplication } from "./living-home.mjs";
 import { toldOf } from "./told.mjs";
 import { readSourceRevision } from "./source-revision.mjs";
-import { localeOfPath, localeRedirect } from "@red-cup-engineering/l-space/http";
+import { localeOfPath, localeRedirect } from "./locales.mjs";
 
 const LOCALES = ["en", "zh-Hans", "lkt"];
 

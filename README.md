@@ -131,3 +131,7 @@ a qualified native build, an authorized Cloudflare deployment and independent
 readback of that revision, the canonical human/agent views and inherited
 contact/estate routes. The read-only HTTP observer alone does not prove the
 Cloudflare version or independently accepted delivery.
+
+## Installation boundary — site-owned ARB projection
+
+The earlier standalone site imported `@red-cup-engineering/l-space`, a package that is not currently published in the house registry. The site now reads its original `locales/*.arb` directly through `src/locales.mjs`, with a deliberately limited ICU plural/argument/rich-tag interpreter and structural source/target checks. The original `x-l-space` attribution is preserved; an upstream witness hash that cannot be independently reconstructed is **unverified**, never relabeled current. English messages remain the canonical source; Lakota fallbacks stay marked English, and machine-authored translations remain disclosed. TUFTE and LivingWebServer **are not mocked**: native installation and live production receiving still require their own genuine published dependency closure.

@@ -1,8 +1,7 @@
 // Renders the 561.group public files from data/home.json and data/estate.json, in every language the site serves.
 // Pure: data and a locale's speaker (src/locales.mjs) in, file contents out.
 
-import { locale as localeFaces, sitemapXml, trustedHtml } from "@red-cup-engineering/l-space";
-import { DEFAULT_LOCALE, LOCALES, localePath } from "./locales.mjs";
+import { locale as localeFaces, sitemapXml, trustedHtml, DEFAULT_LOCALE, LOCALES, localePath } from "./locales.mjs";
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

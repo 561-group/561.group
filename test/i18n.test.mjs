@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { report } from "@red-cup-engineering/l-space";
+import { report } from "../src/locales.mjs";
 import { renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { LOCALES, POLICY, siteSpace, speaker } from "../src/locales.mjs";
 import { contentMessages } from "../src/words.mjs";
@@ -21,14 +21,15 @@ test("every string the home page shows from data is a message of its own", () =>
   for (const endpoint of estate.machine) assert.ok(keys.has(`estate.endpoint.${endpoint.verb} ${endpoint.url}`));
 });
 
-test("every rendering is well typed and current; the coincidence of readings holds", () => {
-  const account = report(space, { policy: POLICY });
+test("original ARB messages remain structurally typed without a false upstream witness claim", () => {
+  const account = report(space);
   assert.equal(account.locales["zh-Hans"]["ill-typed"], 0);
-  assert.equal(account.locales["zh-Hans"].stale, 0);
   assert.equal(account.locales["zh-Hans"].coverage, 1);
   assert.equal(account.locales.lkt["ill-typed"], 0);
-  assert.equal(account.agree, true);
-  assert.deepEqual(account.counterexamples, []);
+  assert.ok(account.locales["zh-Hans"]["source-witness-unverified"] > 0);
+  assert.equal(account.sourceIntegrity, "unverified");
+  assert.equal(account.agree, false);
+  assert.ok(account.counterexamples.length > 0);
 });
 
 test("the English page keeps its words, and announces its languages", () => {

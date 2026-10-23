@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, cp, readFile, writeFile, symlink } from "node:fs/promises";
+import { mkdtemp, cp, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -11,9 +11,6 @@ const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const scratch=await mkdtemp(path.join(tmpdir(),"apex-publish-"));
 const app=path.join(scratch,"app");
 await cp(ROOT,app,{recursive:true,filter:p=>!p.includes("node_modules")});
-await mkdir(path.join(app,"node_modules/@red-cup-engineering"),{recursive:true});
-await symlink(path.dirname(fileURLToPath(import.meta.resolve("@red-cup-engineering/l-space/package.json"))),
-  path.join(app,"node_modules/@red-cup-engineering/l-space"));
 const preload=path.join(scratch,"offline.mjs");
 await writeFile(preload,"globalThis.fetch=()=>{throw Error('Offline publication fixture');};\n");
 const sourceCommit="0123456789abcdef0123456789abcdef01234567";
@@ -24,7 +21,7 @@ const run=(extra={})=>spawnSync(process.execPath,["--import",preload,"scripts/bu
 let passed=0;
 const check=(name,fn)=>{fn();passed++;console.log("PASS",name);};
 const first=run();
-check("actual original build executes with installed L-Space supplier",()=>assert.equal(first.status,0,first.stderr));
+check("actual original build executes with authored ARB inputs and no unavailable language package",()=>assert.equal(first.status,0,first.stderr));
 const names=["source-revision.json","estate-records.json","zh-hans/index.html",
   "lkt/index.html","llms.txt","llms-full.txt","feed.json","feed.atom.xml",
   "feed.rss.xml",".well-known/security.txt","8d232583e7cba18a83bf5c0325fcc7c9.txt",
@@ -73,4 +70,4 @@ check("existing Worker probing budget still refuses an oversized owned estate",(
   assert.notEqual(oversized.status,0);
   assert.match(oversized.stderr,/subrequest budget/);
 });
-console.log(JSON.stringify({passed,scope:"Actual site build + original installed language supplier, with offline feed/market observations. No private Play checkout, live deployment or public reader implied."}));
+console.log(JSON.stringify({passed,scope:"Actual site build + site-owned ARB message projection with upstream witness provenance marked unverified, with offline feed/market observations. No private Play checkout, live deployment or public reader implied."}));

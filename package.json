@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "The Group's public face: curated service doors and games discovered from their authored records, with HTTP readings of their exact entry paths.",
+  "description": "Original 561 Group public homepage: TUFTE and LivingWebServer over authored estate; site-owned ARB/ICU locale projection.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node --check src/worker.mjs && node --check src/render.mjs && node --check src/told.mjs && node --check scripts/build.mjs && node --check src/locales.mjs && node --check src/words.mjs && node --check src/feed.mjs && node --check src/home-tufte.mjs && node --check src/living-home.mjs",
     "dev": "node scripts/build.mjs && wrangler dev",
     "deploy": "node scripts/build.mjs && wrangler deploy",
-    "test": "node --test test/source-revision.test.mjs && node --test test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
+    "test": "node --test test/source-revision.test.mjs && node --test test/locales-runtime.test.mjs test/home-tufte.test.mjs && node test/market-discovery.test.mjs && node --test test/feed.test.mjs && node --test test/i18n.test.mjs && node test/build.mjs && node --experimental-vm-modules test/worker.mjs",
     "source-catalog": "node scripts/source-catalog.mjs"
   },
   "engines": {
@@ -19,7 +19,6 @@
     "wrangler": "4.127.1"
   },
   "dependencies": {
-    "@red-cup-engineering/l-space": "0.1.0",
     "@red-cup-engineering/living-web-server": "git+https://github.com/red-cup-engineering/living-web-server.git#5c111e584f609327cfcd73abef9964895eab4641"
   },
   "repository": {
