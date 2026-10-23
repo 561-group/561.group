@@ -110,6 +110,15 @@ jobs:
           npm run check
           npm test
           npm run build
+      - name: Bundle the real original Worker and public assets with Cloudflare Wrangler without deployment
+        timeout-minutes: 3
+        run: |
+          npx wrangler deploy --config wrangler.jsonc --dry-run --outdir .wrangler-edge-bundle
+          test -n "$(find .wrangler-edge-bundle -type f -name '*.js' -print -quit)" || {
+            echo "::error::No original edge Worker bundle was built."
+            exit 1
+          }
+          echo 'Wrangler built original 561-group-site edge bundle without Cloudflare mutation.'
       - name: Preserve qualified installed dependency lock for independent receiving
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
