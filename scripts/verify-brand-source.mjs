@@ -74,7 +74,7 @@ export function verifyApexBrand({
   }
   if(values.get("--tufte-radius")!=="0")
     throw new Error("Apex replaced square-corner institutional geometry");
-  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{/u,"giant 561 folio mark");
+  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{\s*content:"561";/u,"giant 561 folio mark");
   requireStyle(houseStyles,/content:"561";/u,"unaltered 561 mark");
   requireStyle(houseStyles,/\.tufte-masthead\s*\{[^}]*border-top:8px solid var\(--house-ink\)/su,
     "institutional folio bar");
