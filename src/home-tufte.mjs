@@ -1,3 +1,5 @@
+import { HOUSE_STYLES } from "./apex-house-style.mjs";
+
 // Consumer projection only: the Group's existing public data and estate own all words, links and identities.
 // TUFTE owns layout and HTML; LivingWebServer owns public-read admission and Fetch negotiation.
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/gu,
@@ -107,6 +109,8 @@ export function project561GroupHead(home){
     entry("link",{rel:"me",href:publicHref(home.group.actor)}),
     entry("link",{rel:"icon",href:"/favicon.svg",type:"image/svg+xml"}),
     entry("link",{rel:"apple-touch-icon",href:"/apple-touch-icon.png"}),
+    // Original 561 visual DNA, projected inside TUFTE's existing document head.
+    '<style data-561-house="visual-design-bible-v0.4-candidate">' + HOUSE_STYLES + '</style>',
     alternate("text/plain","For language models","/llms.txt"),
     alternate("text/plain","For language models, in full","/llms-full.txt"),
     alternate("application/json","Live estate","/estate.json"),
