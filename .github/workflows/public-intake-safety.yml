@@ -1,34 +1,149 @@
-name: Public intake trust-boundary assay
+name: 561.group source, public-intake and TUFTE consumer qualification
 on:
   push:
+    branches: [main]
     paths:
-      - public/contact/index.html
-      - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
-      - test/public-intake-boundary.test.mjs
-      - src/worker.mjs
-      - src/told.mjs
-      - test/worker.mjs
+      - .github/ISSUE_TEMPLATE/**
+      - public/contact/**
+      - data/**
+      - locales/**
+      - src/**
+      - scripts/**
+      - test/**
+      - package.json
+      - package-lock.json
+      - .npmrc
+      - wrangler.jsonc
   pull_request:
     paths:
-      - public/contact/index.html
-      - .github/ISSUE_TEMPLATE/**
       - .github/workflows/**
-      - test/public-intake-boundary.test.mjs
-      - src/worker.mjs
-      - src/told.mjs
-      - test/worker.mjs
+      - .github/ISSUE_TEMPLATE/**
+      - public/contact/**
+      - data/**
+      - locales/**
+      - src/**
+      - scripts/**
+      - test/**
+      - package.json
+      - package-lock.json
+      - .npmrc
+      - wrangler.jsonc
 permissions:
   contents: read
+
+# Candidate tests may be superseded; unlike production, stale CI runs are disposable.
+concurrency:
+  group: 561-apex-source-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  public-report-boundary:
+  qualify-original-apex:
     runs-on: ubuntu-latest
+    # Source CI cannot consume an unbounded registry outage or Git fetch.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Assay public reporting is read-only and production remains separately authorized
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Select one source-qualified UTC publication day
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const seconds=Number(execFileSync('git',['show','-s','--format=%ct','HEAD'],{encoding:'utf8'}).trim());
+          if(!Number.isSafeInteger(seconds)||seconds<=0)throw Error('No admitted git source commit date');
+          appendFileSync(process.env.GITHUB_ENV,'SITE_PUBLICATION_DATE='+new Date(seconds*1000).toISOString().slice(0,10)+'\n');
+          NODE
+      - name: Preserve original untrusted-public-input and manual-release boundary
         run: node --test test/public-intake-boundary.test.mjs
-      - name: Exercise the actual Worker, canonical estate and signed federation fallback
-        run: node --experimental-vm-modules test/worker.mjs
+      - name: Exercise original data to compact TUFTE model without a mock supplier
+        run: node --test test/home-tufte.test.mjs
+      - name: Exercise the original ARB data, source-release boundaries and Worker receipts without any registry
+        run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
+      - name: Qualify complete authored public artifact graph and exact receipt hashes offline
+        run: node test/build.mjs
+      - name: Verify one site-owned dependency contract before external registry access
+        run: node --test test/fetch-source-contract.test.mjs
+      - name: Probe actual TUFTE supplier and pinned LivingWebServer source
+        timeout-minutes: 1
+        run: |
+          set -eu
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const pkg=JSON.parse(readFileSync('package.json','utf8'));
+          const cfg=readFileSync('.npmrc','utf8');
+          const registry=cfg.match(/^@red-cup-engineering:registry=(https:\/\/[^\s]+)$/mu)?.[1] ??
+            cfg.match(/^registry=(https:\/\/[^\s]+)$/mu)?.[1];
+          if(pkg.dependencies?.['@red-cup-engineering/l-space'])throw Error('Unreleased language package is not a public production dependency');
+          const version='0.15.1'; // original pinned LivingWebServer TUFTE dependency
+          const living=pkg.dependencies?.['@red-cup-engineering/living-web-server'];
+          if(!registry || !/^\d+\.\d+\.\d+$/u.test(version??'') ||
+             !/^git\+https:\/\/github\.com\/red-cup-engineering\/living-web-server\.git#[a-f\d]{40}$/iu.test(living??'')){
+            throw Error('The original publisher requires a qualified house registry, language version and exact LivingWebServer source commit');
+          }
+          const url=new URL('@red-cup-engineering%2fweb-page-tiling-engine',registry);
+          const response=await fetch(url,{redirect:'error',headers:{accept:'application/json'},
+            signal:AbortSignal.timeout(10000)});
+          console.log('Original registry package metadata HTTP '+response.status);
+          if(!response.ok)throw Error('House language package cannot be resolved: HTTP '+response.status);
+          if(Number(response.headers.get('content-length')||0)>2000000)throw Error('Registry metadata exceeds read bound');
+          const metadata=await response.json();
+          const release=metadata?.versions?.[version];
+          if(!release?.dist?.integrity || !release.dist?.tarball)throw Error('Pinned language package has no published integrity/asset evidence');
+          console.log('Original TUFTE package '+version+' has published integrity metadata');
+          NODE
+          GIT_TERMINAL_PROMPT=0 timeout 12s git -c credential.helper= ls-remote https://github.com/red-cup-engineering/living-web-server.git HEAD >/dev/null
+          echo "Pinned LivingWebServer Git origin is reachable (revision selected in package.json)"
+      - name: Install original TUFTE dependencies and pinned LivingWebServer source
+        timeout-minutes: 7
+        env:
+          npm_config_fetch_retries: '2'
+          npm_config_fetch_retry_mintimeout: '1500'
+          npm_config_fetch_retry_maxtimeout: '8000'
+          npm_config_fetch_timeout: '45000'
+        run: |
+          test -s package-lock.json || { echo '::error::Missing received source lockfile'; exit 1; }
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: Qualify one original Worker, renderer and generated public artifact graph
+        run: |
+          npm run check
+          npm test
+          npm run build
+      - name: Bundle the real original Worker and public assets with Cloudflare Wrangler without deployment
+        timeout-minutes: 3
+        run: |
+          npx wrangler deploy --config wrangler.jsonc --dry-run --outdir .wrangler-edge-bundle
+          test -n "$(find .wrangler-edge-bundle -type f -name '*.js' -print -quit)" || {
+            echo "::error::No original edge Worker bundle was built."
+            exit 1
+          }
+          echo 'Wrangler built original 561-group-site edge bundle without Cloudflare mutation.'
+      - name: Preserve qualified installed dependency lock for independent receiving
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 561-apex-exact-lock-candidate
+          path: package-lock.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Inspect release source and canonical published source inputs
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const read=async path=>readFile(path,'utf8');
+          const source=JSON.parse(await read('public/source-revision.json'));
+          if(source.sourceCommit!==process.env.GITHUB_SHA || source.repository!=='561-group/561.group') {
+            throw Error('Generated site is not this exact source revision');
+          }
+          const authored=JSON.parse(await read('data/estate.json'));
+          const built=JSON.parse(await read('public/estate-records.json'));
+          if(JSON.stringify(authored.nodes)!==JSON.stringify(built.nodes)) {
+            throw Error('A foreign game catalog silently changed the Group public estate');
+          }
+          const translated=await read('public/zh-hans/index.html');
+          if(!translated.includes('<html'))throw Error('Missing original localized static fallback');
+          console.log('Original source artifact graph qualified; no live Cloudflare deployment claimed.');
+          NODE
+

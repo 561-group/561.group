@@ -1,13 +1,16 @@
-name: Deploy 561.group
-
-# TEMPORARY CONSOLIDATION GATE
-#
-# Do not automatically publish every main-branch change while the 561 Group
-# web estate has multiple competing source/render/deploy implementations.
-# Production deployment is explicit until 561-group/561-group#51 settles a
-# single source → TUFTE render → deploy → public-witness chain for 561.group.
+name: Publish and receive 561.group (TUFTE + LivingWebServer)
+# main is the intended production source, not an unreviewed publication.
+# Changes enter through PR source qualification; this release repeats the
+# original tests, builds the pinned supplier, deploys, then reads public bytes.
 on:
   workflow_dispatch:
+  # The Leader's received alpha-site repair can ship only from an already
+  # qualified ORIGINAL main CI push. Untrusted PR runs never deploy.
+  workflow_run:
+    workflows:
+      - "561.group source, public-intake and TUFTE consumer qualification"
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -18,25 +21,177 @@ concurrency:
 
 jobs:
   deploy:
-    # A manual dispatch on an unreviewed ref must not write production.
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      # Temporary production release interlock. This repository's standalone
-      # checkout lacks the original pinned PNPM/Play/LivingWebServer closure;
-      # public/ build outputs are untracked. Invoking Wrangler directly here
-      # could replace the working site with incomplete assets. This fails
-      # closed until the original source-qualified build -> test -> release ->
-      # independent public-witness chain in PR #21 and issue #17 is accepted.
-      - name: Refuse unqualified standalone deployment
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Refuse any stale or non-main release source before private credentials are used
+        env:
+          ADMITTED_SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          echo "::error::The bare checkout is not a qualified production artifact. Recover the pinned integrated workspace, run the native tests/build and receive the exact public revision before enabling deployment (PR #21; issue #17)."
-          exit 1
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Checked-out source changed"; exit 1; }
+          test "$GITHUB_SHA" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Workflow event did not identify the exact main source"; exit 1; }
+          latest="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$latest" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Another main revision superseded this release"; exit 1; }
+          echo "Exact current main $ADMITTED_SOURCE_SHA admitted; no provider change yet."
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Select one source-qualified UTC publication day
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const seconds=Number(execFileSync('git',['show','-s','--format=%ct','HEAD'],{encoding:'utf8'}).trim());
+          if(!Number.isSafeInteger(seconds)||seconds<=0)throw Error('No admitted git source commit date');
+          appendFileSync(process.env.GITHUB_ENV,'SITE_PUBLICATION_DATE='+new Date(seconds*1000).toISOString().slice(0,10)+'\n');
+          NODE
+      - name: Refuse a production release without the original exact package lock
+        run: |
+          test -s package-lock.json || {
+            echo '::error::The original source has no committed npm lockfile; do not deploy a best-effort install.'
+            exit 1
+          }
+      - name: Install original 561 registry suppliers and pinned LivingWebServer
+        timeout-minutes: 7
+        env:
+          npm_config_fetch_retries: '2'
+          npm_config_fetch_retry_mintimeout: '1500'
+          npm_config_fetch_retry_maxtimeout: '8000'
+          npm_config_fetch_timeout: '45000'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Qualify the actual original Worker, TUFTE and other retained routes
+        run: |
+          npm run check
+          npm test
+          npm run build
+      - name: Refuse incomplete release, duplicate homepage or wrong source revision
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile,stat } from 'node:fs/promises';
+          const text=async name=>readFile(name,'utf8');
+          const receipt=JSON.parse(await text('public/source-revision.json'));
+          if(receipt.sourceCommit!==process.env.GITHUB_SHA ||
+             receipt.repository!=='561-group/561.group' ||
+             receipt.renderer!=='TUFTE' || receipt.application!=='LivingWebServer') {
+            throw Error('Source release identity mismatch');
+          }
+          for(const path of ['public/estate-records.json','public/contact/index.html',
+            'public/llms.txt','public/llms-full.txt','public/sitemap.xml',
+            'public/robots.txt','public/zh-hans/index.html','public/lkt/index.html']) {
+            if((await stat(path)).size<50)throw Error('Missing original publication asset: '+path);
+          }
+          try { await stat('public/index.html'); throw Error('Competing English static homepage'); }
+          catch(error) { if(error.code!=='ENOENT')throw error; }
+          const {createHash}=await import('node:crypto');
+          const artifacts=Object.entries(receipt.artifactDigests??{});
+          if(artifacts.length<10 || receipt.publicationDay!==process.env.SITE_PUBLICATION_DATE) {
+            throw Error('Original exact public-artifact manifest incomplete or publication date differs');
+          }
+          for(const [name,claimed] of artifacts) {
+            if(!/^[a-z0-9._/-]+$/iu.test(name) || name.startsWith('/') ||
+               name.split('/').includes('..') || !/^sha256:[a-f0-9]{64}$/iu.test(claimed)) {
+              throw Error('Unadmitted generated artifact or digest: '+name);
+            }
+            const actual='sha256:'+createHash('sha256')
+              .update(await readFile('public/'+name)).digest('hex');
+            if(actual!==claimed)throw Error('Generated artifact differs from its source-qualified public receipt: '+name);
+          }
+          const living=JSON.parse(await text('node_modules/@red-cup-engineering/living-web-server/package.json'));
+          if(!living.exports?.['./fetch'])throw Error('Installed LivingWebServer lacks Worker Fetch contract');
+          if(living.dependencies?.['@red-cup-engineering/computer-web-server'] ||
+             living.peerDependenciesMeta?.['@red-cup-engineering/computer-web-server']?.optional!==true) {
+            throw Error('This Worker release includes unqualified Node transport dependency semantics');
+          }
+          console.log('Admitted exact TUFTE + LivingWebServer source '+receipt.sourceCommit);
+          NODE
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.118.0
+          wranglerVersion: 4.127.1
           command: deploy --config wrangler.jsonc
+      - name: Receive independent public revision, human/agent and retained site routes
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          const host='https://561.group';
+          const read=path=>fetch(host+path,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+          const manifest=await read('/source-revision.json');
+          if(!manifest.ok)throw Error('Public source receipt not served: '+manifest.status);
+          const receipt=await manifest.json();
+          if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Public origin not serving this main commit');
+          // Cloudflare's native active version is distinct from the site's source claim.
+          const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/iu;
+          if(!uuid.test(receipt.workerVersionId??''))throw Error('Public receipt lacks executing Worker version metadata');
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
+          if(!/^[a-f0-9]{32}$/iu.test(account??'')||!token)
+            throw Error('Qualified provider read credential unavailable for manual release receiving');
+          const provider=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+
+            '/workers/scripts/561-group-site/deployments?per_page=10',{
+            method:'GET',redirect:'error',cache:'no-store',
+            headers:{authorization:'Bearer '+token,accept:'application/json'},
+            signal:AbortSignal.timeout(15000)
+          });
+          if(!provider.ok)throw Error('Cloudflare active-deployment read refused: HTTP '+provider.status);
+          const data=await provider.json(),latest=data?.result?.deployments?.[0];
+          if(data?.success!==true||!uuid.test(latest?.id??'')||
+             latest?.versions?.length!==1||latest.versions[0].percentage!==100||
+             latest.versions[0].version_id?.toLowerCase()!==receipt.workerVersionId.toLowerCase()){
+            throw Error('Published Worker version is not the Cloudflare active 100%-traffic version');
+          }
+
+          // A source commit alone does not attest generated external-feed
+          // snapshots. Independently compare original published bytes with
+          // their release-time artifact digests at the public origin.
+          for(const path of ['llms.txt','llms-full.txt','robots.txt','sitemap.xml',
+            'feed.json','estate-records.json','zh-hans/index.html','lkt/index.html']) {
+            const target='/'+path;
+            const asset=await read(target);
+            if(!asset.ok)throw Error('Original generated public artifact unavailable: '+target+' '+asset.status);
+            const raw=await asset.arrayBuffer();
+            const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',raw));
+            const digest='sha256:'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+            if(receipt.artifactDigests?.[path]!==digest) {
+              throw Error('Deployed public bytes differ from original release receipt: '+target);
+            }
+          }
+
+          const home=await read('/');
+          const html=await home.text();
+          if(!home.ok || !html.includes('data-tufte') ||
+             !html.includes('Work with us') || !html.includes('buy.stripe.com') ||
+             html.includes('conurbanized ecosystem')) {
+            throw Error('Public HTML is not original TUFTE Group homepage');
+          }
+          const json=await fetch(host+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
+          if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')) {
+            throw Error('Public LivingWebServer JSON projection was not received');
+          }
+          const legacy=await fetch(host+'/index.html',{redirect:'manual'});
+          if(legacy.status!==301 || legacy.headers.get('location')!==host+'/') {
+            throw Error('Legacy static page remains independently reachable');
+          }
+          for(const route of ['/contact/','/estate.json','/llms.txt','/zh-hans/','/lkt/']) {
+            const response=await read(route);
+            if(!response.ok)throw Error('Existing public route missing: '+route+' '+response.status);
+          }
+          const alias=await fetch('https://www.561.group/',{redirect:'manual'});
+          if(alias.status!==301 || alias.headers.get('location')!==host+'/') {
+            throw Error('www origin no longer canonicalizes');
+          }
+          console.log('Received deployed Group source '+receipt.sourceCommit+' on actual public origin');
+          NODE

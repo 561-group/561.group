@@ -8,20 +8,67 @@ const probes=[],puts=[],waits=[],keys=[];let cached;
 const statuses=[200,301,401,402,403,404,500];
 const context=vm.createContext({Request,Response,URL,AbortSignal,Date,JSON,Promise,fetch:async(url,init)=>{probes.push({url,init});if(probes.length===8)throw Error('fixture timeout');return new Response('fixture',{status:statuses[(probes.length-1)%statuses.length]})},caches:{default:{match:async key=>{keys.push(key.url);return cached},put:async(key,value)=>{puts.push({key:key.url,value})}}}});
 const told=new vm.SourceTextModule(await readFile(path.join(root,'src/told.mjs'),'utf8'),{context,identifier:'authored-told'});
+const sourceRevision=new vm.SourceTextModule(await readFile(path.join(root,'src/source-revision.mjs'),'utf8'),{context,identifier:'source-revision'});
 const data=new vm.SyntheticModule(['default'],function(){this.setExport('default',estate)},{context,identifier:'fixture-estate-records'});
+const homeData=JSON.parse(await readFile(path.join(root,'data/home.json'),'utf8'));
+const homeModule=new vm.SyntheticModule(['default'],function(){this.setExport('default',homeData)},{context,identifier:'fixture-public-home'});
+const livingCalls=[];
+const livingModule=new vm.SyntheticModule(['create561GroupLivingApplication'],function(){
+  this.setExport('create561GroupLivingApplication', ({readHome,readEstate}) => ({
+    fetch: async request => {
+      livingCalls.push({url:request.url,accept:request.headers.get('accept'),home:readHome(),estate:readEstate()});
+      return request.headers.get('accept')==='application/json'
+        ? Response.json({kind:'tufte.fixture',site:'561.group'})
+        : new Response('<main data-tufte>Group living home fixture</main>',{headers:{'content-type':'text/html; charset=utf-8'}});
+    }
+  }));
+},{context,identifier:'fixture-living-web-consumer'});
 const worker=new vm.SourceTextModule(await readFile(path.join(root,'src/worker.mjs'),'utf8'),{context,identifier:'authored-worker'});
 // Package dependencies (the l-space HTTP edge) load from their real files into the same context.
 const { fileURLToPath, pathToFileURL } = await import('node:url');
 const loaded=new Map();
 const moduleAt=async file=>{if(!loaded.has(file))loaded.set(file,new vm.SourceTextModule(await readFile(file,'utf8'),{context,identifier:file}));return loaded.get(file)};
 const resolveFrom=(spec,referrer)=>spec.startsWith('.')?fileURLToPath(new URL(spec,pathToFileURL(referrer))):fileURLToPath(import.meta.resolve(spec));
-await worker.link(async(spec,referrer)=>{if(spec==='../public/estate-records.json')return data;if(spec==='./told.mjs')return told;if(spec.startsWith('@red-cup-engineering/l-space/')||referrer.identifier.startsWith('/'))return moduleAt(resolveFrom(spec,referrer.identifier));throw Error('unexpected dependency '+spec)});await worker.evaluate();
+await worker.link(async(spec,referrer)=>{if(spec==='../public/estate-records.json')return data;if(spec==='../data/home.json')return homeModule;if(spec==='./living-home.mjs')return livingModule;if(spec==='./told.mjs')return told;if(spec==='./source-revision.mjs')return sourceRevision;if(spec==='./locales.mjs')return moduleAt(path.join(root,'src/locales.mjs'));if(referrer.identifier.startsWith('/'))return moduleAt(resolveFrom(spec,referrer.identifier));throw Error('unexpected dependency '+spec)});await worker.evaluate();
 let count=0;const check=(n,f)=>{f();count++;console.log('PASS',n)};const fetchWorker=worker.namespace.default.fetch;const ctx={waitUntil:p=>waits.push(p)};let assetRequest;
 const env={ASSETS:{fetch:async request=>{assetRequest=request;return new Response('original asset body',{status:200,headers:{'content-type':'text/html'}})}}};
+const originalReceipt={repository:'561-group/561.group',origin:'https://561.group',
+  sourceCommit:'0123456789abcdef0123456789abcdef01234567',renderer:'TUFTE',application:'LivingWebServer'};
+const originalVersion='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+const receiptMethods=[];
+const releaseEnv={CF_VERSION_METADATA:{id:originalVersion},ASSETS:{fetch:async request=>{
+  receiptMethods.push(request.method);
+  return Response.json(originalReceipt);
+}}};
+let versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json'),releaseEnv,ctx);
+const deliveredReceipt=await versionResponse.json();
+check('original source receipt is enriched with the executing Cloudflare version',()=>{
+  assert.equal(versionResponse.status,200);
+  assert.equal(versionResponse.headers.get('cache-control'),'no-store');
+  assert.equal(versionResponse.headers.get('x-content-type-options'),'nosniff');
+  assert.deepEqual(deliveredReceipt,{...originalReceipt,workerVersionId:originalVersion});
+});
+versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json',{method:'HEAD'}),releaseEnv,ctx);
+check('HEAD is bound to the same exact original release with no body',()=>{
+  assert.equal(versionResponse.status,200);
+  assert.deepEqual(receiptMethods,['GET','GET']);
+});
+assert.equal(await versionResponse.text(),'');
+versionResponse=await fetchWorker(new Request('https://561.group/source-revision.json'),{ASSETS:releaseEnv.ASSETS},ctx);
+check('absence of platform version binding refuses release equivalence',()=>assert.equal(versionResponse.status,503));
+
 let response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN,zh;q=0.9,en;q=0.5'}}),env,ctx);
 check('a reader preferring Mandarin is sent from the root to the Mandarin page',()=>{assert.equal(response.status,302);assert.equal(response.headers.get('location'),'https://561.group/zh-hans/');assert.equal(response.headers.get('vary'),'Accept-Language, Cookie');assert.equal(response.headers.get('x-content-type-options'),'nosniff')});
 response=await fetchWorker(new Request('https://561.group/',{headers:{'accept-language':'zh-CN',cookie:'lang=en'}}),env,ctx);
-check('a stored choice of English keeps the root',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-language'),'en');assert.equal(response.headers.get('vary'),'Accept-Language, Cookie')});
+check('a stored English choice reaches the one TUFTE Living Web site',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-language'),'en');assert.equal(response.headers.get('vary'),'Accept, Accept-Language, Cookie');assert.equal(livingCalls.length,1);assert.equal(livingCalls[0].home,homeData);assert.equal(livingCalls[0].estate,estate)});
+check('root response comes from the TUFTE source, not static assets',()=>assert.equal(response.headers.get('content-type'),'text/html; charset=utf-8'));
+response=await fetchWorker(new Request('https://561.group/',{headers:{'accept':'application/json',cookie:'lang=en'}}),env,ctx);
+check('the same root preserves machine JSON negotiation',()=>{assert.equal(response.status,200);assert.equal(response.headers.get('content-language'),'en');assert.equal(livingCalls[1].accept,'application/json')});
+response=await fetchWorker(new Request('https://561.group/index.html?read=1'),env,ctx);
+check('old static index canonicalizes to the one original TUFTE page',()=>{
+  assert.equal(response.status,301);
+  assert.equal(response.headers.get('location'),'https://561.group/?read=1');
+});
 response=await fetchWorker(new Request('https://561.group/lkt/'),env,ctx);
 check('a locale path is served as is and says its language',()=>{assert.equal(response.status,200);assert.equal(assetRequest.url,'https://561.group/lkt/');assert.equal(response.headers.get('content-language'),'lkt')});
 response=await fetchWorker(new Request('https://www.561.group/contact/?a=b'),env,ctx);

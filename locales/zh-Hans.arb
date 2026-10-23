@@ -585,21 +585,6 @@
       ]
     }
   },
-  "home.description": "561 集团是一个私营组织，研究、设计并部署技术基础设施，以在政治、金融和经济的动荡中实现长期自主、集体智能与战略繁荣。",
-  "@home.description": {
-    "description": "The one-sentence description every visitor reads first.",
-    "x-l-space": {
-      "source": "ni:///sha-256;eW_-12lMppnpcmUgy3ERhJj6NZqJpUH5CagCP00rpd0",
-      "for": [
-        {
-          "role": "translator",
-          "kind": "machine",
-          "by": "claude-opus-5-5",
-          "at": "2026-10-19T11:00:00Z"
-        }
-      ]
-    }
-  },
   "home.masthead.0": "私营组织",
   "@home.masthead.0": {
     "description": "A short masthead line beside the 561 numeral.",

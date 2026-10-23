@@ -1,0 +1,27 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
+test("standalone 561.group imports only the real upstream TUFTE/LivingWebServer Fetch API",()=>{
+  const pkg=JSON.parse(read("package.json"));
+  const pin=pkg.dependencies["@red-cup-engineering/living-web-server"];
+  assert.equal(pin,"git+https://github.com/red-cup-engineering/living-web-server.git#9e6d657fda9df3bd50744294eb3bbd1412b854ad");
+  assert.equal(pkg.dependencies["@red-cup-engineering/l-space"],undefined);
+  assert.equal(pkg.dependencies["@red-cup-engineering/computer-web-server"],undefined);
+  assert.ok(read("src/living-home.mjs").includes('from "@red-cup-engineering/living-web-server/fetch"'));
+  assert.ok(read("src/living-home.mjs").includes("createLivingWebServer({"));
+  assert.ok(!read("src/living-home.mjs").includes("createTufteApplication"));
+  assert.ok(pkg.scripts.test.includes("node --test test/native-home.test.mjs"));
+  // The TUFTE Engineering source is private. A public site GITHUB_TOKEN
+  // cannot clone it across organizations; require the authorized published
+  // npm artifact and reject pretend cross-organization public checkout.
+  const workflow=read(".github/workflows/public-intake-safety.yml");
+  assert.ok(!workflow.includes("repository: red-cup-engineering/web-page-tiling-engine"));
+  assert.ok(workflow.includes("Probe actual TUFTE supplier"));
+  const npm=read(".npmrc");
+  assert.ok(npm.includes("registry=https://registry.npmjs.org/"));
+  for(const scope of ["@561-group","@emsweb","@harmonious-union","@koios-news","@lenticule-science","@red-cup-engineering","@rsc-quiescent","@union-officer-academy","@coesite-operations","@causeway-services","@emsenn"]) {
+    assert.ok(npm.includes(scope+":registry=https://registry.561.group/"),
+      "no internal house package should incorrectly escape to public npm: "+scope);
+  }
+});
