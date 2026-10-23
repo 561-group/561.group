@@ -93,6 +93,52 @@ async function servedOriginalApplication() {
     close:()=>new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))};
 }
 
+/**
+ * A candidate reviewer packet; never an automatically accepted golden master.
+ */
+export function visualReviewPacket(witness){
+  if(!witness||!Array.isArray(witness.cases)||!witness.cases.length)
+    throw new TypeError("A real multi-viewport visual witness is required");
+  return [
+    "# 561 Group visual receiving — REVIEW CANDIDATE",
+    "",
+    "**Status: NOT INDEPENDENTLY RECEIVED.** Screenshots and computed-style tests",
+    "do not appoint the builder as a human visual assayer.",
+    "",
+    "Tested revision: "+(witness.sourceCommit??"unknown")+" ("+
+      (witness.sourceRole??"unknown role")+").",
+    "Original PR head: "+(witness.originalPrHead??"not applicable")+".",
+    "Brand source: data/brand-source.json (v0.3 DTCG).",
+    "The illustrated v0.4 Bible remains candidate evidence, not an adopted edition.",
+    "",
+    "| Route | Viewport | Computed result | Image | SHA-256 |",
+    "| --- | --- | --- | --- | --- |",
+    ...witness.cases.map(c=>"| "+c.path+" | "+c.viewport.width+"x"+
+      c.viewport.height+" | "+(c.passed?"pass":"REFUSED: "+c.errors.join("; "))+ 
+      " | ["+c.screenshot+"]("+c.screenshot+") | "+c.sha256+" |"),
+    "",
+    "## Independent reader/visual-review task",
+    "",
+    "Inspect each image without treating implementation tickets as evidence",
+    "of aesthetic fit. Compare to the approved original Group works and the",
+    "source-owned Design Bible:",
+    "https://github.com/561-group/561-group-content-design-services-section",
+    "Review hierarchy, typography, giant numeral, bone/ink, the semantically",
+    "restrained witness/alarm accents, hard grid/rules, useful navigation,",
+    "mobile readability and any rejected identity-led persuasion.",
+    "The historical v0.3 6% alarm and 3% witness bounding-box color budgets",
+    "require a separate measured image proof; CSS declaration is insufficient.",
+    "Keyboard focus and reduced-motion settings were checked, but full WCAG",
+    "or screen-reader accessibility audits were not performed by this job.",
+    "",
+    "Record accept/reject/contested/not-observed for the EXACT SOURCE and",
+    "screen specimen with reviewer authority, reasons and original Work",
+    "through existing independent receiving. Do not treat this document",
+    "or a passing CI as its own independent customer-acceptance record.",
+    ""
+  ].join("\n");
+}
+
 export async function receiveBrowserVisuals({output="artifacts/brand-visual",sourceCommit=process.env.GITHUB_SHA??null}={}) {
   const {chromium}=await import("playwright");
   const host=await servedOriginalApplication();
@@ -161,14 +207,22 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
           ...result,reading,screenshot:item.name+".png",sha256:hash});
       }finally{await context.close()}
     }
+    const sourceRole=process.env.GITHUB_EVENT_NAME==="pull_request"?
+      "pull-request-merge-evaluation":"source-commit";
+    const originalPrHead=process.env.ORIGINAL_PR_HEAD_SHA??null;
+    if(sourceRole==="pull-request-merge-evaluation" &&
+      !/^[a-f0-9]{40}$/u.test(originalPrHead??""))
+      throw Error("A PR visual witness must distinguish its real head from the evaluated merge ref");
     const witness={
       schema:"561.group/rendered-visual-witness/v1",
-      sourceCommit,kind:"actual-original-LivingWebServer-TUFTE-in-headless-Chromium",
+      sourceCommit,sourceRole,originalPrHead,
+      kind:"actual-original-LivingWebServer-TUFTE-in-headless-Chromium",
       houseSource:"data/brand-source.json",
       acceptance:"CANDIDATE: machine browser conformance; golden-baseline and independent human approval NOT established",
       playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases
     };
     await writeFile(join(output,"witness.json"),JSON.stringify(witness,null,2)+"\n");
+    await writeFile(join(output,"REVIEW.md"),visualReviewPacket(witness));
     const failing=cases.filter(x=>!x.passed);
     if(failing.length)throw Error("Rendered brand did not conform: "+
       failing.map(x=>x.name+": "+x.errors.join("; ")).join(" | "));
