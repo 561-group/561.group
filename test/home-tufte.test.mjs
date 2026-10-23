@@ -182,6 +182,12 @@ test("the genuine TUFTE document keeps discoverability, responsive design, keybo
   assert.ok(head.includes("max-width:430px"));
   assert.ok(head.includes("prefers-reduced-motion:reduce"));
   assert.ok(head.includes("site-display"));
+  assert.ok(head.includes('data-561-house="visual-design-bible-v0.4-candidate"'));
+  for(const value of ["#F2EAD8","#0A0A0A","#FF4530","#3D5588","Space Grotesk","Roboto Slab","JetBrains Mono"])
+    assert.ok(head.includes(value),"original 561 house visual token must survive: "+value);
+  assert.ok(head.includes(".tufte-masthead::before"),"preserve the original giant 561 numeral");
+  assert.ok(head.includes("#frontiers"),"integrate civilizational vision into the source-owned house design");
+  assert.ok(!home.description.startsWith("The Lakota-founded"),"lead with the work, not a founding-identity appeal");
   const modified=structuredClone(home);
   modified.group.handle='<script>alert(1)</script>';
   assert.doesNotMatch(project561GroupHead(modified),/<script>/u);
