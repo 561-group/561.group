@@ -49,7 +49,9 @@ test("wrong colors and website-owned substitutions fail before publishing",()=>{
 test("wrong font, removed giant mark or folio and deleted focus behavior fail",()=>{
   const c=candidate();
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
-    '"Space Grotesk"','"Generic Startup"')}),/display type channel/u);
+    '--house-sans:"Space Grotesk"','--house-sans:"Generic Startup"')}),/display type channel/u);
+  assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
+    'font-family:"Space Grotesk"','font-family:"Generic Startup"')}),/missing self-hosted/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
     ".tufte-masthead::before{",".lost-visual-house-mark{")}),/giant 561 folio mark/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
