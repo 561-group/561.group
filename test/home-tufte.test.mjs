@@ -109,7 +109,9 @@ test("about and agent pages give real source identities and safe action boundari
   const protocols=tile(agent,"endpoints").html;
   for(const entry of estate.machine) {
     assert.ok(protocols.includes(entry.url));
-    assert.ok(protocols.includes(entry.what));
+    const safeText=entry.what.replace(/[&<>"']/gu,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    assert.ok(protocols.includes(safeText),
+      "the public machine description is preserved through safe HTML escaping: "+entry.url);
   }
   assert.ok(protocols.includes('class="site-method">POST</span><code>'),
     "the website lists but never automatically invokes POST endpoints");
