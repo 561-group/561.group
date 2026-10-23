@@ -61,6 +61,17 @@ jobs:
         run: node --test test/public-intake-boundary.test.mjs
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
+      - name: Qualify real source-to-TUFTE brand style before any registry/install
+        run: node --test test/brand-source.test.mjs
+      - name: Read exact original 561 Group design-token owner (public source)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: 561-group/561-group-content-design-services-section
+          ref: a5269ac3034b4a6ebaa6c1ccdfa2023b03071d2c
+          path: .brand-source
+          persist-credentials: false
+      - name: Assert pinned original brand source and real TUFTE consumer conformance
+        run: node scripts/verify-brand-source.mjs .brand-source
       - name: Exercise the original ARB data, source-release boundaries and Worker receipts without any registry
         run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
       - name: Qualify complete authored public artifact graph and exact receipt hashes offline
