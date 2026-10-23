@@ -3,7 +3,8 @@
 
 import estate from "../public/estate-records.json";
 import home from "../data/home.json";
-import { create561GroupLivingApplication } from "./living-home.mjs";
+import frontdoor from "../data/frontdoor.json";
+import { create561GroupLivingApplication, PUBLIC_ROUTES } from "./living-home.mjs";
 import { toldOf } from "./told.mjs";
 import { readSourceRevision } from "./source-revision.mjs";
 import { localeOfPath, localeRedirect } from "./locales.mjs";
@@ -14,7 +15,10 @@ const APEX = "561.group";
 const PROBE_TIMEOUT_MS = 4000;
 const ESTATE_TTL_S = 300;
 // TUFTE is the root-page producer; the existing Worker still owns routing and federation fallback.
-const livingHome = create561GroupLivingApplication({ readHome: () => home, readEstate: () => estate, releaseHome: home });
+const livingHome = create561GroupLivingApplication({
+  readHome: () => home, readEstate: () => estate,
+  readFrontdoor: () => frontdoor, releaseHome: home
+});
 
 const SECURITY_HEADERS = {
   "content-security-policy":
@@ -122,11 +126,22 @@ export default {
     // The root goes to a reader's preferred served language (a stored `lang` choice first); every other path is exact.
     const redirect = localeRedirect(request, { locales: LOCALES });
     if (redirect) return withHeaders(redirect);
-    // The exact Group homepage is one public LivingWebServer/TUFTE application.
-    // No second HTTP listener, router, Actor inbox or asset store is introduced.
-    if (url.pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+    // LWS owns five exact public pages. Do not seize the static contact page,
+    // original ActivityPub routes, unknown paths or machine-service endpoints.
+    const safeRead = request.method === "GET" || request.method === "HEAD";
+    if (safeRead) {
+      const canonical = PUBLIC_ROUTES.find(path =>
+        path !== "/" && path.slice(0,-1) === url.pathname);
+      if (canonical) {
+        url.pathname = canonical;
+        return withHeaders(Response.redirect(url.toString(), 308));
+      }
+    }
+    if (safeRead && PUBLIC_ROUTES.includes(url.pathname)) {
       const response = await livingHome.fetch(request);
-      return withHeaders(response, { "content-language": "en", vary: "Accept, Accept-Language, Cookie" });
+      return withHeaders(response, {
+        "content-language":"en", vary:"Accept, Accept-Language, Cookie"
+      });
     }
     const language = url.pathname === "/" ? "en" : localeOfPath(url.pathname, LOCALES);
     return withHeaders(await websiteOrFederation(request, env), {
