@@ -20,6 +20,11 @@ export function project561GroupHome({ home, estate }) {
   const support = home.group?.sustainingSupport;
   const featured = approved?.featured;
   const material = approved?.materialApproach;
+  const shrimp = approved?.shrimpProgram;
+  if (!["title", "story", "status", "componentLabel", "componentUrl"].every(field =>
+      typeof shrimp?.[field] === "string" && shrimp[field].trim())) {
+    throw new TypeError("The Group public SHRIMP program needs a complete truthful introduction");
+  }
   if (!["headline", "body", "scope"].every(field =>
       typeof material?.[field] === "string" && material[field].trim())) {
     throw new TypeError("The source-owned material-world position requires a headline, body and scope");
@@ -66,6 +71,7 @@ export function project561GroupHome({ home, estate }) {
     revision:estate.revision??"unversioned",
     navigation:[
       {href:"/#explore",label:"Projects"},
+      {href:"/#shrimp-program",label:"SHRIMP"},
       {href:"/#physical-world",label:"Our approach"},
       {href:"/#companies",label:"Companies"},
       {href:"/contact/",label:"Work with us"},
@@ -79,6 +85,11 @@ export function project561GroupHome({ home, estate }) {
         html: '<p>' + escapeHtml(approved.contactIntro) + '</p><p>' + anchor("/contact/", "Contact the Group") + '</p>' },
       { id: "explore", title: "Explore working projects", role: "rail", span: 12,
         html: '<ul>' + work + '</ul>' },
+      { id: "shrimp-program", title: shrimp.title, span: 12,
+        html: '<p>' + escapeHtml(shrimp.story) + '</p><p><strong>Current status:</strong> ' +
+          escapeHtml(shrimp.status) + '</p><p>' +
+          anchor(shrimp.componentUrl, shrimp.componentLabel) + ' · ' +
+          anchor("/contact/", "Discuss research or collaboration") + '</p>' },
       { id: "physical-world", title: material.headline, span: 12,
         html: '<p>' + escapeHtml(material.body) + '</p><p>' + escapeHtml(material.scope) + '</p>' },
       { id: "support", title: "Sustain the public work", span: 6,
