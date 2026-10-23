@@ -143,10 +143,12 @@ function renderPattern(message,values={},tags={},html=false,language="en",plural
 function terms(message){
   // Type-level inventory only. A translation may reorder placeholders and
   // tags but may not invent/remove either.
-  const argumentsUsed=[...message.matchAll(/\{([a-z][a-z0-9_.-]*)(?=\s*[,}])/giu)]
-    .map(m=>m[1]).sort();
-  const tagsUsed=[...message.matchAll(/<\/?([a-z][a-z0-9-]*)>/giu)]
-    .map(m=>m[1]).sort();
+  const argumentsUsed=[...new Set([...message.matchAll(/\{([a-z][a-z0-9_.-]*)(?=\s*[,}])/giu)]
+    .map(m=>m[1]))].sort();
+  // ICU plural variants can repeat a tag in distinct arms. Multiplicity
+  // of a tag is not its type; preserving its set of names is.
+  const tagsUsed=[...new Set([...message.matchAll(/<\/?([a-z][a-z0-9-]*)>/giu)]
+    .map(m=>m[1]))].sort();
   return JSON.stringify([argumentsUsed,tagsUsed]);
 }
 function resolve(space,tag,key){

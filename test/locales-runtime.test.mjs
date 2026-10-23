@@ -28,11 +28,13 @@ test("real locale catalog has original provenance with no counterfeit current wi
   const statement=report(space);
   assert.equal(statement.sourceIntegrity,"unverified");
   assert.equal(statement.locales["zh-Hans"]["ill-typed"],0);
-  assert.equal(statement.locales["zh-Hans"].coverage,1);
+  assert.ok(statement.locales["zh-Hans"].coverage>0.95 && statement.locales["zh-Hans"].coverage<1);
   assert.ok(statement.locales["zh-Hans"]["source-witness-unverified"]>0);
   assert.equal(statement.agree,false);
   assert.equal(say("en").machine(),false);
   assert.equal(say("zh-Hans").machine(),true);
+  assert.equal(say("zh-Hans").text("home.description"),home.description);
+  assert.doesNotMatch(say("zh-Hans").html("home.description"),/政治、金融和经济的动荡中/u);
   assert.equal(say("lkt").machine(),true);
 });
 
