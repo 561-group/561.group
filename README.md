@@ -148,3 +148,11 @@ optional Node HTTP transport dependencies. CI retains the generated lockfile
 for independent review once the original package registry is reachable; a
 missing lock, failed native test, wrong source commit, or missing provider
 receipt still prevents the manual production release.
+
+**Original TUFTE source is a private Red Cup Engineering repository.** The public
+561.group CI deliberately does not attempt cross-organization checkout with its
+site-scoped GITHUB_TOKEN: that fails with GitHub's `repository not found`, not
+a successful dependency installation. Its source tests remain public and
+independent; native TUFTE installation must use a properly published original
+house-registry package or a separately authorized, secure distribution
+capability. Do not vendor private source into this public repo.

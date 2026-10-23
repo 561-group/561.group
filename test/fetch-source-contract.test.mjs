@@ -12,4 +12,10 @@ test("standalone 561.group imports only the real upstream TUFTE/LivingWebServer 
   assert.ok(read("src/living-home.mjs").includes("createLivingWebServer({"));
   assert.ok(!read("src/living-home.mjs").includes("createTufteApplication"));
   assert.ok(pkg.scripts.test.includes("node --test test/native-home.test.mjs"));
+  // The TUFTE Engineering source is private. A public site GITHUB_TOKEN
+  // cannot clone it across organizations; require the authorized published
+  // npm artifact and reject pretend cross-organization public checkout.
+  const workflow=read(".github/workflows/public-intake-safety.yml");
+  assert.ok(!workflow.includes("repository: red-cup-engineering/web-page-tiling-engine"));
+  assert.ok(workflow.includes("Probe actual TUFTE supplier"));
 });
