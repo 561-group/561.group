@@ -20,7 +20,7 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.deepEqual(root.navigation.map(x=>x.href),
     ["/","/work/","/projects/","/about/","/for-agents/","/contact/"]);
   assert.deepEqual(root.tiles.map(x=>x.id),
-    ["introduction","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   const hero=tile(root,"introduction").html;
   assert.ok(hero.includes(frontdoor.proposition));
   assert.ok(hero.includes(frontdoor.promise));
@@ -28,6 +28,14 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.ok(hero.includes('href="/work/"'));
   assert.ok(hero.includes('href="/projects/"'));
   assert.doesNotMatch(hero,/conurbanized|Huidu Guanli|type-theoretic/u);
+  const horizon=tile(root,"frontiers").html;
+  assert.ok(horizon.includes("Union of Harmonious Colonies"));
+  assert.ok(horizon.includes("settler-colonial"));
+  assert.ok(horizon.includes("silica"));
+  assert.ok(horizon.includes("carbon"));
+  assert.ok(horizon.includes('href="/about/"'));
+  assert.ok(horizon.includes('href="/work/"'));
+  assert.ok(!horizon.includes("has already replaced") && !horizon.includes("we created living silica"));
   const wayfinding=tile(root,"paths").html;
   for(const path of frontdoor.paths) {
     assert.ok(wayfinding.includes(path.title));
@@ -85,6 +93,16 @@ test("real named projects and distinct buying venues are prominent, not inferred
 test("about and agent pages give real source identities and safe action boundaries",()=>{
   const about=model("/about/");
   assert.equal(tile(about,"companies").html.match(/<strong>/gu)?.length,4);
+  const vision=tile(about,"frontiers").html;
+  for(const frontier of frontdoor.vision.frontiers){
+    assert.ok(vision.includes(frontier.title));
+    assert.ok(vision.includes(frontier.thesis));
+    assert.ok(vision.includes(frontier.present));
+    assert.ok(vision.includes(frontier.boundary));
+  }
+  assert.ok(vision.includes("No software confers Indigenous sovereignty"));
+  assert.ok(vision.includes("We have not created silicon-based life"));
+  assert.ok(vision.includes("science.561.group"));
   assert.ok(tile(about,"principles").html.includes(home.public.materialApproach.scope.replace(/&/gu,"&amp;")));
   assert.ok(tile(about,"source").html.includes(home.group.githubOrg));
   const agent=model("/for-agents/");
@@ -132,6 +150,15 @@ test("public editorial records are data, escaped and checked at the original bou
   const incompletePosition=structuredClone(home);
   delete incompletePosition.public.materialApproach.scope;
   assert.throws(()=>project561GroupPage({home:incompletePosition,estate,frontdoor}),/material-world position/u);
+  const missingVision=structuredClone(frontdoor);
+  missingVision.vision.frontiers.pop();
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:missingVision}),
+    /Two complete, distinct/u);
+  const injectedVision=structuredClone(frontdoor);
+  injectedVision.vision.frontiers[0].thesis='<script>alert(1)</script>';
+  const rendered=tile(project561GroupPage({home,estate,frontdoor:injectedVision}),"frontiers").html;
+  assert.ok(rendered.includes("&lt;script&gt;"));
+  assert.ok(!rendered.includes("<script>"));
   const improper=structuredClone(frontdoor);
   improper.offers[0].provider="nonexistent";
   assert.throws(()=>project561GroupPage({home,estate,frontdoor:improper}),/no original accountable company/);
