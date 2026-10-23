@@ -126,6 +126,8 @@ jobs:
         run: npx playwright install --only-shell chromium
       - name: Read actual original TUFTE pages at desktop and mobile viewports
         timeout-minutes: 4
+        env:
+          ORIGINAL_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: npm run test:visual
       - name: Retain unaccepted mobile and desktop visual specimens
         if: always()
