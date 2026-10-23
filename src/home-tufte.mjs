@@ -13,6 +13,7 @@ const slug = /^[a-z][a-z0-9-]*$/u;
 function publicHref(value) {
   if (typeof value !== "string" || !value.trim() || /[\u0000-\u001f\u007f\\]/u.test(value))
     throw new TypeError("A public link needs a valid URL");
+  if (/^#[a-z][a-z0-9-]*$/u.test(value)) return value;
   const u = new URL(value, ORIGIN);
   if (u.protocol !== "https:" || u.username || u.password)
     throw new TypeError("Only public HTTPS resources are linked");

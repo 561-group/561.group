@@ -51,7 +51,8 @@ test("services are tied to an existing accountable company, and only inquiry is 
   const list=tile(work,"services").html;
   for(const item of frontdoor.offers) {
     assert.ok(list.includes('id="'+item.id+'"'));
-    assert.ok(list.includes(item.scope));
+    const expected=item.scope.replace(/&/gu,"&amp;").replace(/'/gu,"&#39;");
+    assert.ok(list.includes(expected));
     assert.ok(list.includes(home.group.companies.find(c=>c.id===item.provider).name));
   }
   assert.ok(list.includes('href="/contact/#work"'));
@@ -84,7 +85,7 @@ test("real named projects and distinct buying venues are prominent, not inferred
 test("about and agent pages give real source identities and safe action boundaries",()=>{
   const about=model("/about/");
   assert.equal(tile(about,"companies").html.match(/<strong>/gu)?.length,4);
-  assert.ok(tile(about,"principles").html.includes("Hydrologic connectivity"));
+  assert.ok(tile(about,"principles").html.includes(home.public.materialApproach.scope.replace(/&/gu,"&amp;")));
   assert.ok(tile(about,"source").html.includes(home.group.githubOrg));
   const agent=model("/for-agents/");
   const protocols=tile(agent,"endpoints").html;

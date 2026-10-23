@@ -1,212 +1,47 @@
 # 561.group
 
-<!-- 561-group-standards:badges:start -->
-[![561 Group](https://img.shields.io/badge/561%20Group-561%20Group-1c282a)](https://github.com/561-group)
-[![License: 561 Group 1.0](https://img.shields.io/badge/license-561%20Group%201.0-1c282a)](LICENSE)
-<!-- 561-group-standards:badges:end -->
+The original public site of the **561 Group** at **https://561.group/** is served from this repository's `main` through the existing Cloudflare Worker `561-group-site`. It is one genuine TUFTE + LivingWebServer application, not a separate static marketing site.
 
-The Group's public face is owned by **`@561-group/561.group`** and hosted by the existing Cloudflare Worker on `561.group`. The homepage's proposed source path consumes **LivingWebServer's Fetch-only application and TUFTE renderer** over the original `data/home.json` and `data/estate.json` resources. The Worker retains `www` redirection, `/estate.json`, static contact/discovery resources and the original ActivityPub fallback. This is a source integration until installed, deployed and independently read at the public origin.
+## Jobs the site should make easy
 
-## Single apex publication and release identity
+| Visitor goal | Real entry |
+|---|---|
+| Bring research, software, AI operations or governance work | [/work/](https://561.group/work/) → [/contact/#work](https://561.group/contact/#work) |
+| Explore actual projects, games, worlds and publications | [/projects/](https://561.group/projects/) |
+| Distinguish Shop, Bazaar and Market before buying | [/projects/#trade](https://561.group/projects/#trade) |
+| Understand accountability and working philosophy | [/about/](https://561.group/about/) |
+| Discover public machine interfaces and rights boundaries | [/for-agents/](https://561.group/for-agents/) |
+| Submit a human inquiry, supplier offer or public report | [/contact/](https://561.group/contact/) |
 
-- `src/home-tufte.mjs` projects the accepted reader-first public introduction and five original featured estate entries into one small TUFTE model. It does **not** copy the 33-game directory, enterprise archive, proofs or old framework glossary into the opening page.
-- `src/living-home.mjs` is the one `561.group` application using the **existing** `@red-cup-engineering/living-web-server/fetch` capability. It admits only this Group's public home source, through the original server's per-request rights and HTML/JSON negotiation. No new generic listener, host, funds database or off-site contents source exists here.
-- `src/worker.mjs` routes English `/` GET/HEAD through that application; its existing locale redirect, localized static paths, `/estate.json`, confidential contact and ActivityPub provider routing remain as authored. Extending TUFTE to all locale routes and retiring the old static homepage generator must occur with equivalent translations and consumer readback; do not falsely describe those paths as converted now.
-- `scripts/build.mjs` emits `public/source-revision.json` **only when an exact `GITHUB_SHA` is supplied**. It records the checkout commit, not a fabricated successful deployment. An accepted release compares that revision against the independently served `https://561.group/source-revision.json`.
-- `.github/workflows/deploy.yml` admits only an explicit main-branch release with a genuine dependency lock, native tests and the exact built source revision before invoking the existing Worker deployment. Its post-release check reads TUFTE, JSON, contact and estate responses. The current standalone checkout has no committed release lock or received provider deployment: a source-only merge is **not** a production release.
+Service areas are invitations to scope an actual job—not standing quotes, accepted orders, completed customer outcomes or proof of a scientific result. Public discovery never authorizes software to buy, publish or execute private operations. The recurring sustaining-support checkout is a separate subscription.
 
-**Normal Work rule:** keep site changes in branches until a qualified source-to-public publication is ready; report any divergence between the current `main` and the actual served commit in the original [site receiving issue #17](https://github.com/561-group/561.group/issues/17). Do not make `main`'s source history, a GitHub Actions success, or a Stripe product standing in for a public-page readback or a customer.
+## Original sources → one public site
 
-## Layout
+- `data/home.json` owns organization identity, founding, companies, program, authored material-world position, current public support terms and selected featured project identities.
+- `data/estate.json` owns projects, published entry URLs and machine interfaces. Do not copy or invent a second project inventory.
+- `data/frontdoor.json` is a typed public communication record for visitor journeys and service areas. Its provider IDs must resolve to the original four company records. It is not a new office, order book, rights grant, product or sales ledger.
+- `src/home-tufte.mjs` projects those exact sources into meaningful page-specific TUFTE models and validates cross-source IDs, safe URLs and content. Agents receive those same models as JSON.
+- `src/public-home-style.mjs` is the narrow/mobile, keyboard-accessible, reduced-motion and print-friendly local style, injected through TUFTE's document head. It is not a second HTML renderer.
+- `src/living-home.mjs` defines the one LivingWebServer application with only five explicit authorized public HTML/JSON GET/HEAD routes.
+- `src/worker.mjs` retains the original Cloudflare host, contact, locale fallback pages, live estate, source receipt and separately provisioned ActivityPub provider. The new site does not create a second listener, wallet, service actor or private inbox.
+- `src/render.mjs` and `scripts/build.mjs` continue the original localized fallback, source-generated feeds, agent guide, sitemap and source-qualified artifact hashes.
 
-- `data/home.json` holds the words: the description (keep it verbatim), the intended-design sentence with its glossed notes, the doctrine, and the four told values.
-- `data/estate.json` holds the public nodes. It lists the groups, the doors (featured nodes), the nodes themselves, and the machine endpoints listed for agents.
-- `src/render.mjs` is a pure renderer from those two files to `index.html`, `llms.txt`, `llms-full.txt`, `humans.txt`, `robots.txt` and `sitemap.xml`.
-- `scripts/build.mjs` checks the data and writes those files into `public/`. They are gitignored.
-- `src/worker.mjs` serves `public/` through the `ASSETS` binding and adds security headers on every response.
-- `public/contact/index.html` retains the original structured public issue and confidential email preparation routes. It preserves full sender text for review, including a long-message copy path. The existing receiving mailbox is a required contact route; no personal profile is listed.
-- `public/fonts/` holds Space Grotesk, Roboto Slab and JetBrains Mono (latin, variable, OFL), self-hosted. `favicon.svg` and `card.png` (1200×630, the Open Graph image) are sources, not build output.
+**Language disclosure:** English homepage and work/project/about/agent pages use TUFTE. The separately authored Mandarin and Lakota homepage fallbacks remain the original static renderer; translations of the new pages are not claimed.
 
-## The estate reading
+## Build, run, verify
 
-`/estate.json` is not a status page that someone updates. On a cache miss, the Worker GETs every node in `data/estate.json` concurrently. Each GET does not follow redirects and times out after 4 s. The Worker tells each answer in Belnap's four values (`src/told.mjs`):
+Use Node 24 or newer and the exact committed lockfile with the original scoped registry.
 
-| told    | when                                                     |
-|---------|----------------------------------------------------------|
-| true    | 2xx or 3xx                                               |
-| both    | 401, 402, 403: answered and refused (payment or credentials) |
-| false   | no answer, 4xx, or 5xx                                   |
-| neither | no reading yet                                           |
-
-The reading is cached for 300 s. The page fetches it and colours each tile. `compatibility_flags: ["global_fetch_strictly_public"]` makes probes of other `*.561.group` hosts go through the front door, as a visitor's request would. The build refuses more than 45 nodes, because every probe counts against the Worker's subrequest budget.
-
-## Stealth
-
-Stealth runs one way (Leader, 2026-10-22): the Group's surfaces may name the Leader, but the Leader's own web properties (emsenn.net and his personal public profiles) carry no association with the Group. Nothing on this site is required to name a person; the Group's copy holds authority in offices. The enforcement is in the other direction: `gate-stealth` in bare-cedar-fog-services-section refuses a candidate that adds the Group's name to a declared personal surface.
-
-- `workers_dev` and `preview_urls` stay `false`. The account's workers.dev subdomain must never appear on a public surface.
-- Before listing a node in `data/estate.json`, read its public pages for personal names, handles, repo paths and workers.dev URLs.
-- Leave out nodes that are broken, behind a login, or infrastructure.
-
-## Site-owned ActivityPub federation
-
-The Worker preserves the site's authored static resources and routes missing
-resources through `ACTIVITYPUB_INSTANCE.fetch(request)` **only when an
-independently configured ActivityPub service binding exists**. It forwards the
-exact origin-bearing request. Static contact/estate pages take precedence;
-provider 404s do not overwrite asset 404s; and public requests for
-`/_private/*` never reach internal delivery or queue handlers.
-
-The provider must be a separately keyed, custodied
-`@red-cup-engineering/activitypub-services-section` instance hosted through
-the upstream [ActivityPub server](https://github.com/red-cup-engineering/activitypub-server).
-It must accept only `https://561.group` as its canonical origin; a
-`science.561.group` or another site's provider is not substitutable.
-Do not publish bearer credentials in Worker source or treat static WebFinger
-JSON as an ActivityPub server.
-
-**Installed as a binding:** `wrangler.jsonc` binds `ACTIVITYPUB_INSTANCE` to the
-existing Worker `section-services-561-group`, which hosts the ActivityPub provider
-in process (the account is at its Worker cap, so there is no separate
-`activitypub-561-group`). Static files win first, so `/.well-known/security.txt`,
-`/feed.json` and the other assets are never forwarded. Anything the assets do not
-serve, such as `/.well-known/webfinger` and `/actors/*`, is forwarded. Until that
-Worker's provider answers, forwarded paths return 404, which the site passes
-through unchanged. The handles are `@group@561.group` and one per company on its
-own host. Whether the provider answers is a separate, dated reading.
-
-## Build and deploy
-
-```sh
-pnpm build    # writes public/ from the original site-owned data and curated estate
-pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.group/*)
+```bash
+npm ci --ignore-scripts --no-audit --no-fund
+npm run check
+npm test
+npm run build
+npm run dev
 ```
 
-After deploying, check three things. `https://561.group/` should answer 200. `https://www.561.group/x` should return a 301 to `https://561.group/x`. `https://561.group/estate.json` should list every node with a `told` value.
+The native test suite exercises the original TUFTE/LivingWebServer HTML, JSON and HEAD representations; human pathways, real company and project references; honest service scopes; Worker route and ActivityPub body boundaries; source-generated language, agent and sitemap artifacts. Source CI also performs a genuine Wrangler Worker **dry run**, never a PR-to-production deployment.
 
-## Deployment observations and credential separation
+The original serialized production workflow accepts a successful exact-main qualification (or an expressly selected main release), rechecks the frozen dependencies and original build, deploys the configured Cloudflare Worker, and separately reads the live source revision, HTML, JSON, generated-asset SHA-256 digests and Cloudflare active Worker version. The Group must not confuse a green PR, an HTTP response, a deploy, and a customer-received useful result.
 
-The site's existing read-only GitHub Actions observer checks public HTTP and
-the active `561-group-site` Cloudflare deployment. For provider metadata,
-configure `CLOUDFLARE_ACCOUNT_ID` and a dedicated
-`CLOUDFLARE_READ_API_TOKEN` with **Workers Metadata Read-Only** access,
-preferably restricted to this Worker. Cloudflare permits metadata-read
-permissions on its deployment-list endpoint:
-https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/deployments/methods/list/
-
-Do not expose the deployment-capable `CLOUDFLARE_API_TOKEN` to the unattended
-observer. If the dedicated token is missing or refused, the observation reports
-unmounted/unknown provider coverage, **not** a down website. Production deploys
-and explicitly authorized rollbacks retain their separate credential, approval
-and receipt conditions. Provider version IDs, public HTTP bytes and the exact
-source commit are independent pieces of evidence until received together.
-The original observation workflow now joins the two evidence files into
-`561.group-public-provider-parity.json` without declaring success when
-credential coverage is unmounted, source revision is missing, or versions
-disagree. Version correspondence alone does not authenticate Git source
-integrity or independently accept the public site.
-
-## The Group as a hub
-
-`data/home.json` also holds `group`: the four companies (name, URL, GitHub organization, fediverse handle, feeds), the market addresses and the topics the Organization knows about. The renderer turns it into the JSON-LD graph (Organization with `subOrganization`, WebSite, DefinedTermSet of the glossed design terms), the "The Group" section with the Follow block, and the companies in `llms.txt` and `llms-full.txt`. `scripts/build.mjs` reads the market's offer count from its x402 discovery at build time and leaves the number out of the llms files when it cannot be read; it is never written by hand. `robots.txt` names the AI crawlers explicitly.
-
-## What the Group is publishing
-
-`scripts/build.mjs` reads `feed.json` of each of the four companies (`src/feed.mjs`), merges the items newest first (60 at most, each item's own id, url, title, summary, dates and tags, with the company as author) and writes `/feed.json`, `/feed.atom.xml` and `/feed.rss.xml`, the "Latest from the Group" list on the home page and the feed lines in `llms.txt`. A feed that cannot be read is logged and skipped; the build never fails for it. The ActivityPub host projects the outbox of `@group@561.group` from `https://561.group/feed.json`.
-
-The apex reflects the companies as of its build, so redeploy it after they publish: let the companies' sites go live first, then run `pnpm build && pnpm deploy` here. The build can be rerun at any time.
-
-## Discovery files
-
-- `/.well-known/security.txt` (RFC 9116) is generated by each build with `Expires` one year after the build date.
-- `/<key>.txt` serves the IndexNow ownership key (`group.indexNowKey` in `data/home.json`); after a deploy, submit the sitemap URLs to `https://api.indexnow.org/indexnow`.
-- The home page description is the Group's own sentence, kept verbatim even though audits that want 50 to 160 characters flag its length. That is a deliberate exception.
-
-## Source composition and release inputs
-
-The Group apex keeps one curated link to the separately owned `play.561.group`
-catalog in `data/estate.json`. Its build no longer imports
-`@causeway-services/play`, reads external game checkouts, or accepts a cached
-game-list snapshot. Play's dynamic catalog and its publication pipeline remain
-owned by Causeway; changing them cannot silently change this apex release.
-
-The apex genuinely consumes `@red-cup-engineering/l-space` for its three
-language projections and `@red-cup-engineering/living-web-server/fetch` for
-the English root's TUFTE HTTP application. Their actual installed source and
-transitive dependencies must be available. The manual production job requires
-a committed, exact `package-lock.json` and uses
-`npm ci --ignore-scripts --no-audit --no-fund`. Candidate `npm install`
-resolution without a received lock is not a production release. Do not
-substitute a mock serializer or dummy packages for a missing supplier.
-
-`GITHUB_SHA` records the exact site source commit in
-`/source-revision.json` when building the release.
-Cloudflare's `CF_VERSION_METADATA` binding adds the **executing Worker
-version ID** to the public response (never to the authored source file).
-That response is uncached and refuses to assert release identity if either
-the generated source record or the runtime version binding is unavailable.
-The authorized production workflow compares the returned Worker version
-with Cloudflare's separate active-deployment API reading at 100% traffic.
-Neither this cross-check nor a provider version alone is independent user
-acceptance. Publication still requires
-a qualified native build, an authorized Cloudflare deployment and independent
-readback of that revision, the canonical human/agent views and inherited
-contact/estate routes. The read-only HTTP observer alone does not prove the
-Cloudflare version or independently accepted delivery.
-
-## Installation boundary — site-owned ARB projection
-
-The earlier standalone site imported `@red-cup-engineering/l-space`, a package that is not currently published in the house registry. The site now reads its original `locales/*.arb` directly through `src/locales.mjs`, with a deliberately limited ICU plural/argument/rich-tag interpreter and structural source/target checks. The original `x-l-space` attribution is preserved; an upstream witness hash that cannot be independently reconstructed is **unverified**, never relabeled current. English messages remain the canonical source; Lakota fallbacks stay marked English, and machine-authored translations remain disclosed. TUFTE and LivingWebServer **are not mocked**: native installation and live production receiving still require their own genuine published dependency closure.
-
-## Native edge integration receiving (2026-10-22)
-
-The source tests are deliberately executable without a private package registry.
-`npm test` additionally exercises **the actual installed** upstream
-`@red-cup-engineering/living-web-server/fetch` and its native TUFTE HTML/JSON
-rendering over the same authored home/estate records; no fake implementation
-qualifies this test. The site pins the independent upstream Fetch-only release
-`9e6d657fda9df3bd50744294eb3bbd1412b854ad`. Installation includes npm's platform-specific optional runtime binaries required by
-Wrangler/workerd and esbuild. LivingWebServer's Node HTTP listener remains an
-optional peer in its source package, but npm's resolved dependency graph can
-also include it transitively; a Fetch-only API is not proof of a Node-free
-package closure. CI retains the generated lockfile
-for independent review once the original package registry is reachable; a
-missing lock, failed native test, wrong source commit, or missing provider
-receipt still prevents the manual production release.
-
-**Original TUFTE source is a private Red Cup Engineering repository.** The public
-561.group CI deliberately does not attempt cross-organization checkout with its
-site-scoped GITHUB_TOKEN: that fails with GitHub's `repository not found`, not
-a successful dependency installation. Its source tests remain public and
-independent; native TUFTE installation must use a properly published original
-house-registry package or a separately authorized, secure distribution
-capability. Do not vendor private source into this public repo.
-
-## Deterministic source date and independent asset receiving
-
-Every source-qualified production build obtains the UTC publication day from
-the exact checked-out Git commit, not today's changing wall clock. The
-`source-revision.json` receipt includes the Group source SHA, TUFTE/LivingWeb
-renderer identity, publication day, and **SHA-256 of each generated public
-artifact**. Actual fetched market/feed snapshots are captured at build time;
-their original delivered bytes are bound by this receipt instead of being
-misclassified as deterministic inputs in Git. The manual release checks those
-hashes before calling Wrangler and independently downloads public
-representations to check them again afterward. A source SHA alone does not
-attest a CDN response or a successful customer visit. The root TUFTE HTML/JSON,
-original ActivityPub, contact and translated routes have separate receiving.
-
-## Alpha main-to-production delivery (qualified, 2026-10-22)
-
-The Leader's repeated directive is to make the original repository's main the
-actual live 561.group codebase, not maintain an uninstalled reference branch.
-A successful original `main` **push** source/native/bundle qualification now
-selects the exact current main source for the existing Cloudflare deploy
-workflow. Ordinary PRs, issue/comments and failed CI runs cannot deploy.
-Manual `workflow_dispatch` on main remains supported. The release checks
-the current remote main SHA immediately before installing, tests and builds
-the locked native dependency graph again, retains original trust boundaries,
-compares the executing Cloudflare version to the actual provider deployment,
-and independently reads public source/HTML/JSON/asset digests after deployment.
-No step declares an accepted public site merely because source CI passed:
-provider mutation and reader receipt are separate actual effects.
+Follow the original receiving [issue #17](https://github.com/561-group/561.group/issues/17) for genuine user, accessibility, commerce and content outcomes. Improve the real pages, not just the CI machinery.

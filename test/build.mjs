@@ -39,6 +39,16 @@ const names=["source-revision.json","estate-records.json","zh-hans/index.html",
 const readOutputs=async()=>Object.fromEntries(await Promise.all(names.map(async name=>[
   name,await readFile(path.join(app,"public",name),"utf8")])));
 const before=await readOutputs();
+check("the published site guides humans and agents to every real public page",()=>{
+  for(const route of ["/work/","/projects/","/about/","/for-agents/"]){
+    assert.ok(before["sitemap.xml"].includes("<loc>https://561.group"+route+"</loc>"),
+      "sitemap must list actual TUFTE page "+route);
+    assert.ok(before["llms.txt"].includes("https://561.group"+route),
+      "machine guide must expose practical site entry "+route);
+  }
+  for(const name of ["Persistent AI systems","Indigenous data governance","Operational reliability"])
+    assert.ok(before["llms.txt"].includes(name),"source-backed service "+name);
+});
 const generated=JSON.parse(before["estate-records.json"]);
 const authored=JSON.parse(await readFile(path.join(ROOT,"data/estate.json"),"utf8"));
 check("public estate is exactly the original curated site source",()=>{
