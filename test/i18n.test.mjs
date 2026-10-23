@@ -49,7 +49,7 @@ test("the Mandarin page speaks Mandarin, keeps every gloss, and discloses machin
   const html = page("zh-Hans");
   assert.match(html, /<html lang="zh-Hans" dir="ltr">/u);
   assert.match(html, /<title>561 集团<\/title>/u);
-  assert.match(html, /<p class="lede"><span lang="en">The 561 Group is a private organization/u);
+  assert.ok(html.includes('<p class="lede"><span lang="en">'+home.description+'</span>'), "the English fallback retains the current source-owned corporate description");
   assert.doesNotMatch(html, /政治、金融和经济的动荡中/u, "superseded finance-first translation is not published");
   assert.match(html, /<meta property="og:locale" content="zh_CN">/u);
   assert.match(html, /一个<span class="term">类型论<\/span><sup class="ref"><a id="r1" href="#n1" aria-label="注释 1">1<\/a><\/sup>的分布式操作系统/u);
@@ -65,7 +65,7 @@ test("the Lakota page serves its Lakota and marks every English fallback", () =>
   const html = page("lkt");
   assert.match(html, /<html lang="lkt" dir="ltr">/u);
   assert.match(html, /<nav class="langs" aria-label="Iyápi">/u);
-  assert.match(html, /<p class="lede"><span lang="en">The 561 Group is a private organization/u);
+  assert.ok(html.includes('<p class="lede"><span lang="en">'+home.description+'</span>'), "the English fallback retains the current source-owned corporate description");
   assert.match(html, /:lang\(lkt\)\{--serif:"Charis SIL"/u);
 });
 

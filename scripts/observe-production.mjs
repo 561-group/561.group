@@ -12,6 +12,14 @@ const EXACT_SHA = /^[a-f\d]{40}$/i;
 const EXACT_VERSION = /^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i;
 const SIMPLE_CHECKS = Object.freeze([
   { name: 'homepage', path: '/', accept: 'text/html', type: 'html', required: true },
+  { name: 'work-journey', path: '/work/', accept: 'text/html', type: 'html', required: true,
+    mustContain: 'Areas we can scope' },
+  { name: 'projects-journey', path: '/projects/', accept: 'text/html', type: 'html', required: true,
+    mustContain: 'Shop, Bazaar and Market' },
+  { name: 'about-journey', path: '/about/', accept: 'text/html', type: 'html', required: true,
+    mustContain: 'The four accountable companies' },
+  { name: 'agent-journey', path: '/for-agents/', accept: 'text/html', type: 'html', required: true,
+    mustContain: 'Published machine-readable interfaces' },
   { name: 'contact', path: '/contact/', accept: 'text/html', type: 'html', required: true },
   { name: 'estate', path: '/estate.json', accept: 'application/json', type: 'estate', required: true },
   { name: 'agent-discovery', path: '/llms.txt', accept: 'text/plain', type: 'plain', required: true },
@@ -95,7 +103,9 @@ function evaluateSimple(def, sample) {
     return { ...result, outcome: 'fail', reason: 'invalid-sitemap-contract' };
   if (def.type === 'plain' && !media.includes('text/plain'))
     return { ...result, outcome: 'fail', reason: 'wrong-media-type' };
-  if (['homepage', 'contact'].includes(def.name) && (!sample.nosniff || !sample.hsts))
+  if (def.mustContain && (!sample.body.includes(def.mustContain) || !sample.body.includes('data-tufte')))
+    return { ...result, outcome: 'fail', reason: 'missing-useful-visitor-page' };
+  if (def.type === 'html' && (!sample.nosniff || !sample.hsts))
     return { ...result, outcome: 'fail', reason: 'missing-security-headers', nosniff: sample.nosniff, hsts: sample.hsts };
   return { ...result, outcome: 'pass' };
 }

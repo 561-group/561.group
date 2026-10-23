@@ -174,12 +174,52 @@ jobs:
           const html=await home.text();
           if(!home.ok || !html.includes('data-tufte') ||
              !html.includes('Work with us') || !html.includes('buy.stripe.com') ||
+             !html.includes('Research you can use.') ||
+             !html.includes('href="/work/"') ||
+             !html.includes('href="/projects/"') ||
              html.includes('conurbanized ecosystem')) {
             throw Error('Public HTML is not original TUFTE Group homepage');
           }
           const json=await fetch(host+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
           if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')) {
             throw Error('Public LivingWebServer JSON projection was not received');
+          }
+          // The user asked for a usable public website, not a verified five-box
+          // deployment. Receive the four actual visitor journeys separately:
+          // what can be hired, what can be visited, how the Group works and
+          // how an authorized agent discovers source-owned interfaces.
+          for(const page of [
+            {path:'/work/',phrase:'Areas we can scope',tile:'services'},
+            {path:'/projects/',phrase:'Shop, Bazaar and Market',tile:'trade'},
+            {path:'/about/',phrase:'The four accountable companies',tile:'companies'},
+            {path:'/for-agents/',phrase:'Published machine-readable interfaces',tile:'endpoints'}
+          ]){
+            const htmlResponse=await read(page.path);
+            const markup=await htmlResponse.text();
+            if(!htmlResponse.ok ||
+               !(htmlResponse.headers.get('content-type')??'').includes('text/html') ||
+               !markup.includes('data-tufte') ||
+               !markup.includes(page.phrase) ||
+               !markup.includes('href="'+host+page.path+'"')) {
+              throw Error('Real public visitor route is missing useful original TUFTE content: '+page.path);
+            }
+            const agentResponse=await fetch(host+page.path,{
+              cache:'no-store',headers:{accept:'application/json','cache-control':'no-cache'}
+            });
+            if(!agentResponse.ok ||
+               !(agentResponse.headers.get('content-type')??'').includes('application/json')) {
+              throw Error('Real public agent projection is absent at '+page.path);
+            }
+            const model=await agentResponse.json();
+            if(model.kind!=='tufte.projection' ||
+               model.metadata?.canonical!==host+page.path ||
+               !model.tiles?.some(tile=>tile.id===page.tile)) {
+              throw Error('Visitor and agent read different or incomplete site models: '+page.path);
+            }
+          }
+          const oldRoute=await fetch(host+'/work',{redirect:'manual'});
+          if(oldRoute.status!==308 || oldRoute.headers.get('location')!==host+'/work/') {
+            throw Error('Human-friendly work route lacks canonical slash redirect');
           }
           const legacy=await fetch(host+'/index.html',{redirect:'manual'});
           if(legacy.status!==301 || legacy.headers.get('location')!==host+'/') {

@@ -7,13 +7,25 @@ const revision = { repository:'561-group/561.group', origin:'https://561.group',
   renderer:'TUFTE', application:'LivingWebServer', workerVersionId:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' };
 const headers = { 'x-content-type-options':'nosniff', 'strict-transport-security':'max-age=31536000' };
 function provider({ revisionStatus = 200, aliasStatus = 301, aliasLocation = 'https://561.group/contact/?witness=1',
- estateBody = JSON.stringify(estate), abortPath = null, secure = true, claim = revision } = {}) {
+ estateBody = JSON.stringify(estate), abortPath = null, blankPath = null,
+ secure = true, claim = revision } = {}) {
   return async url => {
     const path = new URL(url).pathname;
     if (path === abortPath) throw new Error('no route observed');
     if (url.includes('www.561.group')) return new Response('',{status:aliasStatus,headers:{location:aliasLocation}});
     const security = secure ? headers : {};
     if (path === '/') return new Response('<html><main>Group</main></html>',{headers:{'content-type':'text/html',...security}});
+    const journeys = {
+      '/work/':'Areas we can scope',
+      '/projects/':'Shop, Bazaar and Market',
+      '/about/':'The four accountable companies',
+      '/for-agents/':'Published machine-readable interfaces'
+    };
+    if (Object.hasOwn(journeys,path)) return new Response(
+      path===blankPath?'<html><main>Empty alpha placeholder</main></html>':
+        '<html><main data-tufte><h2>'+journeys[path]+'</h2></main></html>',
+      {headers:{'content-type':'text/html',...security}}
+    );
     if (path === '/contact/') return new Response('<html>Contact</html>',{headers:{'content-type':'text/html',...security}});
     if (path === '/estate.json') return new Response(estateBody,{headers:{'content-type':'application/json'}});
     if (path === '/llms.txt') return new Response('# 561 Group',{headers:{'content-type':'text/plain'}});
@@ -83,4 +95,13 @@ test('a source-only revision without the actual Worker version cannot certify an
   const r=await observeProduction({fetchImpl:provider({claim:{...revision,workerVersionId:null}}),expectedSourceSha:SHA});
   assert.equal(r.overall,'public-checks-failed');
   assert.equal(r.checks.at(-1).reason,'missing-or-invalid-worker-version');
+});
+
+test('the independent public witness rejects an alpha placeholder for a real visitor journey',async()=>{
+  const r=await observeProduction({fetchImpl:provider({blankPath:'/work/'}),expectedSourceSha:SHA});
+  assert.equal(r.overall,'public-checks-failed');
+  assert.equal(r.checks.find(c=>c.name==='work-journey').reason,'missing-useful-visitor-page');
+  const normal=await observeProduction({fetchImpl:provider(),expectedSourceSha:SHA});
+  assert.ok(['work-journey','projects-journey','about-journey','agent-journey'].every(name=>
+    normal.checks.find(c=>c.name===name).outcome==='pass'));
 });

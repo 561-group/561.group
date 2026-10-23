@@ -11,6 +11,7 @@ import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 const root = new URL("../", import.meta.url);
 const read = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 const home = await read("data/home.json");
+const frontdoor = await read("data/frontdoor.json");
 // A release advertises the exact site-source commit supplied by its original GitHub checkout.
 const sourceCommit = process.env.GITHUB_SHA;
 if (sourceCommit !== undefined && !/^[0-9a-f]{40}$/iu.test(sourceCommit)) throw new Error("GITHUB_SHA must be one exact source commit");
@@ -37,7 +38,7 @@ const marketOffers = await (async () => {
     return undefined;
   }
 })();
-const facts = { marketOffers };
+const facts = { marketOffers, frontdoor };
 // What the Group is publishing: the companies' feeds, merged; any that cannot be read are skipped.
 const items = mergeItems(await readFeeds(home.group.companies));
 const estate = { ...authored, nodes: [...authored.nodes] };

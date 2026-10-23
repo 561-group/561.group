@@ -61,7 +61,7 @@ test("untrusted interpolation is escaped, explicit trusted HTML is bounded to it
 
 test("English fallback is marked in Lakota HTML but not in text-only values",()=>{
   const html=say("lkt").html("home.description");
-  assert.match(html,/^<span lang="en">The 561 Group/u);
+  assert.equal(html,'<span lang="en">'+home.description+'</span>');
   assert.equal(say("lkt").text("home.description"),home.description);
   assert.equal(say("lkt").text("ui.languages"),"Iyápi");
 });
