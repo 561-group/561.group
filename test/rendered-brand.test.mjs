@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {qualifyRenderedBrand} from "../scripts/assay-rendered-brand.mjs";
+import {qualifyRenderedBrand,visualReviewPacket} from "../scripts/assay-rendered-brand.mjs";
 
 const good=()=>({
   viewportWidth:1440,houseStyle:true,tufte:true,
@@ -61,4 +61,19 @@ test("a real secondary visitor page uses its own lead and independent tile count
   const about={...work,tileCount:6,identityAppeal:true};
   assert.ok(qualifyRenderedBrand(about,{path:"/about/"}).errors.some(x=>
     x.includes("Rejected Lakota-founded")));
+});
+
+test("an automated visual witness prepares a review packet but cannot approve itself",()=>{
+  const report=visualReviewPacket({
+    sourceCommit:"a".repeat(40),
+    sourceRole:"pull-request-merge-evaluation",
+    originalPrHead:"b".repeat(40),
+    cases:[{path:"/",viewport:{width:390,height:844},passed:true,
+      errors:[],screenshot:"home-mobile.png",sha256:"c".repeat(64)}]
+  });
+  assert.match(report,/NOT INDEPENDENTLY RECEIVED/u);
+  assert.match(report,/pull-request-merge-evaluation/u);
+  assert.ok(report.includes("b".repeat(40)));
+  assert.match(report,/home-mobile\.png/u);
+  assert.throws(()=>visualReviewPacket({cases:[]}),/multi-viewport visual witness/u);
 });
