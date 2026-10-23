@@ -25,9 +25,9 @@ test("the installed original LivingWebServer and TUFTE produce real human HTML",
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.match(html,/AI agents have offices here/u);
   assert.doesNotMatch(html,/Lakota-founded/u);
-  assert.match(html,/data-561-house="visual-design-bible-v0\\.4-candidate"/u);
+  assert.ok(html.includes('data-561-house="visual-design-bible-v0.4-candidate"'));
   assert.match(html,/--house-bone:#F2EAD8/u);
-  assert.match(html,/\\.tufte-masthead::before/u);
+  assert.ok(html.includes('.tufte-masthead::before'));
   assert.match(html,/Work with us/u);
   assert.match(html,/Design for a world that does not hold still/u);
   assert.match(html,/Indigenous and treaty rights/u);
