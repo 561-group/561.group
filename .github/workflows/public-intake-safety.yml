@@ -67,36 +67,34 @@ jobs:
         run: node test/build.mjs
       - name: Verify one site-owned dependency contract before external registry access
         run: node --test test/fetch-source-contract.test.mjs
-      - name: Probe actual TUFTE supplier and pinned LivingWebServer source
-        timeout-minutes: 1
+      - name: Probe actual TUFTE supplier and pinned LivingWebServer source from locked inputs
         run: |
           set -eu
           node --input-type=module <<'NODE'
           import {readFileSync} from 'node:fs';
           const pkg=JSON.parse(readFileSync('package.json','utf8'));
+          const lock=JSON.parse(readFileSync('package-lock.json','utf8'));
           const cfg=readFileSync('.npmrc','utf8');
           const registry=cfg.match(/^@red-cup-engineering:registry=(https:\/\/[^\s]+)$/mu)?.[1] ??
             cfg.match(/^registry=(https:\/\/[^\s]+)$/mu)?.[1];
-          if(pkg.dependencies?.['@red-cup-engineering/l-space'])throw Error('Unreleased language package is not a public production dependency');
-          const version='0.15.1'; // original pinned LivingWebServer TUFTE dependency
-          const living=pkg.dependencies?.['@red-cup-engineering/living-web-server'];
-          if(!registry || !/^\d+\.\d+\.\d+$/u.test(version??'') ||
-             !/^git\+https:\/\/github\.com\/red-cup-engineering\/living-web-server\.git#[a-f\d]{40}$/iu.test(living??'')){
-            throw Error('The original publisher requires a qualified house registry, language version and exact LivingWebServer source commit');
+          const selected=pkg.dependencies?.['@red-cup-engineering/living-web-server'];
+          const pinned=/^git\+https:\/\/github\.com\/red-cup-engineering\/living-web-server\.git#([a-f\d]{40})$/iu.exec(selected??'');
+          const living=lock.packages?.['node_modules/@red-cup-engineering/living-web-server'];
+          const tufte=lock.packages?.['node_modules/@red-cup-engineering/web-page-tiling-engine'];
+          const exact= living?.dependencies?.['@red-cup-engineering/web-page-tiling-engine'];
+          if(pkg.dependencies?.['@red-cup-engineering/l-space'] ||
+             !registry || !pinned || !living || !tufte ||
+             !/^\d+\.\d+\.\d+$/u.test(exact??'') ||
+             tufte.version!==exact ||
+             !tufte.resolved?.startsWith(registry) ||
+             !/^sha512-[A-Za-z0-9+/=]+$/u.test(tufte.integrity??'') ||
+             !living.resolved?.endsWith('#'+pinned[1]) ||
+             !/^sha512-[A-Za-z0-9+/=]+$/u.test(living.integrity??'')) {
+            throw Error('Original public site lacks one pinned, integrity-carrying TUFTE and LivingWebServer dependency');
           }
-          const url=new URL('@red-cup-engineering%2fweb-page-tiling-engine',registry);
-          const response=await fetch(url,{redirect:'error',headers:{accept:'application/json'},
-            signal:AbortSignal.timeout(10000)});
-          console.log('Original registry package metadata HTTP '+response.status);
-          if(!response.ok)throw Error('House language package cannot be resolved: HTTP '+response.status);
-          if(Number(response.headers.get('content-length')||0)>2000000)throw Error('Registry metadata exceeds read bound');
-          const metadata=await response.json();
-          const release=metadata?.versions?.[version];
-          if(!release?.dist?.integrity || !release.dist?.tarball)throw Error('Pinned language package has no published integrity/asset evidence');
-          console.log('Original TUFTE package '+version+' has published integrity metadata');
+          console.log('Source lock identifies real TUFTE '+exact+' and pinned LivingWebServer '+pinned[1]+'.');
+          console.log('Next original npm ci must fetch, verify integrity and install both actual suppliers.');
           NODE
-          GIT_TERMINAL_PROMPT=0 timeout 12s git -c credential.helper= ls-remote https://github.com/red-cup-engineering/living-web-server.git HEAD >/dev/null
-          echo "Pinned LivingWebServer Git origin is reachable (revision selected in package.json)"
       - name: Install original TUFTE dependencies and pinned LivingWebServer source
         timeout-minutes: 7
         env:
