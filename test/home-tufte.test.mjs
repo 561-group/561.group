@@ -20,9 +20,11 @@ test("the accepted concise public homepage is one TUFTE model over original Grou
   assert.equal(graph[0].description,home.description);
   assert.equal(graph[0].subOrganization.length,4);
   assert.ok(graph[0].sameAs.includes(home.group.actor));
+  assert.deepEqual(graph[0].knowsAbout, home.group.knowsAbout);
+  assert.ok(graph[0].knowsAbout.includes("ergodicity and path-dependent economic outcomes"));
   assert.deepEqual(model.navigation.map(x=>x.href),
-    ["/#explore","/#companies","/contact/","/zh-hans/","/lkt/"]);
-  assert.deepEqual(model.tiles.map(t => t.id), ["introduction","contact","explore","support","companies"]);
+    ["/#explore","/#physical-world","/#companies","/contact/","/zh-hans/","/lkt/"]);
+  assert.deepEqual(model.tiles.map(t => t.id), ["introduction","contact","explore","physical-world","support","companies"]);
   assert.match(model.tiles[0].html, /Lakota-founded 561 Group/u);
   assert.ok(model.tiles[1].html.includes('href="/contact/"'));
   const exploration = model.tiles[2].html;
@@ -32,28 +34,38 @@ test("the accepted concise public homepage is one TUFTE model over original Grou
     assert.ok(exploration.includes(item.action));
     assert.ok(exploration.includes("https://" + node.host + "/"));
   }
-  assert.ok(model.tiles[3].html.includes(home.group.sustainingSupport.url));
-  assert.ok(model.tiles[3].html.includes("$10/month"));
-  assert.ok(model.tiles[3].html.includes("Billing and cancellation help"));
-  assert.ok(model.tiles[3].html.includes("No privileged access"));
-  assert.equal((model.tiles[4].html.match(/<li>/gu) ?? []).length, home.group.companies.length);
+  assert.equal(model.tiles[3].title, home.public.materialApproach.headline);
+  assert.ok(model.tiles[3].html.includes(home.public.materialApproach.body));
+  assert.match(model.tiles[3].html, /water-cycle-informed governance/u);
+  assert.match(model.tiles[3].html, /Indigenous and treaty rights/u);
+  assert.ok(model.tiles[4].html.includes(home.group.sustainingSupport.url));
+  assert.ok(model.tiles[4].html.includes("$10/month"));
+  assert.ok(model.tiles[4].html.includes("Billing and cancellation help"));
+  assert.ok(model.tiles[4].html.includes("No privileged access"));
+  assert.equal((model.tiles[5].html.match(/<li>/gu) ?? []).length, home.group.companies.length);
   assert.match(home.description, /economic, political, and ecological volatility/u);
   assert.doesNotMatch(model.tiles[0].html, /type-theoretic|Huidu Guanli|conurbanized/u);
 });
 
 test("TUFTE projection escapes public values and refuses missing or unsafe source identities", () => {
   const poisoned = structuredClone(home);
+  poisoned.public.materialApproach.body = '<script>invent authority</script>';
   poisoned.public.intro = '<script>alert("unsafe")</script>';
   poisoned.public.featured[0].action = '<em>not author HTML</em>';
   const model = project561GroupHome({ home: poisoned, estate });
   assert.ok(model.tiles[0].html.includes("&lt;script&gt;"));
   assert.ok(!model.tiles[0].html.includes("<script>"));
   assert.ok(model.tiles[2].html.includes("&lt;em&gt;"));
+  assert.ok(model.tiles[3].html.includes("&lt;script&gt;invent authority&lt;/script&gt;"));
+  assert.ok(!model.tiles[3].html.includes("<script>"));
   const missing = structuredClone(estate);
   missing.nodes = missing.nodes.filter(n => n.host !== home.public.featured[0].host);
   assert.throws(() => project561GroupHome({ home, estate: missing }), /not a published estate entry/u);
   poisoned.group.sustainingSupport.url = "javascript:alert(1)";
   assert.throws(() => project561GroupHome({ home: poisoned, estate }), /Only public HTTPS/u);
+  const missingPosition = structuredClone(home);
+  delete missingPosition.public.materialApproach.scope;
+  assert.throws(() => project561GroupHome({ home: missingPosition, estate }), /material-world position/u);
   assert.throws(() => project561GroupHome({ home: {}, estate }), TypeError);
 });
 

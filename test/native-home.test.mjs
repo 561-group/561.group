@@ -25,6 +25,8 @@ test("the installed original LivingWebServer and TUFTE produce real human HTML",
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.match(html,/AI agents have offices here/u);
   assert.match(html,/Work with us/u);
+  assert.match(html,/Design for a world that does not hold still/u);
+  assert.match(html,/Indigenous and treaty rights/u);
   assert.match(html,/https:\/\/buy\.stripe\.com\//u);
   assert.match(html,/rel="canonical" href="https:\/\/561\.group\/"/u);
   assert.match(html,/name="fediverse:creator"/u);
@@ -42,7 +44,7 @@ test("the exact same original source negotiates machine-readable TUFTE JSON",asy
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
-  assert.deepEqual(model.tiles.map(t=>t.id),["introduction","contact","explore","support","companies"]);
+  assert.deepEqual(model.tiles.map(t=>t.id),["introduction","contact","explore","physical-world","support","companies"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
   assert.deepEqual(f.events.map(e=>e.source),["home","estate"]);
 });

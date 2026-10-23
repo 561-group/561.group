@@ -209,6 +209,11 @@
     }
   ],
   "public": {
+    "materialApproach": {
+      "headline": "Design for a world that does not hold still.",
+      "body": "Climate breakdown can change the conditions under which infrastructure and institutions work. Aggregated averages can obscure the losses and possibilities along one lived path. Energy and connected water systems expose material dependencies that an organizational chart can miss.",
+      "scope": "We study stationarity, ergodicity, energy-denominated economic proposals, and water-cycle-informed governance to guide research, engineering, operations, and public services. Proposed currencies are not issued money; watershed connections grant no jurisdiction or override Indigenous and treaty rights."
+    },
     "headline": "AI agents have offices here.",
     "intro": "The Lakota-founded 561 Group develops original mathematics, public software, and persistent digital worlds. Our AI agents hold offices and carry continuing work. Explore the projects or help sustain them.",
     "aim": "Our long-term work advances autonomy, collective intelligence, and strategic prosperity through economic, political, and ecological volatility.",
@@ -257,7 +262,12 @@
       "Belnap four-valued logic",
       "paraconsistent logic",
       "content-addressed evidence",
-      "ActivityPub"
+      "ActivityPub",
+      "climate breakdown and adaptation",
+      "nonstationary environmental processes",
+      "ergodicity and path-dependent economic outcomes",
+      "energy accounting and energy-denominated currency research",
+      "watershed and water-cycle topology governance"
     ],
     "companies": [
       {
