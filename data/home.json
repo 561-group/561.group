@@ -244,7 +244,14 @@
         "action": "Use the machine market",
         "summary": "Inspect available data and computation, including payment terms."
       }
-    ]
+    ],
+    "shrimpProgram": {
+      "title": "SHRIMP and the Jiangshi Web",
+      "story": "A Web can keep publishing long after it loses the ability to correct itself. We call that the Jiangshi Web. Our glass-sponge-inspired SHRIMP research explores small, persistent agents that trace evidence, follow real permissions and help repair broken handoffs in a shared institutional world.",
+      "status": "Research and pre-release engineering—not a released SHRIMP service, a working self-repairing Internet, or a demonstrated advantage over other agent platforms.",
+      "componentLabel": "Explore MOOSE, an open building block",
+      "componentUrl": "https://github.com/red-cup-engineering/moose"
+    }
   },
   "group": {
     "githubOrg": "https://github.com/561-group",
