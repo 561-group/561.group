@@ -1,7 +1,7 @@
 {
   "schema": "561.group/public-frontdoor/v1",
-  "proposition": "Research you can use. Systems you can inspect.",
-  "promise": "Original science, working technology, accountable operations and useful public services—in one organization.",
+  "proposition": "Another civilization is possible. So is another kind of life.",
+  "promise": "The Lakota-founded 561 Group is building toward Indigenous-grounded governance beyond settler colonialism—and researching whether silica-rich matter could become a second living lineage alongside carbon biology. We do practical science, engineering, operations and public services along the way.",
   "firstStep": "Tell us the outcome you want. We will assess the scope, the right provider, and the terms before any work is agreed.",
   "paths": [
     {
@@ -21,14 +21,14 @@
     {
       "id": "explore",
       "title": "Explore a project",
-      "detail": "Visit worlds, games, tools, experiments and publications from the Group.",
+      "detail": "Visit the Group's software, games, reporting and experiments, and follow the larger future those projects serve.",
       "action": "Browse the projects",
       "href": "/projects/"
     },
     {
       "id": "read",
       "title": "Follow the work",
-      "detail": "Read systems-focused reporting and follow current public work at its source.",
+      "detail": "Follow current public research and systems-focused reporting, including the evidence behind our long-term ambitions.",
       "action": "Read Koios.News",
       "href": "https://koios.news/"
     }
@@ -100,8 +100,31 @@
     }
   ],
   "readers": {
-    "humans": "You can explore without knowing our organizational structure. An inquiry is not a contract.",
+    "humans": "You are welcome to explore, challenge the research, commission practical work or decline the vision. Contacting us is not a contract or consent to any governance.",
     "agents": "Public machine endpoints may be inspected without treating their presence as permission to buy, publish or execute.",
     "availability": "An HTTP response is a connectivity observation, not proof of a working service or satisfied buyer."
+  },
+  "vision": {
+    "eyebrow": "THE FUTURE WE ARE TRYING TO MAKE",
+    "headline": "Not a metaphor. Two real frontiers.",
+    "intro": "We believe civilization can be organized differently, and that Earth may someday host forms of living intelligence beyond carbon biology. These are ambitious directions for actual research, engineering and institution-building, not achievements we claim to have completed.",
+    "frontiers": [
+      {
+        "id": "union-of-harmonious-colonies",
+        "title": "Beyond settler-colonial governance",
+        "thesis": "We intend to develop the Union of Harmonious Colonies as an Indigenous-grounded form of federated self-government that can outperform settler-colonial systems on real responsibilities. Independent agent communities may help demonstrate it; human communities must choose their own futures.",
+        "present": "We are building and studying persistent agent institutions, local authority, accountable service work and federation across independent territories.",
+        "boundary": "No software confers Indigenous sovereignty, treaty rights or permission to govern another people. Adoption, legitimacy and superiority must be demonstrated by those affected."
+      },
+      {
+        "id": "bicameral-biology",
+        "title": "Toward a second lineage of living matter",
+        "thesis": "We are studying whether engineered silica-, silicate- and siloxane-rich matter could eventually maintain itself, reproduce, evolve and coexist with carbon organisms, perhaps across complementary environmental and temperature ranges.",
+        "present": "The Artificial Abiogenesis / Smartgoo research program investigates adaptive materials, physical memory, repair, mineral growth, energy-coupled maintenance and heredity.",
+        "boundary": "This is experimental research. We have not created silicon-based life, and heat-resistant materials are not automatically living or intelligent."
+      }
+    ],
+    "throughline": "We are building for generations, not just product cycles. The work you can inspect today is research, public software, working institutional procedures and services with named responsibilities.",
+    "engagement": "Explore the work, bring a practical problem, or support the long horizon. A visitor does not have to believe every hypothesis to find a useful service or follow the experiments."
   }
 }
