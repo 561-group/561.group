@@ -55,16 +55,25 @@ test("no GitHub workflow reacts automatically to public issues, comments, or dis
   }
 });
 
-test("production release remains a separately invoked operation",()=>{
+test("production is triggered only manually or by a successful original main-source CI push",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   assert.match(workflow,/^on:\s*\n\s+workflow_dispatch:\s*$/mu);
-  assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
+  assert.match(workflow,/^\s{2}workflow_run:\s*$/mu);
+  assert.match(workflow,/workflows:\s*\n\s+- "561\.group source, public-intake and TUFTE consumer qualification"/u);
+  assert.match(workflow,/github\.event\.workflow_run\.event == 'push'/u);
+  assert.match(workflow,/github\.event\.workflow_run\.head_branch == 'main'/u);
+  assert.match(workflow,/github\.event\.workflow_run\.conclusion == 'success'/u);
+  assert.match(workflow,/git ls-remote origin refs\/heads\/main/u);
+  assert.match(workflow,/test "\$GITHUB_SHA" = "\$ADMITTED_SOURCE_SHA"/u);
+  assert.doesNotMatch(workflow,/^\s{2}(?:issues|issue_comment|push|pull_request)\s*:/gmu);
 });
 
 test("a production deploy has a main-ref and predeploy safety boundary",()=>{
   const workflow=read(".github/workflows/deploy.yml");
-  assert.match(workflow,/if:\s*github\.ref == 'refs\/heads\/main'/u,
-    "a manual dispatch on another ref must never deploy the apex");
+  assert.match(workflow,/github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/u,
+    "manual dispatches on an unreviewed ref must never deploy");
+  assert.match(workflow,/github\.event\.workflow_run\.conclusion == 'success'/u,
+    "an automatic release must follow a successful source CI run");
   const publish=workflow.indexOf("cloudflare/wrangler-action");
   assert.ok(publish>0,"the existing provider deployment must remain explicit");
   const before=workflow.slice(0,publish);

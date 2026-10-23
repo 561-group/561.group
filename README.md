@@ -173,3 +173,18 @@ hashes before calling Wrangler and independently downloads public
 representations to check them again afterward. A source SHA alone does not
 attest a CDN response or a successful customer visit. The root TUFTE HTML/JSON,
 original ActivityPub, contact and translated routes have separate receiving.
+
+## Alpha main-to-production delivery (qualified, 2026-10-22)
+
+The Leader's repeated directive is to make the original repository's main the
+actual live 561.group codebase, not maintain an uninstalled reference branch.
+A successful original `main` **push** source/native/bundle qualification now
+selects the exact current main source for the existing Cloudflare deploy
+workflow. Ordinary PRs, issue/comments and failed CI runs cannot deploy.
+Manual `workflow_dispatch` on main remains supported. The release checks
+the current remote main SHA immediately before installing, tests and builds
+the locked native dependency graph again, retains original trust boundaries,
+compares the executing Cloudflare version to the actual provider deployment,
+and independently reads public source/HTML/JSON/asset digests after deployment.
+No step declares an accepted public site merely because source CI passed:
+provider mutation and reader receipt are separate actual effects.

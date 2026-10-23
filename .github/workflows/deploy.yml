@@ -4,6 +4,13 @@ name: Publish and receive 561.group (TUFTE + LivingWebServer)
 # original tests, builds the pinned supplier, deploys, then reads public bytes.
 on:
   workflow_dispatch:
+  # The Leader's received alpha-site repair can ship only from an already
+  # qualified ORIGINAL main CI push. Untrusted PR runs never deploy.
+  workflow_run:
+    workflows:
+      - "561.group source, public-intake and TUFTE consumer qualification"
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -14,10 +21,28 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Refuse any stale or non-main release source before private credentials are used
+        env:
+          ADMITTED_SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Checked-out source changed"; exit 1; }
+          test "$GITHUB_SHA" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Workflow event did not identify the exact main source"; exit 1; }
+          latest="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$latest" = "$ADMITTED_SOURCE_SHA" || { echo "::error::Another main revision superseded this release"; exit 1; }
+          echo "Exact current main $ADMITTED_SOURCE_SHA admitted; no provider change yet."
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
