@@ -32,11 +32,40 @@ export function project561GroupHome({ home, estate }) {
   }).join("");
   const companies = (home.group?.companies ?? []).map(company =>
     '<li>' + anchor(company.url, company.name) + '</li>').join("");
+  const organization={
+    "@type":"Organization","@id":home.origin+"/#organization",
+    name:home.name,url:home.origin+"/",description:home.description,
+    foundingDate:String(home.established),
+    sameAs:[home.group.githubOrg,home.group.actor],
+    knowsAbout:home.group.knowsAbout,
+    subOrganization:home.group.companies.map(company=>({
+      "@type":"Organization","@id":company.url+"#organization",
+      name:company.name,url:company.url,
+      sameAs:[company.github,company.actor]
+    }))
+  };
   return {
     title: home.name,
     eyebrow: "561 Group · Public home",
     subtitle: "We make research useful.",
-    metadata: { title: home.name, description: home.description, language: "en" },
+    metadata: {
+      title: home.name,description: home.description,language: "en",
+      canonical:home.origin+"/",image:home.origin+"/card.png",
+      type:"website",siteName:home.name,
+      structuredData:{"@context":"https://schema.org","@graph":[
+        organization,{"@type":"WebSite","@id":home.origin+"/#website",
+          name:home.name,url:home.origin+"/",description:home.description,
+          publisher:{"@id":home.origin+"/#organization"},inLanguage:["en","zh-Hans","lkt"]}
+      ]}
+    },
+    revision:estate.revision??"unversioned",
+    navigation:[
+      {href:"/#explore",label:"Projects"},
+      {href:"/#companies",label:"Companies"},
+      {href:"/contact/",label:"Work with us"},
+      {href:"/zh-hans/",label:"简体中文"},
+      {href:"/lkt/",label:"Lakȟótiyapi"}
+    ],
     tiles: [
       { id: "introduction", title: approved.headline, role: "now", span: 8,
         html: '<p>' + escapeHtml(approved.intro) + '</p><p>' + escapeHtml(approved.aim) + '</p>' },
@@ -53,4 +82,31 @@ export function project561GroupHome({ home, estate }) {
     footerHtml: '<p>561 Group · Founded ' + escapeHtml(home.established) + ' · ' +
       anchor("/contact/", "Contact") + '</p>',
   };
+}
+
+// The original TUFTE engine admits this as document.headHtml, not a parallel
+// renderer. These discoverability links are drawn exclusively from the same
+// authored home record whose route is admitted by the site Worker.
+export function project561GroupHead(home){
+  if(!home||home.origin!=="https://561.group")throw new TypeError("Canonical source-owned home required");
+  const entry=(tag,attrs)=>"<"+tag+" "+Object.entries(attrs)
+    .map(([key,value])=>key+'="'+escapeHtml(value)+'"').join(" ")+">";
+  const alternate=(type,title,href)=>entry("link",{
+    rel:"alternate",type,title,href:publicHref(href)
+  });
+  return [
+    entry("meta",{name:"fediverse:creator",content:home.group.handle}),
+    entry("link",{rel:"me",href:publicHref(home.group.actor)}),
+    entry("link",{rel:"icon",href:"/favicon.svg",type:"image/svg+xml"}),
+    entry("link",{rel:"apple-touch-icon",href:"/apple-touch-icon.png"}),
+    alternate("text/plain","For language models","/llms.txt"),
+    alternate("text/plain","For language models, in full","/llms-full.txt"),
+    alternate("application/json","Live estate","/estate.json"),
+    alternate("application/feed+json","Group publications","/feed.json"),
+    alternate("application/atom+xml","Group publications (Atom)","/feed.atom.xml"),
+    alternate("application/rss+xml","Group publications (RSS)","/feed.rss.xml"),
+    ...[["en","/"],["zh-Hans","/zh-hans/"],["lkt","/lkt/"]].map(([tag,href])=>
+      entry("link",{rel:"alternate",hreflang:tag,href:home.origin+href})),
+    entry("link",{rel:"alternate",hreflang:"x-default",href:home.origin+"/"})
+  ].join("");
 }

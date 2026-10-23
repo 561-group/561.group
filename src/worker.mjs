@@ -14,7 +14,7 @@ const APEX = "561.group";
 const PROBE_TIMEOUT_MS = 4000;
 const ESTATE_TTL_S = 300;
 // TUFTE is the root-page producer; the existing Worker still owns routing and federation fallback.
-const livingHome = create561GroupLivingApplication({ readHome: () => home, readEstate: () => estate });
+const livingHome = create561GroupLivingApplication({ readHome: () => home, readEstate: () => estate, releaseHome: home });
 
 const SECURITY_HEADERS = {
   "content-security-policy":

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { project561GroupHome } from "../src/home-tufte.mjs";
+import { project561GroupHome, project561GroupHead } from "../src/home-tufte.mjs";
 
 const read = path => JSON.parse(readFileSync(new URL("../" + path, import.meta.url), "utf8"));
 const home = read("data/home.json");
@@ -12,6 +12,16 @@ test("the accepted concise public homepage is one TUFTE model over original Grou
   assert.equal(model.title, "The 561 Group");
   assert.equal(model.subtitle, "We make research useful.");
   assert.equal(model.metadata.description, home.description);
+  assert.equal(model.metadata.canonical, "https://561.group/");
+  assert.equal(model.metadata.type, "website");
+  assert.equal(model.metadata.image, "https://561.group/card.png");
+  const graph=model.metadata.structuredData["@graph"];
+  assert.equal(graph[0]["@type"],"Organization");
+  assert.equal(graph[0].description,home.description);
+  assert.equal(graph[0].subOrganization.length,4);
+  assert.ok(graph[0].sameAs.includes(home.group.actor));
+  assert.deepEqual(model.navigation.map(x=>x.href),
+    ["/#explore","/#companies","/contact/","/zh-hans/","/lkt/"]);
   assert.deepEqual(model.tiles.map(t => t.id), ["introduction","contact","explore","support","companies"]);
   assert.match(model.tiles[0].html, /Lakota-founded 561 Group/u);
   assert.ok(model.tiles[1].html.includes('href="/contact/"'));
@@ -45,4 +55,18 @@ test("TUFTE projection escapes public values and refuses missing or unsafe sourc
   poisoned.group.sustainingSupport.url = "javascript:alert(1)";
   assert.throws(() => project561GroupHome({ home: poisoned, estate }), /Only public HTTPS/u);
   assert.throws(() => project561GroupHome({ home: {}, estate }), TypeError);
+});
+
+test("genuine TUFTE document head keeps the Group's original federation, feed and locale discovery",()=>{
+  const head=project561GroupHead(home);
+  assert.match(head,/name="fediverse:creator" content="@group@561\.group"/u);
+  assert.match(head,/rel="me" href="https:\/\/561\.group\/actors\/group"/u);
+  for(const route of ["/llms.txt","/feed.json","/feed.atom.xml","/feed.rss.xml","/estate.json"]){
+    assert.ok(head.includes('href="'+route+'"'));
+  }
+  for(const tag of ["en","zh-Hans","lkt","x-default"])assert.ok(head.includes('hreflang="'+tag+'"'));
+  const poisoned=structuredClone(home);
+  poisoned.group.handle='<script>alert(1)</script>';
+  assert.doesNotMatch(project561GroupHead(poisoned),/<script>/u);
+  assert.throws(()=>project561GroupHead({...home,origin:"https://evil.invalid"}),TypeError);
 });
