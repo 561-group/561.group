@@ -124,6 +124,24 @@ export function visualReviewPacket(witness){
       c.viewport.height+" | "+(c.passed?"pass":"REFUSED: "+c.errors.join("; "))+ 
       " | ["+c.screenshot+"]("+c.screenshot+") | "+c.sha256+" |"),
     "",
+    "## Measured color use across distinct observation windows",
+    "",
+    "These are reproducible pixel-mask observations, NOT a normative design",
+    "budget verdict, a test of visual attention, or an automatic acceptance.",
+    "The original v0.3 source specifies mark bounding boxes per page/spread.",
+    "",
+    "| Route | Window | Red pixels / area | Red % | Blue pixels / area | Blue % |",
+    "| --- | --- | --- | ---: | --- | ---: |",
+    ...witness.cases.flatMap(c=>(c.colorObservation?.reports??[]).map(r=>{
+      const alarm=r.colors.find(v=>v.id==="alarm");
+      const blue=r.colors.find(v=>v.id==="witness");
+      const val=v=>v?(100*v.fraction).toFixed(3)+"%":"not measured";
+      return "| "+c.path+" "+c.viewport.width+"x"+c.viewport.height+
+        " | "+r.region.id+" | "+(alarm?.matchedPixels??"?")+"/"+r.areaPixels+
+        " | "+val(alarm)+" | "+(blue?.matchedPixels??"?")+"/"+r.areaPixels+
+        " | "+val(blue)+" |";
+    })),
+    "",
     "## Independent reader/visual-review task",
     "",
     "Inspect each image without treating implementation tickets as evidence",
