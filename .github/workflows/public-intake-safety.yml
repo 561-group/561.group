@@ -51,6 +51,18 @@ jobs:
         run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
       - name: Verify one site-owned dependency contract before external registry access
         run: node --test test/fetch-source-contract.test.mjs
+      - name: Read the original Worker-safe TUFTE source at its exact Engineering proposal
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: red-cup-engineering/web-page-tiling-engine
+          ref: 73e16f746be180c05ab844c1600b9cd24c88b815
+          path: .original-tufte
+          persist-credentials: false
+      - name: Assay the genuine original Fetch/Node import boundary before accessing the package registry
+        run: |
+          node --check .original-tufte/src/tufte-application-fetch.mjs
+          node --check .original-tufte/src/tufte-application.mjs
+          node --test .original-tufte/test/edge-fetch-boundary.test.mjs
       - name: Probe actual TUFTE supplier and pinned LivingWebServer source
         timeout-minutes: 1
         run: |
