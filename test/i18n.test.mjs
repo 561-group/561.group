@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { report } from "@red-cup-engineering/l-space";
+import { report } from "../src/locales.mjs";
 import { renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { LOCALES, POLICY, siteSpace, speaker } from "../src/locales.mjs";
 import { contentMessages } from "../src/words.mjs";
@@ -21,14 +21,16 @@ test("every string the home page shows from data is a message of its own", () =>
   for (const endpoint of estate.machine) assert.ok(keys.has(`estate.endpoint.${endpoint.verb} ${endpoint.url}`));
 });
 
-test("every rendering is well typed and current; the coincidence of readings holds", () => {
-  const account = report(space, { policy: POLICY });
+test("original ARB messages remain structurally typed without a false upstream witness claim", () => {
+  const account = report(space);
   assert.equal(account.locales["zh-Hans"]["ill-typed"], 0);
-  assert.equal(account.locales["zh-Hans"].stale, 0);
-  assert.equal(account.locales["zh-Hans"].coverage, 1);
+  assert.ok(account.locales["zh-Hans"].coverage > 0.95 && account.locales["zh-Hans"].coverage < 1,
+    "superseded machine rendering must be absent, not presented as current");
   assert.equal(account.locales.lkt["ill-typed"], 0);
-  assert.equal(account.agree, true);
-  assert.deepEqual(account.counterexamples, []);
+  assert.ok(account.locales["zh-Hans"]["source-witness-unverified"] > 0);
+  assert.equal(account.sourceIntegrity, "unverified");
+  assert.equal(account.agree, false);
+  assert.ok(account.counterexamples.length > 0);
 });
 
 test("the English page keeps its words, and announces its languages", () => {
@@ -47,6 +49,8 @@ test("the Mandarin page speaks Mandarin, keeps every gloss, and discloses machin
   const html = page("zh-Hans");
   assert.match(html, /<html lang="zh-Hans" dir="ltr">/u);
   assert.match(html, /<title>561 集团<\/title>/u);
+  assert.match(html, /<p class="lede"><span lang="en">The 561 Group is a private organization/u);
+  assert.doesNotMatch(html, /政治、金融和经济的动荡中/u, "superseded finance-first translation is not published");
   assert.match(html, /<meta property="og:locale" content="zh_CN">/u);
   assert.match(html, /一个<span class="term">类型论<\/span><sup class="ref"><a id="r1" href="#n1" aria-label="注释 1">1<\/a><\/sup>的分布式操作系统/u);
   for (const n of Object.keys(home.design.notes)) assert.match(html, new RegExp(`id="r${n}" href="#n${n}"`, "u"), `gloss ${n} kept`);

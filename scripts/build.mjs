@@ -1,41 +1,32 @@
 #!/usr/bin/env node
 // Writes the generated files in public/ from data/. Fonts, favicon and card are sources.
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rename, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { renderHumans, renderSecurity, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
 import { readFeeds, mergeItems, renderJsonFeed, renderAtom, renderRss } from "../src/feed.mjs";
 import { LOCALES, localePath, siteSpace, speaker } from "../src/locales.mjs";
 
-import { discoverCatalog } from "@causeway-services/play/catalog";
-import { playUrl, hasBrowser } from "@causeway-services/play/catalog-presentation";
-import { catalogSourcesFromEnvironment, publicationDateFromEnvironment } from "@causeway-services/play/composition";
-
 const root = new URL("../", import.meta.url);
 const read = async (path) => JSON.parse(await readFile(new URL(path, root), "utf8"));
 const home = await read("data/home.json");
+// A release advertises the exact site-source commit supplied by its original GitHub checkout.
+const sourceCommit = process.env.GITHUB_SHA;
+if (sourceCommit !== undefined && !/^[0-9a-f]{40}$/iu.test(sourceCommit)) throw new Error("GITHUB_SHA must be one exact source commit");
 const authored = await read("data/estate.json");
-// Bind the same authored catalog through its owning package. Outside the
-// integrated checkout, callers provide explicit source roots; discovery refuses
-// missing sources rather than replacing the games with a static shortlist.
-const sources = catalogSourcesFromEnvironment();
-const date = publicationDateFromEnvironment() ?? new Date();
-const updated = date.toISOString().slice(0, 10);
-// Keep curated non-game doors; the authored game records own their names and entry paths.
-const knownUrls = new Set(authored.nodes.map((n) => n.url ?? `https://${n.host}/`));
-let games;
-if (sources === undefined && process.env.ESTATE_GAMES_SNAPSHOT) {
-  // Explicit, named fallback for a checkout without the game sources: reuse the games of an
-  // earlier published estate-records.json, unchanged. Never a default; discovery stays the rule.
-  const earlier = JSON.parse(await readFile(process.env.ESTATE_GAMES_SNAPSHOT, "utf8"));
-  games = earlier.nodes.filter((n) => n.group === "games" && !knownUrls.has(n.url ?? `https://${n.host}/`));
-  console.warn(`games taken from the earlier published record ${process.env.ESTATE_GAMES_SNAPSHOT}, not from discovery`);
-} else {
-  const { catalog } = await discoverCatalog({ sources, generatedDate: updated, observePages: false });
-  games = catalog.games.filter(hasBrowser).filter((game) => !knownUrls.has(playUrl(game)))
-    .map((game) => ({ host: new URL(playUrl(game)).host, url: playUrl(game), name: game.displayName, group: "games", line: game.description }));
+// The Group front door is independently publishable; Play owns its full game catalog.
+// Visitors reach that live catalog through the one curated play.561.group entry.
+// A homepage release must not require installing every independent game checkout.
+const publicationDay = process.env.SITE_PUBLICATION_DATE;
+if (publicationDay && (!/^\d{4}-\d{2}-\d{2}$/.test(publicationDay) ||
+    new Date(publicationDay + "T00:00:00Z").toISOString().slice(0, 10) !== publicationDay)) {
+  throw new Error("SITE_PUBLICATION_DATE must be one real YYYY-MM-DD UTC day");
 }
+if(sourceCommit && !publicationDay) {
+  throw new Error("A source-qualified publication requires SITE_PUBLICATION_DATE from the exact git revision");
+}
+const updated = publicationDay ?? new Date().toISOString().slice(0, 10);
 // The market's live offer count, read from its x402 discovery; absent (never guessed) when unreadable.
 const marketOffers = await (async () => {
   try {
@@ -49,7 +40,7 @@ const marketOffers = await (async () => {
 const facts = { marketOffers };
 // What the Group is publishing: the companies' feeds, merged; any that cannot be read are skipped.
 const items = mergeItems(await readFeeds(home.group.companies));
-const estate = { ...authored, nodes: [...authored.nodes, ...games] };
+const estate = { ...authored, nodes: [...authored.nodes] };
 estate.revision = createHash("sha256").update(JSON.stringify(estate)).digest("hex");
 
 const hosts = new Set(estate.nodes.map((n) => n.host));
@@ -57,8 +48,9 @@ for (const door of estate.doors) if (!hosts.has(door)) throw new Error(`door ${d
 for (const n of estate.nodes) if (!estate.groups.some((g) => g.id === n.group)) throw new Error(`${n.host}: unknown group ${n.group}`);
 if (estate.nodes.length + (estate.machines ?? []).length > 45) throw new Error("estate.json exceeds the Worker's per-request subrequest budget for probing");
 
-// Every language the site serves: one L-space over the interface strings, the words derived from the
-// data, and each locale's renderings; each locale's home page at its own path.
+// Every language is projected from its original authored ARB source.
+// Upstream x-l-space attribution remains evidence only; unverified witness hashes
+// never become new "current" claims in the site's limited locale adapter.
 const readText = (path) => readFile(new URL(path, root), "utf8");
 const space = siteSpace({
   interfaceSource: await readText("locales/en.arb"),
@@ -69,7 +61,8 @@ const space = siteSpace({
 const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, tag, { origin: home.origin })]));
 const files = {
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
-  ...Object.fromEntries(LOCALES.map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
+  // English / is served by TUFTE + LivingWebServer, never by a competing static index.
+  ...Object.fromEntries(LOCALES.filter(tag => tag !== "en").map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
   "public/feed.json": renderJsonFeed(home, items),
   "public/feed.atom.xml": renderAtom(home, items),
   "public/feed.rss.xml": renderRss(home, items),
@@ -81,8 +74,36 @@ const files = {
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),
 };
+// Every generated representation has exact bytes independently observable
+// after deployment. External news/market snapshots can change over time;
+ // their release-time bytes, not unverifiable source-only equivalence, are
+ // bound by this digest map. The receipt itself is deliberately excluded
+ // from its own hash to avoid self-reference.
+if(sourceCommit){
+  const artifactDigests=Object.fromEntries(Object.entries(files)
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([path,body])=>[path.slice("public/".length),
+      "sha256:"+createHash("sha256").update(body,"utf8").digest("hex")]));
+  files["public/source-revision.json"]=JSON.stringify({
+    repository:"561-group/561.group",sourceCommit,renderer:"TUFTE",
+    application:"LivingWebServer",origin:home.origin,
+    publicationDay:updated,artifactDigests
+  },null,2)+"\n";
+}
+// A prior static English index is never another competing authority for /.
+// A local build without a qualified exact source SHA cannot retain an old
+// production claim. Do this only AFTER every generated body validates.
+await rm(new URL("public/index.html", root), {force:true});
+if (!sourceCommit) await rm(new URL("public/source-revision.json", root), {force:true});
 for (const [path, body] of Object.entries(files)) {
   await mkdir(new URL(path.slice(0, path.lastIndexOf("/") + 1), root), { recursive: true });
-  await writeFile(new URL(path, root), body);
-  console.log(`wrote ${fileURLToPath(new URL(path, root))} (${body.length} bytes)`);
+  const destination=new URL(path,root);
+  const staging=new URL(path+".staging-"+process.pid,root);
+  try {
+    await writeFile(staging, body, {flag:"wx"});
+    await rename(staging,destination);
+  } finally {
+    await rm(staging,{force:true});
+  }
+  console.log(`wrote ${fileURLToPath(destination)} (${body.length} bytes)`);
 }

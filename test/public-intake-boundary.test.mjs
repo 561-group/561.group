@@ -55,24 +55,34 @@ test("no GitHub workflow reacts automatically to public issues, comments, or dis
   }
 });
 
-test("production release remains a separately invoked operation",()=>{
+test("production is triggered only manually or by a successful original main-source CI push",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   assert.match(workflow,/^on:\s*\n\s+workflow_dispatch:\s*$/mu);
-  assert.doesNotMatch(workflow,/^\s+(?:issues|issue_comment|push|pull_request|workflow_run)\s*:/gmu);
+  assert.match(workflow,/^\s{2}workflow_run:\s*$/mu);
+  assert.match(workflow,/workflows:\s*\n\s+- "561\.group source, public-intake and TUFTE consumer qualification"/u);
+  assert.match(workflow,/github\.event\.workflow_run\.event == 'push'/u);
+  assert.match(workflow,/github\.event\.workflow_run\.head_branch == 'main'/u);
+  assert.match(workflow,/github\.event\.workflow_run\.conclusion == 'success'/u);
+  assert.match(workflow,/git ls-remote origin refs\/heads\/main/u);
+  assert.match(workflow,/test "\$GITHUB_SHA" = "\$ADMITTED_SOURCE_SHA"/u);
+  assert.doesNotMatch(workflow,/^\s{2}(?:issues|issue_comment|push|pull_request)\s*:/gmu);
 });
 
 test("a production deploy has a main-ref and predeploy safety boundary",()=>{
   const workflow=read(".github/workflows/deploy.yml");
-  assert.match(workflow,/if:\s*github\.ref == 'refs\/heads\/main'/u,
-    "a manual dispatch on another ref must never deploy the apex");
+  assert.match(workflow,/github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/u,
+    "manual dispatches on an unreviewed ref must never deploy");
+  assert.match(workflow,/github\.event\.workflow_run\.conclusion == 'success'/u,
+    "an automatic release must follow a successful source CI run");
   const publish=workflow.indexOf("cloudflare/wrangler-action");
   assert.ok(publish>0,"the existing provider deployment must remain explicit");
   const before=workflow.slice(0,publish);
   const legacyInterlock=/Refuse unqualified standalone deployment/u.test(before) &&
     /exit 1/u.test(before);
-  const qualifiedRelease=/pnpm install --frozen-lockfile/u.test(before) &&
-    /pnpm test/u.test(before) && /pnpm build/u.test(before) &&
-    /source-revision\.json/u.test(before);
+  const qualifiedRelease=/test -s package-lock\.json/u.test(before) &&
+    /npm ci --ignore-scripts/u.test(before) &&
+    /npm run check/u.test(before) && /npm test/u.test(before) &&
+    /npm run build/u.test(before) && /source-revision\.json/u.test(before);
   assert.ok(legacyInterlock||qualifiedRelease,
     "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
 });
@@ -91,4 +101,27 @@ test("ordinary buyer and supplier opportunities use the same private intake with
   assert.match(page, /const base = `mailto:emsenn@561\.group\?subject=/u);
   assert.match(page, /does not create a purchase, authorize outside contact, assign a job, or record revenue/u);
   assert.match(page, /No GitHub account is needed/u);
+});
+
+test("production deployment consumes the exact dependency lock before provider writes",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const provider=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(provider>0,"the existing provider must be identifiable");
+  const before=workflow.slice(0,provider);
+  assert.match(before,/test -s package-lock\.json/u,"absence of the native lock must refuse publication");
+  assert.match(before,/npm ci --ignore-scripts/u,"production must use a frozen npm install with required native platform binaries");
+  assert.doesNotMatch(before,/npm install --ignore-scripts/u,"unlocked npm install is not a release");
+  for(const command of ["npm run check","npm test","npm run build","public/source-revision.json"]){
+    assert.ok(before.includes(command),"native build/receipt is required before Wrangler: "+command);
+  }
+});
+
+test("manual source release independently binds generated artifacts, not source SHA alone",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  assert.ok(workflow.includes("receipt.artifactDigests"));
+  assert.ok(workflow.includes("digest('hex')"),"original predeploy source digest required");
+  assert.ok(workflow.includes("crypto.subtle.digest('SHA-256',raw)"),"independent public bytes digest required");
+  assert.match(workflow,/sourceCommit!==process\.env\.GITHUB_SHA/u);
+  assert.match(workflow,/SITE_PUBLICATION_DATE/u);
+  assert.match(workflow,/cloudflare\/wrangler-action/u);
 });
