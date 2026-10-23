@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 const ORIGIN = 'https://561.group';
 const MAX_BYTES = 2 * 1024 * 1024;
 const EXACT_SHA = /^[a-f\d]{40}$/i;
+const EXACT_VERSION = /^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i;
 const SIMPLE_CHECKS = Object.freeze([
   { name: 'homepage', path: '/', accept: 'text/html', type: 'html', required: true },
   { name: 'contact', path: '/contact/', accept: 'text/html', type: 'html', required: true },
@@ -121,7 +122,10 @@ function evaluateRevision(sample, expectedSourceSha) {
   if (claim?.repository !== '561-group/561.group' || claim?.origin !== ORIGIN || !EXACT_SHA.test(claim?.sourceCommit ?? '') ||
       claim?.renderer !== 'TUFTE' || claim?.application !== 'LivingWebServer')
     return { ...result, httpStatus: 200, outcome: 'fail', reason: 'unexpected-revision-claim' };
-  const resultClaim = { ...result, httpStatus: 200, claimedSourceCommit: claim.sourceCommit, outcome: 'pass',
+  if (!EXACT_VERSION.test(claim.workerVersionId ?? ''))
+    return { ...result, httpStatus: 200, outcome: 'fail', reason: 'missing-or-invalid-worker-version' };
+  const resultClaim = { ...result, httpStatus: 200, claimedSourceCommit: claim.sourceCommit,
+    claimedWorkerVersionId: claim.workerVersionId.toLowerCase(), outcome: 'pass',
     qualification: 'public-self-description-only; not provider-native receipt' };
   if (expectedSourceSha && claim.sourceCommit.toLowerCase() !== expectedSourceSha.toLowerCase())
     return { ...resultClaim, outcome: 'fail', reason: 'does-not-match-expected-source' };

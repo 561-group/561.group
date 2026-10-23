@@ -90,6 +90,11 @@ unmounted/unknown provider coverage, **not** a down website. Production deploys
 and explicitly authorized rollbacks retain their separate credential, approval
 and receipt conditions. Provider version IDs, public HTTP bytes and the exact
 source commit are independent pieces of evidence until received together.
+The original observation workflow now joins the two evidence files into
+`561.group-public-provider-parity.json` without declaring success when
+credential coverage is unmounted, source revision is missing, or versions
+disagree. Version correspondence alone does not authenticate Git source
+integrity or independently accept the public site.
 
 ## The Group as a hub
 
