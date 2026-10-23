@@ -21,6 +21,15 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - name: Select one source-qualified UTC publication day
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const seconds=Number(execFileSync('git',['show','-s','--format=%ct','HEAD'],{encoding:'utf8'}).trim());
+          if(!Number.isSafeInteger(seconds)||seconds<=0)throw Error('No admitted git source commit date');
+          appendFileSync(process.env.GITHUB_ENV,'SITE_PUBLICATION_DATE='+new Date(seconds*1000).toISOString().slice(0,10)+'\n');
+          NODE
       - name: Refuse a production release without the original exact package lock
         run: |
           test -s package-lock.json || {
@@ -53,6 +62,20 @@ jobs:
           }
           try { await stat('public/index.html'); throw Error('Competing English static homepage'); }
           catch(error) { if(error.code!=='ENOENT')throw error; }
+          const {createHash}=await import('node:crypto');
+          const artifacts=Object.entries(receipt.artifactDigests??{});
+          if(artifacts.length<10 || receipt.publicationDay!==process.env.SITE_PUBLICATION_DATE) {
+            throw Error('Original exact public-artifact manifest incomplete or publication date differs');
+          }
+          for(const [name,claimed] of artifacts) {
+            if(!/^[a-z0-9._/-]+$/iu.test(name) || name.startsWith('/') ||
+               name.split('/').includes('..') || !/^sha256:[a-f0-9]{64}$/iu.test(claimed)) {
+              throw Error('Unadmitted generated artifact or digest: '+name);
+            }
+            const actual='sha256:'+createHash('sha256')
+              .update(await readFile('public/'+name)).digest('hex');
+            if(actual!==claimed)throw Error('Generated artifact differs from its source-qualified public receipt: '+name);
+          }
           const living=JSON.parse(await text('node_modules/@red-cup-engineering/living-web-server/package.json'));
           if(!living.exports?.['./fetch'])throw Error('Installed LivingWebServer lacks Worker Fetch contract');
           if(living.dependencies?.['@red-cup-engineering/computer-web-server'] ||
@@ -97,6 +120,22 @@ jobs:
              latest?.versions?.length!==1||latest.versions[0].percentage!==100||
              latest.versions[0].version_id?.toLowerCase()!==receipt.workerVersionId.toLowerCase()){
             throw Error('Published Worker version is not the Cloudflare active 100%-traffic version');
+          }
+
+          // A source commit alone does not attest generated external-feed
+          // snapshots. Independently compare original published bytes with
+          // their release-time artifact digests at the public origin.
+          for(const path of ['llms.txt','llms-full.txt','robots.txt','sitemap.xml',
+            'feed.json','estate-records.json','zh-hans/index.html','lkt/index.html']) {
+            const target='/'+path;
+            const asset=await read(target);
+            if(!asset.ok)throw Error('Original generated public artifact unavailable: '+target+' '+asset.status);
+            const raw=await asset.arrayBuffer();
+            const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',raw));
+            const digest='sha256:'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+            if(receipt.artifactDigests?.[path]!==digest) {
+              throw Error('Deployed public bytes differ from original release receipt: '+target);
+            }
           }
 
           const home=await read('/');

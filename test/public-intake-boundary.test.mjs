@@ -106,3 +106,13 @@ test("production deployment consumes the exact dependency lock before provider w
     assert.ok(before.includes(command),"native build/receipt is required before Wrangler: "+command);
   }
 });
+
+test("manual source release independently binds generated artifacts, not source SHA alone",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  assert.ok(workflow.includes("receipt.artifactDigests"));
+  assert.ok(workflow.includes("digest('hex')"),"original predeploy source digest required");
+  assert.ok(workflow.includes("crypto.subtle.digest('SHA-256',raw)"),"independent public bytes digest required");
+  assert.match(workflow,/sourceCommit!==process\.env\.GITHUB_SHA/u);
+  assert.match(workflow,/SITE_PUBLICATION_DATE/u);
+  assert.match(workflow,/cloudflare\/wrangler-action/u);
+});

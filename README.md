@@ -156,3 +156,17 @@ a successful dependency installation. Its source tests remain public and
 independent; native TUFTE installation must use a properly published original
 house-registry package or a separately authorized, secure distribution
 capability. Do not vendor private source into this public repo.
+
+## Deterministic source date and independent asset receiving
+
+Every source-qualified production build obtains the UTC publication day from
+the exact checked-out Git commit, not today's changing wall clock. The
+`source-revision.json` receipt includes the Group source SHA, TUFTE/LivingWeb
+renderer identity, publication day, and **SHA-256 of each generated public
+artifact**. Actual fetched market/feed snapshots are captured at build time;
+their original delivered bytes are bound by this receipt instead of being
+misclassified as deterministic inputs in Git. The manual release checks those
+hashes before calling Wrangler and independently downloads public
+representations to check them again afterward. A source SHA alone does not
+attest a CDN response or a successful customer visit. The root TUFTE HTML/JSON,
+original ActivityPub, contact and translated routes have separate receiving.

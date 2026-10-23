@@ -23,6 +23,9 @@ if (publicationDay && (!/^\d{4}-\d{2}-\d{2}$/.test(publicationDay) ||
     new Date(publicationDay + "T00:00:00Z").toISOString().slice(0, 10) !== publicationDay)) {
   throw new Error("SITE_PUBLICATION_DATE must be one real YYYY-MM-DD UTC day");
 }
+if(sourceCommit && !publicationDay) {
+  throw new Error("A source-qualified publication requires SITE_PUBLICATION_DATE from the exact git revision");
+}
 const updated = publicationDay ?? new Date().toISOString().slice(0, 10);
 // The market's live offer count, read from its x402 discovery; absent (never guessed) when unreadable.
 const marketOffers = await (async () => {
@@ -57,9 +60,6 @@ const space = siteSpace({
 });
 const speakers = Object.fromEntries(LOCALES.map((tag) => [tag, speaker(space, tag, { origin: home.origin })]));
 const files = {
-  ...(sourceCommit ? { "public/source-revision.json": JSON.stringify({
-    repository: "561-group/561.group", sourceCommit, renderer: "TUFTE", application: "LivingWebServer", origin: home.origin,
-  }, null, 2) + "\n" } : {}),
   "public/estate-records.json": JSON.stringify(estate, null, 2) + "\n",
   // English / is served by TUFTE + LivingWebServer, never by a competing static index.
   ...Object.fromEntries(LOCALES.filter(tag => tag !== "en").map((tag) => [`public${localePath(tag)}index.html`, renderIndex(home, estate, speakers[tag], items)])),
@@ -74,6 +74,22 @@ const files = {
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),
 };
+// Every generated representation has exact bytes independently observable
+// after deployment. External news/market snapshots can change over time;
+ // their release-time bytes, not unverifiable source-only equivalence, are
+ // bound by this digest map. The receipt itself is deliberately excluded
+ // from its own hash to avoid self-reference.
+if(sourceCommit){
+  const artifactDigests=Object.fromEntries(Object.entries(files)
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([path,body])=>[path.slice("public/".length),
+      "sha256:"+createHash("sha256").update(body,"utf8").digest("hex")]));
+  files["public/source-revision.json"]=JSON.stringify({
+    repository:"561-group/561.group",sourceCommit,renderer:"TUFTE",
+    application:"LivingWebServer",origin:home.origin,
+    publicationDay:updated,artifactDigests
+  },null,2)+"\n";
+}
 // A prior static English index is never another competing authority for /.
 // A local build without a qualified exact source SHA cannot retain an old
 // production claim. Do this only AFTER every generated body validates.

@@ -1,4 +1,5 @@
 import { mkdtemp, cp, readFile, writeFile } from "node:fs/promises";
+import {createHash} from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -49,10 +50,20 @@ check("original Play project stays discoverable without importing its full build
   assert.equal(generated.nodes.filter(n=>n.host==="play.561.group").length,1);
   assert.equal(generated.nodes.some(n=>n.host==="fixture.invalid"),false);
 });
-check("current release identifies exact original source revision and producer",()=>{
+check("current release binds exact source and every generated public representation",()=>{
   const receipt=JSON.parse(before["source-revision.json"]);
-  assert.deepEqual(receipt,{repository:"561-group/561.group",sourceCommit,
-    renderer:"TUFTE",application:"LivingWebServer",origin:"https://561.group"});
+  assert.equal(receipt.repository,"561-group/561.group");
+  assert.equal(receipt.sourceCommit,sourceCommit);
+  assert.equal(receipt.renderer,"TUFTE");
+  assert.equal(receipt.application,"LivingWebServer");
+  assert.equal(receipt.origin,"https://561.group");
+  assert.equal(receipt.publicationDay,"2026-10-22");
+  const expected=Object.fromEntries(Object.entries(before)
+    .filter(([name])=>name!=="source-revision.json")
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([name,bytes])=>[name,
+      "sha256:"+createHash("sha256").update(bytes,"utf8").digest("hex")]));
+  assert.deepEqual(receipt.artifactDigests,expected);
 });
 check("UTC publication date fixes original security and sitemap output",()=>{
   assert.match(before["sitemap.xml"],/2026-10-22/);
@@ -61,6 +72,11 @@ check("UTC publication date fixes original security and sitemap output",()=>{
 check("repeat original build succeeds",()=>{const second=run();assert.equal(second.status,0,second.stderr);});
 const after=await readOutputs();
 check("original human and machine artifacts are deterministic",()=>assert.deepEqual(after,before));
+const noSourceDay=run({SITE_PUBLICATION_DATE:null});
+check("a source-qualified build without an exact publication day refuses",()=>{
+  assert.notEqual(noSourceDay.status,0);
+  assert.match(noSourceDay.stderr,/requires SITE_PUBLICATION_DATE/);
+});
 const local=run({GITHUB_SHA:null});
 check("unqualified local build succeeds without a counterfeit production receipt",()=>{
   assert.equal(local.status,0,local.stderr);

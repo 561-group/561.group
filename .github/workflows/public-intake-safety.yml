@@ -43,12 +43,23 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - name: Select one source-qualified UTC publication day
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const seconds=Number(execFileSync('git',['show','-s','--format=%ct','HEAD'],{encoding:'utf8'}).trim());
+          if(!Number.isSafeInteger(seconds)||seconds<=0)throw Error('No admitted git source commit date');
+          appendFileSync(process.env.GITHUB_ENV,'SITE_PUBLICATION_DATE='+new Date(seconds*1000).toISOString().slice(0,10)+'\n');
+          NODE
       - name: Preserve original untrusted-public-input and manual-release boundary
         run: node --test test/public-intake-boundary.test.mjs
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
       - name: Exercise the original ARB data, source-release boundaries and Worker receipts without any registry
         run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
+      - name: Qualify complete authored public artifact graph and exact receipt hashes offline
+        run: node test/build.mjs
       - name: Verify one site-owned dependency contract before external registry access
         run: node --test test/fetch-source-contract.test.mjs
       - name: Probe actual TUFTE supplier and pinned LivingWebServer source
