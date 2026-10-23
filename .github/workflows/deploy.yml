@@ -170,17 +170,31 @@ jobs:
             }
           }
 
+          // Marketing copy is owned by the public editorial source, not by
+          // frozen release-workflow prose. Verify current purpose, not a
+          // historical slogan that would make authentic branding undeployable.
+          const {readFileSync}=await import('node:fs');
+          const frontdoor=JSON.parse(readFileSync('data/frontdoor.json','utf8'));
+          if(typeof frontdoor.proposition!=='string' || !frontdoor.proposition.trim() ||
+             !Array.isArray(frontdoor.vision?.frontiers) || frontdoor.vision.frontiers.length!==2 ||
+             frontdoor.vision.frontiers.some(f=>typeof f.title!=='string'||!f.title.trim())) {
+            throw Error('Original public editorial source has no two complete civilization-building frontiers');
+          }
           const home=await read('/','text/html');
           const html=await home.text();
-          const homeSignals={status:home.status,contentType:home.headers.get('content-type'),tufte:html.includes('data-tufte'),work:html.includes('Work with us'),checkout:html.includes('buy.stripe.com'),invalidLegacyPhrase:html.includes('conurbanized ecosystem')};
+          const homeSignals={status:home.status,contentType:home.headers.get('content-type'),
+            tufte:html.includes('data-tufte'),purpose:html.includes(frontdoor.proposition),
+            frontiers:frontdoor.vision.frontiers.map(f=>({id:f.id,present:html.includes(f.title)})),
+            work:html.includes('Work with us'),checkout:html.includes('buy.stripe.com'),
+            invalidLegacyPhrase:html.includes('conurbanized ecosystem')};
           console.log('Independent public home browser-mode receipt: '+JSON.stringify(homeSignals));
-          if(!home.ok || !html.includes('data-tufte') ||
-             !html.includes('Work with us') || !html.includes('buy.stripe.com') ||
-             !html.includes('Research you can use.') ||
+          if(!home.ok || !(home.headers.get('content-type')??'').includes('text/html') ||
+             !homeSignals.tufte || !homeSignals.purpose || homeSignals.frontiers.some(f=>!f.present) ||
+             !homeSignals.work || !homeSignals.checkout ||
              !html.includes('href="/work/"') ||
              !html.includes('href="/projects/"') ||
-             html.includes('conurbanized ecosystem')) {
-            throw Error('Public HTML is not original TUFTE Group homepage');
+             homeSignals.invalidLegacyPhrase) {
+            throw Error('Public HTML does not carry the accepted original 561 Group mission and usable routes');
           }
           const json=await fetch(host+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
           if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')) {
