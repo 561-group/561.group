@@ -15,13 +15,22 @@ const preload=path.join(scratch,"offline.mjs");
 await writeFile(preload,"globalThis.fetch=()=>{throw Error('Offline publication fixture');};\n");
 const sourceCommit="0123456789abcdef0123456789abcdef01234567";
 const base={...process.env,SITE_PUBLICATION_DATE:"2026-10-22",GITHUB_SHA:sourceCommit};
-const run=(extra={})=>spawnSync(process.execPath,["--import",preload,"scripts/build.mjs"],{
-  cwd:app,env:{...base,...extra},encoding:"utf8"
-});
+const run=(extra={})=>{
+  const env={...base,...extra};
+  for(const [key,value] of Object.entries(env))if(value===null)delete env[key];
+  return spawnSync(process.execPath,["--import",preload,"scripts/build.mjs"],{
+    cwd:app,env,encoding:"utf8"
+  });
+};
 let passed=0;
 const check=(name,fn)=>{fn();passed++;console.log("PASS",name);};
+await writeFile(path.join(app,"public/index.html"),"obsolete unqualified static homepage");
+await writeFile(path.join(app,"public/source-revision.json"),"stale source claim");
 const first=run();
 check("actual original build executes with authored ARB inputs and no unavailable language package",()=>assert.equal(first.status,0,first.stderr));
+const obsolete=await readFile(path.join(app,"public/index.html"),"utf8").then(()=>true,
+  error=>{if(error.code==="ENOENT")return false;throw error;});
+check("root has one TUFTE authority and stale static index is removed",()=>assert.equal(obsolete,false));
 const names=["source-revision.json","estate-records.json","zh-hans/index.html",
   "lkt/index.html","llms.txt","llms-full.txt","feed.json","feed.atom.xml",
   "feed.rss.xml",".well-known/security.txt","8d232583e7cba18a83bf5c0325fcc7c9.txt",
@@ -52,6 +61,13 @@ check("UTC publication date fixes original security and sitemap output",()=>{
 check("repeat original build succeeds",()=>{const second=run();assert.equal(second.status,0,second.stderr);});
 const after=await readOutputs();
 check("original human and machine artifacts are deterministic",()=>assert.deepEqual(after,before));
+const local=run({GITHUB_SHA:null});
+check("unqualified local build succeeds without a counterfeit production receipt",()=>{
+  assert.equal(local.status,0,local.stderr);
+});
+const oldReceipt=await readFile(path.join(app,"public/source-revision.json"),"utf8")
+  .then(()=>true,error=>{if(error.code==="ENOENT")return false;throw error;});
+check("unqualified local build discards a previous source-revision assertion",()=>assert.equal(oldReceipt,false));
 for(const [name,extra,pattern] of [
   ["invalid publication day",{SITE_PUBLICATION_DATE:"2026-02-30"},/real YYYY-MM-DD UTC day/],
   ["invalid source commit",{GITHUB_SHA:"not-a-commit"},/one exact source commit/]

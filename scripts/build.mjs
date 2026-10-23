@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Writes the generated files in public/ from data/. Fonts, favicon and card are sources.
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rename, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { renderHumans, renderSecurity, renderIndex, renderLlms, renderLlmsFull, renderRobots, renderSitemap } from "../src/render.mjs";
@@ -45,8 +45,9 @@ for (const door of estate.doors) if (!hosts.has(door)) throw new Error(`door ${d
 for (const n of estate.nodes) if (!estate.groups.some((g) => g.id === n.group)) throw new Error(`${n.host}: unknown group ${n.group}`);
 if (estate.nodes.length + (estate.machines ?? []).length > 45) throw new Error("estate.json exceeds the Worker's per-request subrequest budget for probing");
 
-// Every language the site serves: one L-space over the interface strings, the words derived from the
-// data, and each locale's renderings; each locale's home page at its own path.
+// Every language is projected from its original authored ARB source.
+// Upstream x-l-space attribution remains evidence only; unverified witness hashes
+// never become new "current" claims in the site's limited locale adapter.
 const readText = (path) => readFile(new URL(path, root), "utf8");
 const space = siteSpace({
   interfaceSource: await readText("locales/en.arb"),
@@ -73,8 +74,20 @@ const files = {
   "public/robots.txt": renderRobots(home),
   "public/sitemap.xml": renderSitemap(home, updated, speakers.en.alternates()),
 };
+// A prior static English index is never another competing authority for /.
+// A local build without a qualified exact source SHA cannot retain an old
+// production claim. Do this only AFTER every generated body validates.
+await rm(new URL("public/index.html", root), {force:true});
+if (!sourceCommit) await rm(new URL("public/source-revision.json", root), {force:true});
 for (const [path, body] of Object.entries(files)) {
   await mkdir(new URL(path.slice(0, path.lastIndexOf("/") + 1), root), { recursive: true });
-  await writeFile(new URL(path, root), body);
-  console.log(`wrote ${fileURLToPath(new URL(path, root))} (${body.length} bytes)`);
+  const destination=new URL(path,root);
+  const staging=new URL(path+".staging-"+process.pid,root);
+  try {
+    await writeFile(staging, body, {flag:"wx"});
+    await rename(staging,destination);
+  } finally {
+    await rm(staging,{force:true});
+  }
+  console.log(`wrote ${fileURLToPath(destination)} (${body.length} bytes)`);
 }

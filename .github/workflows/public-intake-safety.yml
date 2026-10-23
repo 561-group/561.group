@@ -47,8 +47,8 @@ jobs:
         run: node --test test/public-intake-boundary.test.mjs
       - name: Exercise original data to compact TUFTE model without a mock supplier
         run: node --test test/home-tufte.test.mjs
-      - name: Exercise the original ARB data and Worker-version receipts without external registry dependencies
-        run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs
+      - name: Exercise the original ARB data, source-release boundaries and Worker receipts without any registry
+        run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
       - name: Probe actual TUFTE supplier and pinned LivingWebServer source
         timeout-minutes: 1
         run: |
