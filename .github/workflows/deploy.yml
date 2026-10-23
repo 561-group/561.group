@@ -129,7 +129,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const host='https://561.group';
-          const read=path=>fetch(host+path,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+          const read=(path,accept)=>fetch(host+path,{cache:'no-store',headers:{'cache-control':'no-cache',...(accept?{accept}:{})}});
           const manifest=await read('/source-revision.json');
           if(!manifest.ok)throw Error('Public source receipt not served: '+manifest.status);
           const receipt=await manifest.json();
@@ -170,8 +170,10 @@ jobs:
             }
           }
 
-          const home=await read('/');
+          const home=await read('/','text/html');
           const html=await home.text();
+          const homeSignals={status:home.status,contentType:home.headers.get('content-type'),tufte:html.includes('data-tufte'),work:html.includes('Work with us'),checkout:html.includes('buy.stripe.com'),invalidLegacyPhrase:html.includes('conurbanized ecosystem')};
+          console.log('Independent public home browser-mode receipt: '+JSON.stringify(homeSignals));
           if(!home.ok || !html.includes('data-tufte') ||
              !html.includes('Work with us') || !html.includes('buy.stripe.com') ||
              !html.includes('Research you can use.') ||
@@ -194,7 +196,7 @@ jobs:
             {path:'/about/',phrase:'The four accountable companies',tile:'companies'},
             {path:'/for-agents/',phrase:'Published machine-readable interfaces',tile:'endpoints'}
           ]){
-            const htmlResponse=await read(page.path);
+            const htmlResponse=await read(page.path,'text/html');
             const markup=await htmlResponse.text();
             if(!htmlResponse.ok ||
                !(htmlResponse.headers.get('content-type')??'').includes('text/html') ||
