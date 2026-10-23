@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {compareDelivery} from '../scripts/check-delivery-parity.mjs';
 const source='0123456789abcdef0123456789abcdef01234567';
 const version='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+const requiredRoutes=['homepage','contact','estate','agent-discovery','crawl-policy','sitemap','www-canonical-redirect'];
 const http={
   origin:'https://561.group',selectedReleaseSource:source,overall:'public-checks-passed',
-  checks:[{name:'source-revision-claim',outcome:'pass',claimedSourceCommit:source,claimedWorkerVersionId:version}]
+  checks:[...requiredRoutes.map(name=>({name,outcome:'pass',required:true})),
+    {name:'source-revision-claim',outcome:'pass',claimedSourceCommit:source,claimedWorkerVersionId:version}]
 };
 const native={
   origin:'https://561.group',worker:'561-group-site',status:'observed',
@@ -55,7 +57,22 @@ test('missing observer artifacts cannot claim an available deployment',()=>{
   assert.ok(a.diagnostics.includes('provider-identity-unobserved'));
 });
 test('public entrypoint regressions remain distinct from version agreement',()=>{
-  const a=receive({...http,overall:'public-checks-failed'});
+  const routes=http.checks.map(check=>check.name==='homepage'?{...check,outcome:'fail'}:check);
+  const a=receive({...http,overall:'public-checks-failed',checks:routes});
+  assert.equal(a.status,'receiving-incomplete');
+  assert.ok(a.diagnostics.includes('public-routes-not-independently-received'));
+});
+test('missing source receipt does not falsify successful public route observations',()=>{
+  const checks=http.checks.map(check=>check.name==='source-revision-claim'?{
+    ...check,outcome:'fail',reason:'no-public-revision-receipt'}:check);
+  const a=receive({...http,overall:'public-checks-failed',checks});
+  assert.equal(a.status,'receiving-incomplete');
+  assert.ok(a.diagnostics.includes('public-source-claim-unreceived'));
+  assert.ok(!a.diagnostics.includes('public-routes-not-independently-received'));
+});
+test('a missing required public route is not silently accepted',()=>{
+  const checks=http.checks.filter(check=>check.name!=='sitemap');
+  const a=receive({...http,checks});
   assert.equal(a.status,'receiving-incomplete');
   assert.ok(a.diagnostics.includes('public-routes-not-independently-received'));
 });

@@ -8,6 +8,7 @@ import {pathToFileURL} from 'node:url';
 const HEX40=/^[a-f0-9]{40}$/iu;
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/iu;
 const ORIGIN='https://561.group';
+const REQUIRED_ROUTES=['homepage','contact','estate','agent-discovery','crawl-policy','sitemap','www-canonical-redirect'];
 const OUTPUT='observations/561.group-public-provider-parity.json';
 
 export function compareDelivery({publicObservation,providerObservation}={}){
@@ -35,7 +36,11 @@ export function compareDelivery({publicObservation,providerObservation}={}){
   else if(!single)report('provider-active-version-not-single-100-percent');
   if(single&&UUID.test(publicVersion??'')&&providerVersion!==publicVersion.toLowerCase())
     report('public-provider-version-disagreement');
-  if(pub?.overall!=='public-checks-passed')report('public-routes-not-independently-received');
+  // Release identity is a separate seam: a missing receipt cannot turn seven
+  // independently successful public routes into a route-failure finding.
+  const publicRoutes=new Map((pub?.checks??[]).map(c=>[c.name,c]));
+  if(REQUIRED_ROUTES.some(name=>publicRoutes.get(name)?.outcome!=='pass'))
+    report('public-routes-not-independently-received');
   return {
     schema:'561.group.public-provider-correspondence/v1',origin:ORIGIN,
     observedAt:new Date().toISOString(),
