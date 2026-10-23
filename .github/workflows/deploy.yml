@@ -87,7 +87,7 @@ jobs:
         run: node scripts/verify-brand-source.mjs .brand-source
       - name: Install pinned headless Chromium for the original brand release gate
         timeout-minutes: 4
-        run: npx playwright install --with-deps --only-shell chromium
+        run: npx playwright install --only-shell chromium
       - name: Refuse to publish a visually regressed TUFTE consumer
         timeout-minutes: 4
         run: npm run test:visual
