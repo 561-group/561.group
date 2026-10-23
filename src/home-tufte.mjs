@@ -46,6 +46,17 @@ function checkedSources(home, estate, frontdoor) {
   if (!["headline","body","scope"].every(field =>
       typeof material?.[field] === "string" && material[field].trim()))
     throw new TypeError("The source-owned material-world position requires a headline, body and scope");
+  const vision = frontdoor.vision;
+  if (!vision || !["eyebrow","headline","intro","throughline","engagement"].every(
+      field => typeof vision[field] === "string" && vision[field].trim()) ||
+      !Array.isArray(vision.frontiers) || vision.frontiers.length !== 2 ||
+      new Set(vision.frontiers.map(f => f.id)).size !== 2 ||
+      !["union-of-harmonious-colonies","bicameral-biology"].every(
+        id => vision.frontiers.some(f => f.id === id)) ||
+      vision.frontiers.some(f => !slug.test(f.id) ||
+        !["title","thesis","present","boundary"].every(
+          field => typeof f[field] === "string" && f[field].trim())))
+    throw new TypeError("Two complete, distinct, source-authored civilizational frontiers are required");
   if (frontdoor.schema !== "561.group/public-frontdoor/v1")
     throw new TypeError("Public editorial record has an unrecognized schema");
   if (typeof home.public?.headline !== "string" ||
@@ -182,6 +193,23 @@ function lead(kicker, headline, description, calls = []) {
     '<h3 class="site-display">' + esc(headline) + "</h3>" +
     para(description,"site-intro") + (calls.length ? actions(calls) : "");
 }
+function frontiers(frontdoor, concise = false) {
+  const vision = frontdoor.vision;
+  return para(vision.intro,"site-section-lead") +
+    '<div class="site-frontier-grid">' +
+    vision.frontiers.map(f => '<section class="site-frontier" id="' + esc(f.id) + '">' +
+      '<h3>' + esc(f.title) + '</h3>' +
+      para(f.thesis,"site-frontier-thesis") +
+      para(f.present,"site-frontier-present") +
+      (concise ? "" : para(f.boundary,"site-frontier-boundary")) +
+      '</section>').join("") + '</div>' +
+    para(vision.throughline,"site-frontier-throughline") +
+    (concise ? actions([{href:"/about/",label:"Read the full purpose"},
+                        {href:"/work/",label:"Work with the Group"}]) :
+      para(vision.engagement) +
+      actions([{href:"/work/",label:"Bring a practical problem"},
+               {href:"https://science.561.group/",label:"Explore the science"}]));
+}
 function endpoints(estate, limit = Infinity) {
   return '<ul class="site-endpoints">' + estate.machine.slice(0, limit).map(point =>
     "<li><span class=\"site-method\">" + esc(point.verb) + "</span>" +
@@ -196,6 +224,7 @@ function homepage(home, estate, frontdoor, source) {
         frontdoor.proposition,frontdoor.promise,
         [{href:"/work/",label:"Bring us a problem"},{href:"/projects/",label:"Explore what we build"}]) +
       para(home.public.intro,"site-hero-note"),12,"rail"),
+    panel("frontiers",frontdoor.vision.headline,frontiers(frontdoor,true),12),
     panel("paths","What brings you here?",pathways(frontdoor),12),
     panel("services","Work you can ask us to do",
       para("We can scope actual research, technical and public-service work with an accountable company.","site-section-lead") +
@@ -234,6 +263,7 @@ function workPage(home, frontdoor, source) {
         frontdoor.firstStep,[{href:"/contact/#work",label:"Request a scope and quote"},
           {href:"/projects/",label:"See what we make"}]),12),
     panel("services","Areas we can scope",
+      para(frontdoor.vision.throughline,"site-section-lead") +
       para("These are service capabilities for inquiry and qualification, not a catalog of pre-approved fixed-price orders.","site-section-lead") +
       serviceEntries(frontdoor,source.providers),12),
     panel("process","How an engagement moves",processSteps(frontdoor),12),
@@ -273,6 +303,7 @@ function aboutPage(home, frontdoor) {
         "An institution built around useful work.",
         "The 561 Group brings research, engineering, operations and public services together without pretending that a proposal is a finished product.",
         [{href:"/work/",label:"Work with the Group"},{href:"/projects/",label:"Explore the public estate"}]),12),
+    panel("frontiers","What we are trying to make real",frontiers(frontdoor,false),12),
     panel("companies","The four accountable companies",houses(home),12),
     panel("process","How work moves",processSteps(frontdoor) +
       note("An accepted outcome is checked independently of supplier activity."),12),
@@ -310,7 +341,7 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
   if (!PUBLIC_ROUTES.includes(path)) throw new RangeError("Unadmitted Group public route");
   const source = checkedSources(home,estate,frontdoor);
   const page = {
-    "/": {title:home.name,subtitle:"Research · Engineering · Operations · Public Services"},
+    "/": {title:home.name,subtitle:"Indigenous-grounded governance · Artificial abiogenesis · Practical services"},
     "/work/": {title:"Work with the 561 Group",subtitle:"Capabilities, scoping, providers and actual terms"},
     "/projects/": {title:"Explore the 561 Group",subtitle:"Public projects, commerce, worlds and publications"},
     "/about/": {title:"About the 561 Group",subtitle:"Four companies, one accountable source of work"},
