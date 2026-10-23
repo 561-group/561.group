@@ -116,6 +116,14 @@ test("production deployment consumes the exact dependency lock before provider w
   }
 });
 
+test("production independently reads human HTML using browser content negotiation, not an ambiguous default",()=>{
+  const workflow=readFileSync(fileURLToPath(new URL("../.github/workflows/deploy.yml",import.meta.url)),"utf8");
+  assert.match(workflow,/const home=await read\('\/','text\/html'\)/u);
+  assert.match(workflow,/const htmlResponse=await read\(page\.path,'text\/html'\)/u);
+  assert.match(workflow,/Independent public home browser-mode receipt/u);
+  assert.match(workflow,/accept:'application\/json'/u);
+});
+
 test("manual source release independently binds generated artifacts, not source SHA alone",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   assert.ok(workflow.includes("receipt.artifactDigests"));
