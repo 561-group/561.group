@@ -60,5 +60,5 @@ test("a real secondary visitor page uses its own lead and independent tile count
     x.includes("own lead section")));
   const about={...work,tileCount:6,identityAppeal:true};
   assert.ok(qualifyRenderedBrand(about,{path:"/about/"}).errors.some(x=>
-    x.includes("identity")));
+    x.includes("Rejected Lakota-founded")));
 });
