@@ -185,7 +185,7 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
     for(const item of pages){
       const context=await browser.newContext({
         viewport:{width:item.width,height:item.height},deviceScaleFactor:1,
-        colorScheme:"light",reducedMotion:"reduce",javaScriptEnabled:false
+        colorScheme:"light",reducedMotion:"reduce",javaScriptEnabled:true
       });
       try{
         // Avoid third-party network dependencies. Local fonts are from this exact source.
