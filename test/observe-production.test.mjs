@@ -4,7 +4,7 @@ import { observeProduction, markdownSummary } from '../scripts/observe-productio
 const SHA = '1234567890abcdef1234567890abcdef12345678';
 const estate = { revision: 'dated-original-archive', nodes: [{host:'node.561.group',told:'both'}] };
 const revision = { repository:'561-group/561.group', origin:'https://561.group', sourceCommit:SHA,
-  renderer:'TUFTE', application:'LivingWebServer' };
+  renderer:'TUFTE', application:'LivingWebServer', workerVersionId:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' };
 const headers = { 'x-content-type-options':'nosniff', 'strict-transport-security':'max-age=31536000' };
 function provider({ revisionStatus = 200, aliasStatus = 301, aliasLocation = 'https://561.group/contact/?witness=1',
  estateBody = JSON.stringify(estate), abortPath = null, secure = true, claim = revision } = {}) {
@@ -33,6 +33,7 @@ test('exact selected source readback and public resources qualify only HTTP obse
   assert.equal(r.independentHumanAcceptance,false);
   assert.ok(r.checks.every(c=>c.outcome==='pass'));
   assert.equal(r.checks.find(c=>c.name==='estate').estateNodes,1);
+  assert.equal(r.checks.at(-1).claimedWorkerVersionId,'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee');
   assert.match(r.checks.at(-1).qualification,/public-self-description-only/u);
   assert.match(markdownSummary(r),/not.*established/u);
 });
@@ -76,4 +77,10 @@ test('public information requires actual media/contract and security headers',as
 
 test('no ill-formed exact revision selection is silently normalized',async()=>{
   await assert.rejects(observeProduction({fetchImpl:provider(),expectedSourceSha:'main'}),/40-character/u);
+});
+
+test('a source-only revision without the actual Worker version cannot certify an installed release',async()=>{
+  const r=await observeProduction({fetchImpl:provider({claim:{...revision,workerVersionId:null}}),expectedSourceSha:SHA});
+  assert.equal(r.overall,'public-checks-failed');
+  assert.equal(r.checks.at(-1).reason,'missing-or-invalid-worker-version');
 });
