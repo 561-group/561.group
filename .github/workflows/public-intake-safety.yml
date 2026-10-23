@@ -49,6 +49,8 @@ jobs:
         run: node --test test/home-tufte.test.mjs
       - name: Exercise the original ARB data, source-release boundaries and Worker receipts without any registry
         run: node --test test/locales-runtime.test.mjs test/i18n.test.mjs test/source-revision.test.mjs test/release-preflight.test.mjs
+      - name: Verify one site-owned dependency contract before external registry access
+        run: node --test test/fetch-source-contract.test.mjs
       - name: Probe actual TUFTE supplier and pinned LivingWebServer source
         timeout-minutes: 1
         run: |
@@ -84,12 +86,19 @@ jobs:
         env:
           npm_config_fetch_retries: '0'
           npm_config_fetch_timeout: '15000'
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm install --omit=optional --ignore-scripts --no-audit --no-fund
       - name: Qualify one original Worker, renderer and generated public artifact graph
         run: |
           npm run check
           npm test
           npm run build
+      - name: Preserve qualified installed dependency lock for independent receiving
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 561-apex-exact-lock-candidate
+          path: package-lock.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Inspect release source and canonical published source inputs
         run: |
           node --input-type=module <<'NODE'

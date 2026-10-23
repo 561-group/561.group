@@ -135,3 +135,16 @@ Cloudflare version or independently accepted delivery.
 ## Installation boundary — site-owned ARB projection
 
 The earlier standalone site imported `@red-cup-engineering/l-space`, a package that is not currently published in the house registry. The site now reads its original `locales/*.arb` directly through `src/locales.mjs`, with a deliberately limited ICU plural/argument/rich-tag interpreter and structural source/target checks. The original `x-l-space` attribution is preserved; an upstream witness hash that cannot be independently reconstructed is **unverified**, never relabeled current. English messages remain the canonical source; Lakota fallbacks stay marked English, and machine-authored translations remain disclosed. TUFTE and LivingWebServer **are not mocked**: native installation and live production receiving still require their own genuine published dependency closure.
+
+## Native edge integration receiving (2026-10-22)
+
+The source tests are deliberately executable without a private package registry.
+`npm test` additionally exercises **the actual installed** upstream
+`@red-cup-engineering/living-web-server/fetch` and its native TUFTE HTML/JSON
+rendering over the same authored home/estate records; no fake implementation
+qualifies this test. The site pins the independent upstream Fetch-only release
+`9e6d657fda9df3bd50744294eb3bbd1412b854ad`. Installation excludes
+optional Node HTTP transport dependencies. CI retains the generated lockfile
+for independent review once the original package registry is reachable; a
+missing lock, failed native test, wrong source commit, or missing provider
+receipt still prevents the manual production release.

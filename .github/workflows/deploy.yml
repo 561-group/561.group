@@ -29,7 +29,7 @@ jobs:
           }
       - name: Install original 561 registry suppliers and pinned LivingWebServer
         timeout-minutes: 6
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
       - name: Qualify the actual original Worker, TUFTE and other retained routes
         run: |
           npm run check
@@ -55,6 +55,10 @@ jobs:
           catch(error) { if(error.code!=='ENOENT')throw error; }
           const living=JSON.parse(await text('node_modules/@red-cup-engineering/living-web-server/package.json'));
           if(!living.exports?.['./fetch'])throw Error('Installed LivingWebServer lacks Worker Fetch contract');
+          if(living.dependencies?.['@red-cup-engineering/computer-web-server'] ||
+             living.peerDependenciesMeta?.['@red-cup-engineering/computer-web-server']?.optional!==true) {
+            throw Error('This Worker release includes unqualified Node transport dependency semantics');
+          }
           console.log('Admitted exact TUFTE + LivingWebServer source '+receipt.sourceCommit);
           NODE
       - uses: cloudflare/wrangler-action@v3
