@@ -53,6 +53,17 @@ a.site-action--quiet:hover {background:#dff4e3;color:var(--site-ink)!important}
 .site-card a {font-weight:650;color:#005f5a;margin-top:auto}
 .site-card a::after {content:" ↗";font-family:system-ui;font-weight:500}
 .site-card .site-category {font:650 .72rem/1.4 ui-monospace,Consolas,monospace;color:#32675f;text-transform:uppercase;letter-spacing:.06em}
+#frontiers {grid-column:span 12;background:linear-gradient(155deg,#fbf9ef 0%,#eef2e9 100%);border-top:3px solid var(--site-ink)}
+#frontiers header h2 {color:#144c4d}
+.site-frontier-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(.8rem,2vw,1.5rem);margin:1.3rem 0}
+.site-frontier {padding:1.35rem;border:1px solid #a5bab5;background:#fffdfa;min-width:0}
+.site-frontier:nth-child(2) {border-top:5px solid #a76728}
+.site-frontier:first-child {border-top:5px solid #236a60}
+.site-frontier h3 {font:700 clamp(1.35rem,2vw,1.9rem)/1.13 ui-serif,Georgia,serif;letter-spacing:-.025em;margin:0 0 .9rem}
+.site-frontier .site-frontier-thesis {font-size:1.06rem;line-height:1.55;color:#173841}
+.site-frontier .site-frontier-present {font-size:.93rem;color:#2d5054}
+.site-frontier .site-frontier-boundary {font-size:.87rem;border-top:1px solid #bdd0c9;margin-top:1.1rem;padding-top:1rem;color:#4e6064}
+.site-frontier-throughline {font-weight:650;font-size:1.06rem;line-height:1.55;max-width:72ch}
 .site-section-lead {font-size:1.07rem;line-height:1.6;margin:0 0 1.35rem;color:#304b52}
 .site-service-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.05rem;list-style:none;padding:0!important;margin:0}
 .site-service {border-top:2px solid var(--tufte-accent);padding:.8rem 0 .25rem;min-width:0}
@@ -98,7 +109,7 @@ a.site-action--quiet:hover {background:#dff4e3;color:var(--site-ink)!important}
  .tufte-masthead {align-items:flex-start;flex-direction:column;gap:.6rem}
  [data-tufte-navigation] {justify-content:flex-start;gap:.2rem .8rem}
  .tufte-grid>.tufte-tile {grid-column:span 12!important}
- .site-service-grid,.site-house-list,.site-directory {grid-template-columns:1fr}
+ .site-service-grid,.site-house-list,.site-directory,.site-frontier-grid {grid-template-columns:1fr}
  .site-display {font-size:clamp(2.4rem,10vw,4rem)}
 }
 @media(max-width:430px) {
