@@ -72,10 +72,10 @@ test("TUFTE projection escapes public values and refuses missing or unsafe sourc
 
 test("genuine TUFTE document head keeps the Group's original federation, feed and locale discovery",()=>{
   const head=project561GroupHead(home);
-  assert.match(head,/data-561-house="visual-design-bible-v0\\.4-candidate"/u);
+  assert.ok(head.includes('data-561-house="visual-design-bible-v0.4-candidate"'));
   for(const token of ["#F2EAD8","#0A0A0A","#FF4530","#3D5588","Space Grotesk","Roboto Slab","JetBrains Mono"])
     assert.ok(head.includes(token), "561 visual token missing: "+token);
-  assert.match(head,/\\.tufte-masthead::before/u);
+  assert.ok(head.includes('.tufte-masthead::before'));
   assert.match(head,/prefers-reduced-motion:reduce/u);
   assert.match(head,/name="fediverse:creator" content="@group@561\.group"/u);
   assert.match(head,/rel="me" href="https:\/\/561\.group\/actors\/group"/u);
