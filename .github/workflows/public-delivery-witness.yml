@@ -9,6 +9,9 @@ on:
     paths:
       - scripts/observe-production.mjs
       - test/observe-production.test.mjs
+      - scripts/worker-recovery.mjs
+      - test/worker-recovery.test.mjs
+      - .github/workflows/recover-worker.yml
       - .github/workflows/public-delivery-witness.yml
   workflow_dispatch:
     inputs:
@@ -34,7 +37,7 @@ jobs:
         with:
           node-version: '24'
       - name: Test public observer decision logic (offline fixtures)
-        run: node --test test/observe-production.test.mjs
+        run: node --test test/observe-production.test.mjs test/worker-recovery.test.mjs
 
   public-delivery-observation:
     needs: observer-fixture-tests
