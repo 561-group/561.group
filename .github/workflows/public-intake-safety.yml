@@ -121,6 +121,20 @@ jobs:
           npm run check
           npm test
           npm run build
+      - name: Install pinned minimal Chromium browser for real visual reading
+        timeout-minutes: 4
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: Read actual original TUFTE pages at desktop and mobile viewports
+        timeout-minutes: 4
+        run: npm run test:visual
+      - name: Retain unaccepted mobile and desktop visual specimens
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 561-apex-rendered-visual-candidates
+          path: artifacts/brand-visual/
+          retention-days: 7
+          if-no-files-found: warn
       - name: Bundle the real original Worker and public assets with Cloudflare Wrangler without deployment
         timeout-minutes: 3
         run: |
