@@ -19,6 +19,11 @@ export function project561GroupHome({ home, estate }) {
   const approved = home.public;
   const support = home.group?.sustainingSupport;
   const featured = approved?.featured;
+  const material = approved?.materialApproach;
+  if (!["headline", "body", "scope"].every(field =>
+      typeof material?.[field] === "string" && material[field].trim())) {
+    throw new TypeError("The source-owned material-world position requires a headline, body and scope");
+  }
   if (!approved?.headline || !approved?.intro || !Array.isArray(featured) ||
       !Number.isInteger(support?.monthlyUsd) || support.monthlyUsd <= 0) {
     throw new TypeError("The original public introduction, featured estate and support price are required");
@@ -61,6 +66,7 @@ export function project561GroupHome({ home, estate }) {
     revision:estate.revision??"unversioned",
     navigation:[
       {href:"/#explore",label:"Projects"},
+      {href:"/#physical-world",label:"Our approach"},
       {href:"/#companies",label:"Companies"},
       {href:"/contact/",label:"Work with us"},
       {href:"/zh-hans/",label:"简体中文"},
@@ -73,6 +79,8 @@ export function project561GroupHome({ home, estate }) {
         html: '<p>' + escapeHtml(approved.contactIntro) + '</p><p>' + anchor("/contact/", "Contact the Group") + '</p>' },
       { id: "explore", title: "Explore working projects", role: "rail", span: 12,
         html: '<ul>' + work + '</ul>' },
+      { id: "physical-world", title: material.headline, span: 12,
+        html: '<p>' + escapeHtml(material.body) + '</p><p>' + escapeHtml(material.scope) + '</p>' },
       { id: "support", title: "Sustain the public work", span: 6,
         html: '<p>' + escapeHtml(support.summary) + '</p><p>' + anchor(support.url,
           "Support the Group — $" + support.monthlyUsd + "/month") + '</p><p>Recurring monthly until canceled. No privileged access, editorial influence or customer-settlement rights. ' + anchor(support.billingHelp, "Billing and cancellation help") + '.</p>' },
