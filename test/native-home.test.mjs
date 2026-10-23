@@ -28,7 +28,9 @@ test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline r
   assert.ok(html.includes(frontdoor.proposition));
   for(const term of ["Work with us","Bring us a problem","Persistent AI systems",
     "Indigenous data governance","Shop","Bazaar","Market","Support the Group",
-    "Design for a world that does not hold still","Indigenous and treaty rights"]) {
+    "Design for a world that does not hold still","Indigenous and treaty rights",
+    "Another civilization is possible","Union of Harmonious Colonies",
+    "Beyond settler-colonial governance","Toward a second lineage of living matter"]) {
     assert.ok(html.includes(term),"a visitor needs to see "+term);
   }
   for(const path of ["/work/","/projects/","/about/","/for-agents/"])
@@ -52,8 +54,10 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
   assert.deepEqual(model.tiles.map(t=>t.id),
-    ["introduction","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
+  assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes("Artificial Abiogenesis and Smartgoo"));
+  assert.ok(model.tiles.some(t=>t.id==="frontiers" && t.html.includes("silica")));
   assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
 });
 test("each substantive source-owned page renders different useful HTML AND JSON",async()=>{
@@ -105,4 +109,19 @@ test("new front-door reader is required; missing source cannot yield a vague bla
   assert.throws(()=>create561GroupLivingApplication({
     readHome:()=>home,readEstate:()=>estate,releaseHome:home
   }),/readFrontdoor/);
+});
+
+
+test("public about page makes the two literal long-horizon programs inspectable, not falsely completed",async()=>{
+  const {request}=fixture();
+  const res=await request("/about/",{headers:{accept:"application/json"}});
+  assert.equal(res.status,200);
+  const model=await res.json();
+  const frontier=model.tiles.find(x=>x.id==="frontiers");
+  assert.ok(frontier);
+  assert.ok(frontier.html.includes("settler-colonial"));
+  assert.ok(frontier.html.includes("siloxane"));
+  assert.ok(frontier.html.includes("We have not created silicon-based life"));
+  assert.ok(frontier.html.includes("No software confers Indigenous sovereignty"));
+  assert.ok(frontier.html.includes("https://science.561.group/"));
 });
