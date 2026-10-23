@@ -217,10 +217,39 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
         // Keep keyboard-focus evidence in the JSON, but collect the visual
         // specimen without the test harness leaving a skip-link focus box.
         await page.evaluate(()=>document.activeElement?.blur());
-        await page.screenshot({path:screenshot,fullPage:true,animations:"disabled"});
-        const hash=createHash("sha256").update(await readFile(screenshot)).digest("hex");
+        const png=await page.screenshot({path:screenshot,fullPage:true,animations:"disabled"});
+        const colorObservation=await page.evaluate(async base64=>{
+          const bytes=Uint8Array.from(atob(base64),letter=>letter.charCodeAt(0));
+          const image=await createImageBitmap(new Blob([bytes],{type:"image/png"}));
+          try{
+            const canvas=new OffscreenCanvas(image.width,image.height);
+            const context=canvas.getContext("2d",{willReadFrequently:true});
+            if(!context)throw Error("Chromium cannot read rendered color pixels");
+            context.drawImage(image,0,0);
+            const rgba=context.getImageData(0,0,image.width,image.height).data;
+            const pixelBytes=new Uint8Array(rgba.buffer,rgba.byteOffset,rgba.byteLength);
+            const css=getComputedStyle(document.documentElement);
+            const colors=["alarm","witness"].map(id=>({
+              id,hex:css.getPropertyValue("--house-"+id).trim()
+            }));
+            const observer=await import("/__source-owned-color-observation.mjs");
+            return observer.measureColorCoverage({
+              pixels:pixelBytes,width:image.width,height:image.height,
+              regions:[
+                {id:"full-raster",x:0,y:0,width:image.width,height:image.height},
+                {id:"first-viewport",x:0,y:0,width:Math.min(innerWidth,image.width),
+                  height:Math.min(innerHeight,image.height)}
+              ],colors,radius:20
+            });
+          }finally{image.close();}
+        },png.toString("base64"));
+        if(colorObservation.policyEvaluated!==false ||
+           colorObservation.independentlyAccepted!==false ||
+           colorObservation.reports.length!==2)
+          throw Error("Rendered visual instrument invented authority or omitted the comparison");
+        const hash=createHash("sha256").update(png).digest("hex");
         cases.push({name:item.name,path:item.path,viewport:{width:item.width,height:item.height},
-          ...result,reading,screenshot:item.name+".png",sha256:hash});
+          ...result,reading,screenshot:item.name+".png",sha256:hash,colorObservation});
       }finally{await context.close()}
     }
     const sourceRole=process.env.GITHUB_EVENT_NAME==="pull_request"?
@@ -234,6 +263,8 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
       sourceCommit,sourceRole,originalPrHead,
       kind:"actual-original-LivingWebServer-TUFTE-in-headless-Chromium",
       houseSource:"data/brand-source.json",
+      pixelInstrument:{owner:observer.owner,commit:observer.commit,entry:observer.entry},
+      empiricalScope:"full-raster versus first-viewport, without a selected color-budget receiving policy",
       acceptance:"CANDIDATE: machine browser conformance; golden-baseline and independent human approval NOT established",
       playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases
     };
