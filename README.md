@@ -74,6 +74,23 @@ pnpm deploy   # build, then wrangler deploy (routes 561.group/* and www.561.grou
 
 After deploying, check three things. `https://561.group/` should answer 200. `https://www.561.group/x` should return a 301 to `https://561.group/x`. `https://561.group/estate.json` should list every node with a `told` value.
 
+## Deployment observations and credential separation
+
+The site's existing read-only GitHub Actions observer checks public HTTP and
+the active `561-group-site` Cloudflare deployment. For provider metadata,
+configure `CLOUDFLARE_ACCOUNT_ID` and a dedicated
+`CLOUDFLARE_READ_API_TOKEN` with **Workers Metadata Read-Only** access,
+preferably restricted to this Worker. Cloudflare permits metadata-read
+permissions on its deployment-list endpoint:
+https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/deployments/methods/list/
+
+Do not expose the deployment-capable `CLOUDFLARE_API_TOKEN` to the unattended
+observer. If the dedicated token is missing or refused, the observation reports
+unmounted/unknown provider coverage, **not** a down website. Production deploys
+and explicitly authorized rollbacks retain their separate credential, approval
+and receipt conditions. Provider version IDs, public HTTP bytes and the exact
+source commit are independent pieces of evidence until received together.
+
 ## The Group as a hub
 
 `data/home.json` also holds `group`: the four companies (name, URL, GitHub organization, fediverse handle, feeds), the market addresses and the topics the Organization knows about. The renderer turns it into the JSON-LD graph (Organization with `subOrganization`, WebSite, DefinedTermSet of the glossed design terms), the "The Group" section with the Follow block, and the companies in `llms.txt` and `llms-full.txt`. `scripts/build.mjs` reads the market's offer count from its x402 discovery at build time and leaves the number out of the llms files when it cannot be read; it is never written by hand. `robots.txt` names the AI crawlers explicitly.

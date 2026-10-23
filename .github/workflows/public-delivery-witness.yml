@@ -52,10 +52,9 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Read provider-native active Worker version when credentials are configured
+      - name: Read provider-native active Worker version using dedicated metadata-read token
         env:
           CLOUDFLARE_READ_API_TOKEN: ${{ secrets.CLOUDFLARE_READ_API_TOKEN }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node scripts/observe-provider-deployment.mjs
       - name: Observe real external public endpoints independently of the build

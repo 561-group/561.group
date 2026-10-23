@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Read the live Cloudflare deployment identity for the same Worker that serves 561.group.
 // Provider-native observation; NOT an assertion that any Git commit was published.
+// Unattended observer uses only a dedicated read token, not production deployment authority.
 import {mkdir,writeFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {deploymentsOf,fetchDeployments} from './worker-recovery.mjs';
@@ -48,7 +49,7 @@ export async function observeProviderDeployment({
 async function main() {
   const observation=await observeProviderDeployment({
     accountId:process.env.CLOUDFLARE_ACCOUNT_ID,
-    apiToken:process.env.CLOUDFLARE_READ_API_TOKEN||process.env.CLOUDFLARE_API_TOKEN
+    apiToken:process.env.CLOUDFLARE_READ_API_TOKEN
   });
   await mkdir('observations',{recursive:true});
   await writeFile(OUTPUT,JSON.stringify(observation,null,2)+'\n');
