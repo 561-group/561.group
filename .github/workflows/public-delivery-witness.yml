@@ -1,6 +1,7 @@
 name: Observe 561.group public delivery (read-only)
 
-# Public evidence only: no secrets, provider mutation, release selection, or automatic promotion.
+# Read-only public evidence: main selects its own exact commit for comparison.
+# No secrets, provider mutation or automatic promotion.
 # The existing qualified source -> build -> production workflow remains separate.
 on:
   push:
@@ -53,7 +54,7 @@ jobs:
           node-version: '24'
       - name: Observe real external public endpoints independently of the build
         env:
-          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha || github.sha }}
         run: node scripts/observe-production.mjs
       - name: Read provider-native active Worker version when credentials are configured
         env:
