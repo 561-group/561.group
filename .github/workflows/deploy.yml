@@ -185,31 +185,52 @@ jobs:
             }
           }
 
-          // Marketing copy is owned by the public editorial source, not by
-          // frozen release-workflow prose. Verify current purpose, not a
-          // historical slogan that would make authentic branding undeployable.
+          // The root route is an entrance, NOT a culture/research anthology.
+          // Receive the original service, project, support and long-range
+          // research through their own exact published public page instead.
           const {readFileSync}=await import('node:fs');
           const frontdoor=JSON.parse(readFileSync('data/frontdoor.json','utf8'));
+          const original=JSON.parse(readFileSync('data/home.json','utf8'));
           if(typeof frontdoor.proposition!=='string' || !frontdoor.proposition.trim() ||
-             !Array.isArray(frontdoor.vision?.frontiers) || frontdoor.vision.frontiers.length!==2 ||
+             !Array.isArray(frontdoor.vision?.frontiers) ||
+             frontdoor.vision.frontiers.length!==2 ||
              frontdoor.vision.frontiers.some(f=>typeof f.title!=='string'||!f.title.trim())) {
-            throw Error('Original public editorial source has no two complete civilization-building frontiers');
+            throw Error('Original source lost the separately authored current purpose or long-horizon research');
           }
           const home=await read('/','text/html');
           const html=await home.text();
+          const visible=html.slice(html.indexOf('<main'),html.indexOf('</main>')+7);
           const homeSignals={status:home.status,contentType:home.headers.get('content-type'),
             tufte:html.includes('data-tufte'),purpose:html.includes(frontdoor.proposition),
-            frontiers:frontdoor.vision.frontiers.map(f=>({id:f.id,present:html.includes(f.title)})),
-            work:html.includes('Work with us'),checkout:html.includes('buy.stripe.com'),
-            invalidLegacyPhrase:html.includes('conurbanized ecosystem')};
+            journeys:frontdoor.paths.every(p=>visible.includes(p.title) && visible.includes(p.href)),
+            companies:original.group.companies.every(c=>visible.includes(c.name)),
+            projects:visible.includes('Public projects and publications'),
+            inquiry:visible.includes('href="/contact/#work"'),
+            mythologized:/Indigenous-grounded|Indigenous data governance|Union of Harmonious Colonies|Artificial Abiogenesis|silica-rich|SHRIMP|Jiangshi/iu.test(visible),
+            invalidLegacyPhrase:visible.includes('conurbanized ecosystem')};
           console.log('Independent public home browser-mode receipt: '+JSON.stringify(homeSignals));
           if(!home.ok || !(home.headers.get('content-type')??'').includes('text/html') ||
-             !homeSignals.tufte || !homeSignals.purpose || homeSignals.frontiers.some(f=>!f.present) ||
-             !homeSignals.work || !homeSignals.checkout ||
-             !html.includes('href="/work/"') ||
-             !html.includes('href="/projects/"') ||
-             homeSignals.invalidLegacyPhrase) {
-            throw Error('Public HTML does not carry the accepted original 561 Group mission and usable routes');
+             !homeSignals.tufte || !homeSignals.purpose || !homeSignals.journeys ||
+             !homeSignals.companies || !homeSignals.projects || !homeSignals.inquiry ||
+             homeSignals.mythologized || homeSignals.invalidLegacyPhrase) {
+            throw Error('Public homepage lost usable real visitor paths or reintroduced speculative/culture labels');
+          }
+          const aboutResponse=await read('/about/','text/html');
+          const aboutHtml=await aboutResponse.text();
+          if(!aboutResponse.ok || !aboutHtml.includes('Energy and coordination') ||
+             !frontdoor.vision.frontiers.every(f=>aboutHtml.includes(f.title)) ||
+             !aboutHtml.includes(original.public.materialApproach.headline) ||
+             !aboutHtml.includes('buy.stripe.com')) {
+            throw Error('About lost original resource coordination, research, or real nonbinding support access');
+          }
+          const workResponse=await read('/work/','text/html');
+          const workHtml=await workResponse.text();
+          const data=frontdoor.offers.find(offer=>offer.id==='indigenous-data');
+          if(!workResponse.ok || !data?.framework ||
+             !workHtml.includes(data.framework.href.replace(/&/g,'&amp;')) ||
+             !workHtml.includes('Data rights and stewardship') ||
+             !workHtml.includes('CARE Principles')) {
+            throw Error('Data stewardship lost the original CARE source and practical rights-holder method');
           }
           const json=await fetch(host+'/',{cache:'no-store',headers:{accept:'application/json',cookie:'lang=en'}});
           if(!json.ok || !(json.headers.get('content-type')||'').includes('application/json')) {
@@ -222,7 +243,7 @@ jobs:
           for(const page of [
             {path:'/work/',phrase:'Areas we can scope',tile:'services'},
             {path:'/projects/',phrase:'Shop, Bazaar and Market',tile:'trade'},
-            {path:'/about/',phrase:'The four accountable companies',tile:'companies'},
+            {path:'/about/',phrase:'The companies',tile:'companies'},
             {path:'/for-agents/',phrase:'Published machine-readable interfaces',tile:'endpoints'}
           ]){
             const htmlResponse=await read(page.path,'text/html');
