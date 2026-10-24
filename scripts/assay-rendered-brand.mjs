@@ -207,6 +207,25 @@ async function receivePrivateDataIntake(browser,host,output){
     }));
     if(!inactive.hidden || !inactive.disabled || !inactive.visiblyHidden)
       throw Error("Unrelated service inquiry exposed protected-data scope: "+JSON.stringify(inactive));
+    const contactOrder=await page.evaluate(()=>({
+      formY:document.querySelector("#private-intake")?.getBoundingClientRect().top+scrollY,
+      alternativesY:document.querySelector("#other-contact-options")?.getBoundingClientRect().top+scrollY,
+      optionCount:document.querySelectorAll(".contact-option").length,
+      optionsAllClosed:[...document.querySelectorAll(".contact-option")].every(node=>!node.open),
+      servicePrefill:document.querySelector("#affected")?.value
+    }));
+    if(!Number.isFinite(contactOrder.formY) || contactOrder.formY>850 ||
+       contactOrder.formY>=contactOrder.alternativesY ||
+       contactOrder.optionCount!==4 || !contactOrder.optionsAllClosed ||
+       contactOrder.servicePrefill!=="Research and formal methods")
+      throw Error("Actual contact inquiry remains buried under procedural guidance: "+JSON.stringify(contactOrder));
+    const other=page.locator(".contact-option").first(),opener=other.locator("summary");
+    await opener.click();
+    if(!await other.evaluate(node=>node.open))
+      throw Error("Native alternative contact channels cannot open");
+    await opener.click();
+    if(await other.evaluate(node=>node.open))
+      throw Error("Native alternative contact channels cannot close");
     const genericPath=join(output,"contact-mobile.png");
     await page.screenshot({path:genericPath,fullPage:true,animations:"disabled"});
     const rights=await page.goto(host.origin+
@@ -280,7 +299,9 @@ async function receivePrivateDataIntake(browser,host,output){
       labels:["contact-mobile.png","contact-data-stewardship-mobile.png"],
       sha256:[genericDigest,screenshotDigest],
       simulatedParticipant:false,contactPermission:false,independentAcceptance:false,
-      noPublicPost:true
+      noPublicPost:true,contactFormY:contactOrder.formY,
+      alternateRoutesY:contactOrder.alternativesY,
+      nativeRoutesClosed:contactOrder.optionsAllClosed
     };
   }finally{await context.close()}
 }
