@@ -222,23 +222,32 @@ function projects(home, estate, nodes) {
   }).join("") + "</ul>";
 }
 function serviceEntries(frontdoor, providers, items = frontdoor.offers) {
+  // Service discovery belongs here, not the corporate homepage.
+  // Native details let a phone reader scan the real service/owner list
+  // without burying links under eight complete legal and evidence records.
+  // No script, implicit acceptance, service activation or form collection.
   return '<ul class="site-service-grid">' + items.map(service => {
-    const company = providers.get(service.provider);
+    const company=providers.get(service.provider);
     return '<li class="site-service" id="' + esc(service.id) + '">' +
-      '<span class="site-provider">' + esc(company.name) + "</span>" +
-      "<h3>" + esc(service.title) + "</h3>" +
+      '<span class="site-provider">' + esc(company.name) + '</span>' +
+      '<h3>' + esc(service.title) + '</h3>' +
+      '<details class="site-service-detail"><summary>Scope, examples and source evidence</summary>' +
+      '<div class="site-service-detail-body">' +
       para(service.scope) +
-      para("Possible requests: " + service.example, "site-example") +
+      para("Possible requests: " + service.example,"site-example") +
       (service.framework ? anchor(service.framework.href,service.framework.label,"site-framework-link") +
         para(service.framework.qualification,"site-evidence-limit") : "") +
-      (service.evidence ? anchor(service.evidence.href, service.evidence.label) +
-        para(service.evidence.qualification, "site-evidence-limit") : "") +
-      (service.paidProposal ? anchor(service.paidProposal.href, service.paidProposal.label) +
-        para(service.paidProposal.qualification, "site-evidence-limit") : "") +
-      anchor("/contact/?service=" + encodeURIComponent(service.title) + "#work", "Ask about this work") +
-      "</li>";
-  }).join("") + "</ul>";
+      (service.evidence ? anchor(service.evidence.href,service.evidence.label) +
+        para(service.evidence.qualification,"site-evidence-limit") : "") +
+      (service.paidProposal ? anchor(service.paidProposal.href,service.paidProposal.label) +
+        para(service.paidProposal.qualification,"site-evidence-limit") : "") +
+      '</div></details>' +
+      anchor("/contact/?service="+encodeURIComponent(service.title)+"#work",
+        "Ask about this work","site-service-inquiry") +
+      '</li>';
+  }).join("") + '</ul>';
 }
+
 function processSteps(frontdoor) {
   return '<ol class="site-steps">' + frontdoor.steps.map(step =>
     '<li class="site-step"><span class="site-step-number">' + esc(step.number) +
