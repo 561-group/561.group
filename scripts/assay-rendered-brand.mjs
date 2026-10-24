@@ -48,6 +48,10 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
   need(value?.focusWidth>=3,"Keyboard focus has no sufficiently visible outline");
   need(value?.overflowX===false,"Layout overflows viewport horizontally");
   need(value?.identityAppeal===false,"Rejected Lakota-founded appeal is visible again");
+  if(path==="/")need(Array.isArray(value?.folioLabels) &&
+    value.folioLabels.length===4 && value.folioLabels.every(
+      item=>item.whiteSpace==="nowrap" && item.fits===true),
+    "Original work-folio editorial registers break words or overflow their card");
   need(value?.viewportWidth>=320,"Visual assay viewport is not a supported width");
   return Object.freeze({passed:errors.length===0,errors});
 }
@@ -246,6 +250,11 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             focusWidth:Number.isFinite(focusWidth)?focusWidth:0,
             overflowX:root.scrollWidth>innerWidth+1,
             identityAppeal:/Lakota-founded/i.test(document.body.innerText),
+            folioLabels:[...document.querySelectorAll(".site-folio-register")].map(node=>({
+              text:node.textContent.trim(),
+              whiteSpace:getComputedStyle(node).whiteSpace,
+              fits:node.scrollWidth<=node.clientWidth+1
+            })),
             fontFaces:[...document.fonts].map(f=>({family:f.family,status:f.status})),
             title:document.title
           };
