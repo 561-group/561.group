@@ -41,6 +41,12 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
     assert.ok(wayfinding.includes(path.title));
     assert.ok(wayfinding.includes('href="'+path.href+'"'));
   }
+  // The first research-reading path must reach the independently published
+  // original Science resource, rather than silently treating news as research.
+  assert.equal(frontdoor.paths.find(p=>p.id==="read").href,"https://science.561.group/");
+  assert.ok(wayfinding.includes('href="https://science.561.group/"'));
+  assert.ok(tile(root,"explore").html.includes('href="https://koios.news/"'),
+    "independent newsroom discovery remains a separate, live homepage affordance");
   assert.equal(tile(root,"physical-world").title,home.public.materialApproach.headline);
   assert.ok(tile(root,"physical-world").html.includes(home.public.materialApproach.body));
   assert.ok(tile(root,"physical-world").html.includes(home.public.materialApproach.scope));

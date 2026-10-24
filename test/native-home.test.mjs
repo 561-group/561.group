@@ -26,6 +26,11 @@ test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline r
   const html=await response.text();
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.ok(html.includes(frontdoor.proposition));
+  assert.ok(html.includes('href="https://science.561.group/"'),
+    "the original Science reader journey must be directly usable in rendered HTML");
+  assert.ok(html.includes('href="https://koios.news/"'),
+    "distinct independent newsroom route must not disappear");
+
   for(const term of ["Work with us","Bring us a problem","Persistent AI systems",
     "Indigenous data governance","Shop","Bazaar","Market","Support the Group",
     "Design for a world that does not hold still","Indigenous and treaty rights",
@@ -53,6 +58,9 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
+  assert.ok(model.tiles.find(t=>t.id==="paths")?.html.includes('href="https://science.561.group/"'),
+    "machine-readable TUFTE readers must receive the same research path");
+
   assert.deepEqual(model.tiles.map(t=>t.id),
     ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
