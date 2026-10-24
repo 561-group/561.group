@@ -18,7 +18,7 @@ function fixture(){
   const request=(path="/",options={})=>app.fetch(new Request("https://561.group"+path,options));
   return {app,reads,request};
 }
-test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline receipt",async()=>{
+test("real installed TUFTE/LWS publishes a quiet useful homepage, not a thematic billboard",async()=>{
   const f=fixture();
   const response=await f.request("/",{headers:{accept:"text/html"}});
   assert.equal(response.status,200);
@@ -26,26 +26,21 @@ test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline r
   const html=await response.text();
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.ok(html.includes(frontdoor.proposition));
-  assert.ok(html.includes('href="https://science.561.group/"'),
-    "the original Science reader journey must be directly usable in rendered HTML");
-  assert.ok(html.includes('href="https://koios.news/"'),
-    "distinct independent newsroom route must not disappear");
-
-  for(const term of ["Work with us","Bring us a problem","Persistent AI systems",
-    "Indigenous data governance","Shop","Bazaar","Market","Support the Group",
-    "Design for a world that does not hold still","Indigenous and treaty rights",
-    "Another civilization is possible","Union of Harmonious Colonies",
-    "Beyond settler-colonial governance","Toward a second lineage of living matter"]) {
-    assert.ok(html.includes(term),"a visitor needs to see "+term);
+  for(const phrase of ["What the Group does","Find what you need","The four companies",
+    "Public projects and publications","Get in touch", "Lenticule Science",
+    "Red Cup Engineering","Coesite Operations","Causeway Services"]){
+    assert.ok(html.includes(phrase),"a visitor needs a coherent institutional route: "+phrase);
   }
-  for(const path of ["/work/","/projects/","/about/","/for-agents/"])
-    assert.ok(html.includes('href="'+path+'"'),"one-click meaningful journey "+path);
+  for(const route of ["/work/","/projects/","/about/","/for-agents/","/contact/"])
+    assert.ok(html.includes('href="'+route+'"'),"one-click public route "+route);
+  assert.ok(html.includes('href="https://science.561.group/"'));
+  assert.ok(html.includes('href="https://koios.news/"'));
+  assert.doesNotMatch(html,/Indigenous-grounded|Indigenous data governance|SHRIMP|Jiangshi|Artificial Abiogenesis|silica-rich|Beyond settler-colonial governance/iu);
   assert.match(html,/rel="canonical" href="https:\/\/561\.group\/"/u);
   assert.match(html,/name="fediverse:creator"/u);
   assert.match(html,/type="application\/ld\+json"/u);
   assert.ok(html.includes(":focus-visible"));
   assert.ok(html.includes("max-width:430px"));
-  assert.doesNotMatch(html,/conurbanized ecosystem|default Theme/i);
   assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
 });
 test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
@@ -62,10 +57,13 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
     "machine-readable TUFTE readers must receive the same research path");
 
   assert.deepEqual(model.tiles.map(t=>t.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","paths","companies","explore","contact"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
   assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes("Artificial Abiogenesis and Smartgoo"));
-  assert.ok(model.tiles.some(t=>t.id==="frontiers" && t.html.includes("silica")));
+  assert.ok(!model.tiles.some(t=>["frontiers","physical-world","support","trade","services"].includes(t.id)),
+    "projected home stays a five-part visitor entrance, not a place for every research or commercial subject");
+  assert.ok(model.tiles.some(t=>t.id==="companies" && t.html.includes("Causeway Services")));
+
   assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
 });
 test("each substantive source-owned page renders different useful HTML AND JSON",async()=>{
@@ -73,7 +71,7 @@ test("each substantive source-owned page renders different useful HTML AND JSON"
   const cells=[
     {path:"/work/",phrase:"Areas we can scope",id:"services"},
     {path:"/projects/",phrase:"Shop, Bazaar and Market",id:"trade"},
-    {path:"/about/",phrase:"The four accountable companies",id:"companies"},
+    {path:"/about/",phrase:"The companies",id:"companies"},
     {path:"/for-agents/",phrase:"Published machine-readable interfaces",id:"endpoints"}
   ];
   for(const {path,phrase,id} of cells){
@@ -151,7 +149,7 @@ test("public about page makes the two literal long-horizon programs inspectable,
   const model=await res.json();
   const frontier=model.tiles.find(x=>x.id==="frontiers");
   assert.ok(frontier);
-  assert.ok(frontier.html.includes("settler-colonial"));
+  assert.ok(frontier.html.includes("Coordinating autonomous communities"));
   assert.ok(frontier.html.includes("siloxane"));
   assert.ok(frontier.html.includes("We have not created silicon-based life"));
   assert.ok(frontier.html.includes("No software confers Indigenous sovereignty"));
