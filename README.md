@@ -1,3 +1,5 @@
+Received 2026-10-24 from 561-group/561.group@384700ec75288831b76e602071aa7744905c11cf
+
 # 561.group
 
 The original public site of the **561 Group** at **https://561.group/** is served from this repository's `main` through the existing Cloudflare Worker `561-group-site`. It is one genuine TUFTE + LivingWebServer application, not a separate static marketing site.
@@ -28,12 +30,25 @@ Service areas are invitations to scope an actual job—not standing quotes, acce
 
 **Language disclosure:** English homepage and work/project/about/agent pages use TUFTE. The separately authored Mandarin and Lakota homepage fallbacks remain the original static renderer; translations of the new pages are not claimed.
 
+## Content is bound, not stored
+
+Since 2026-10-24 this repository holds only the application (Worker, renderer, build and release scripts, tests, workflows). The content it publishes is Group data and lives in [561-group/561-group-frontdoor-services-section](https://github.com/561-group/561-group-frontdoor-services-section) (private): `data/*.json`, `locales/*.arb` and the authored static assets under `public/` (contact page, fonts, logo, favicon, card, touch icon). Where this README says `data/home.json`, `data/estate.json`, `data/frontdoor.json` or `locales/`, that is where the file now comes from.
+
+`npm run bind` (`scripts/bind-content.mjs`, also run as the `pre` hook of `check`, `test`, `build`, `dev` and the other content-reading scripts) copies the data repository's `data/`, `locales/` and `public/` onto this tree from `SITE_CONTENT_ROOT`, or from `./content`. The bound files are git-ignored. CI and the production workflow check the data repository out at `./content` at a pinned commit (the `ref:` in `.github/workflows/public-intake-safety.yml` and `deploy.yml`, read with the read-only deploy key in the `SITE_CONTENT_DEPLOY_KEY` secret); to publish a content change, merge it in the data repository and bump that pin in both workflows.
+
+```bash
+git clone git@github.com:561-group/561-group-frontdoor-services-section.git content
+# or: export SITE_CONTENT_ROOT=/path/to/a/checkout
+npm run bind
+```
+
 ## Build, run, verify
 
 Use Node 24 or newer and the exact committed lockfile with the original scoped registry.
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
+npm run bind        # needs ./content or SITE_CONTENT_ROOT, see above
 npm run check
 npm test
 npm run build
