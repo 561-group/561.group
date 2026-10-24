@@ -96,6 +96,16 @@ test("each substantive source-owned page renders different useful HTML AND JSON"
         assert.ok(services.includes(offer.evidence.qualification),
           "public evidence is visibly qualified: "+offer.id);
       }
+      const pilots=frontdoor.offers.filter(s=>s.paidProposal);
+      assert.equal(pilots.length,2,"only two original accepted provider proposals are promoted");
+      for(const offer of pilots){
+        assert.ok(services.includes('href="'+offer.paidProposal.href+'"'),
+          "real LivingWebServer model links to the seller's accepted pilot source");
+        assert.ok(services.includes(offer.paidProposal.qualification),
+          "the actual machine projection keeps quote/acceptance limitations visible");
+        assert.ok(!("price" in offer),
+          "machine consumer does not invent a current merchant price");
+      }
       const listings=data.metadata.structuredData["@graph"][2].mainEntity;
       assert.equal(listings["@type"],"ItemList");
       assert.equal(listings.itemListElement.length,frontdoor.offers.length);

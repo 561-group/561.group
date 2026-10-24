@@ -61,6 +61,10 @@ test("services are tied to an existing accountable company, and only inquiry is 
   const services=tile(root,"services").html;
   assert.ok(services.includes("Persistent AI systems"));
   assert.ok(services.includes("Indigenous data governance"));
+  assert.ok(!services.includes("Website performance and resource audits"),
+    "the original first four homepage service invitations remain in place");
+  assert.ok(services.includes('href="/work/#green-web-pilot"'),
+    "buyers can reach already-authored paid pilot proposals in one click");
   const work=model("/work/");
   const list=tile(work,"services").html;
   for(const item of frontdoor.offers) {
@@ -88,6 +92,22 @@ test("services are tied to an existing accountable company, and only inquiry is 
   }
   assert.equal(frontdoor.offers.filter(x=>x.evidence).length,4,
     "unverified service areas do not invent client proof");
+  const pilots=frontdoor.offers.filter(x=>x.paidProposal);
+  assert.deepEqual(pilots.map(x=>x.id),["green-web-pilot","evidence-marketing-pilot"]);
+  assert.equal(frontdoor.offers.length,8);
+  for(const service of pilots) {
+    const proposal=service.paidProposal;
+    assert.equal(service.provider,"services","the original Causeway seller remains responsible");
+    assert.ok(proposal.href.startsWith("https://services.561.group/"));
+    assert.ok(list.includes('href="'+proposal.href+'"'),"buyer can read original provider scope");
+    assert.ok(list.includes(proposal.label));
+    const escaped=proposal.qualification.replace(/&/gu,"&amp;")
+      .replace(/'/gu,"&#39;");
+    assert.ok(list.includes(escaped),"a proposal remains visibly nonbinding");
+    assert.ok(!("price" in service) && !("checkout" in service),
+      "the corporate source must not duplicate the real seller's prices or merchant");
+  }
+  assert.doesNotMatch(list,/Buy now|guaranteed earnings|confirmed price|currently available to book/iu);
   const structured=work.metadata.structuredData["@graph"][2].mainEntity;
   assert.equal(structured["@type"],"ItemList");
   assert.deepEqual(structured.itemListElement.map(x=>x.item.name),
@@ -208,6 +228,24 @@ test("public editorial records are data, escaped and checked at the original bou
   unqualifiedEvidence.offers[0].evidence={href:"https://science.561.group/",label:"Unverified",qualification:""};
   assert.throws(()=>project561GroupPage({home,estate,frontdoor:unqualifiedEvidence}),
     /Inspectable service evidence/);
+  const wrongSeller=structuredClone(frontdoor);
+  wrongSeller.offers.find(x=>x.id==="green-web-pilot").provider="science";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:wrongSeller}),
+    /competent Causeway seller/);
+  const unsafeProposal=structuredClone(frontdoor);
+  unsafeProposal.offers.find(x=>x.id==="green-web-pilot").paidProposal.href=
+    "https://outside.example/not-a-causeway-publication/";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:unsafeProposal}),
+    /canonical original Causeway publication/);
+  const ambiguousProposal=structuredClone(frontdoor);
+  ambiguousProposal.offers.find(x=>x.id==="green-web-pilot").paidProposal.href=
+    "https://services.561.group/green-web-service-pilot/?unverified=1";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:ambiguousProposal}),
+    /canonical original Causeway publication/);
+  const noPriceCaveat=structuredClone(frontdoor);
+  noPriceCaveat.offers.find(x=>x.id==="green-web-pilot").paidProposal.qualification="";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:noPriceCaveat}),
+    /qualified proposal/);
   const poisoned=structuredClone(home);
   poisoned.group.sustainingSupport.url="data:text/html,x";
   assert.throws(()=>project561GroupPage({home:poisoned,estate,frontdoor}),/Only public HTTPS/);
