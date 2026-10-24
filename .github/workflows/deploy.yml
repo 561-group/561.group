@@ -58,15 +58,18 @@ jobs:
           persist-credentials: false
       - name: Refuse an unmerged or superseded Group source before production
         env:
-          QUALIFIED_FRONTDOOR_SHA: 189b06e6841c7c172f2903222dfcd73e94c248e9
+          # Pin reviewed bytes, not commit metadata: merge commits may change
+          # the commit ID while retaining the exact qualified content tree.
+          QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5
         run: |
           set -euo pipefail
-          selected="$(git -C content rev-parse HEAD)"
-          if test "$selected" != "$QUALIFIED_FRONTDOOR_SHA"; then
-            echo "::error::Group main is not the exact qualified content commit; receive and repin Group source before publication"
+          selected_commit="$(git -C content rev-parse HEAD)"
+          selected_tree="$(git -C content rev-parse 'HEAD^{tree}')"
+          if test "$selected_tree" != "$QUALIFIED_FRONTDOOR_TREE"; then
+            echo "::error::Group main content differs from the qualified tree; obtain source review and repin before publication"
             exit 1
           fi
-          echo "Exact Group main content $selected admitted for this release."
+          echo "Exact reviewed Group tree $selected_tree admitted from Group main commit $selected_commit."
       - name: Bind front-door content (data/, locales/, authored public/ assets) into the application
         run: node scripts/bind-content.mjs
       - name: Select one source-qualified UTC publication day
