@@ -154,6 +154,9 @@ test("public about page makes the two literal long-horizon programs inspectable,
   assert.ok(frontier.html.includes("Coordinating autonomous communities"));
   assert.ok(frontier.html.includes("siloxane"));
   assert.ok(frontier.html.includes("We have not created silicon-based life"));
-  assert.ok(frontier.html.includes("No software confers Indigenous sovereignty"));
+  assert.ok(frontier.html.includes("Software does not confer community authority"));
+  assert.ok(frontier.html.includes("treaty rights"));
+  assert.ok(frontier.html.includes("must be chosen by the people"));
+
   assert.ok(frontier.html.includes("https://science.561.group/"));
 });
