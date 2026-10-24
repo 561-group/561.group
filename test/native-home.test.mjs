@@ -59,7 +59,7 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.match(response.headers.get("content-type")??"",/application\/json/u);
   const model=await response.json();
   assert.equal(model.kind,"tufte.projection");
-  assert.ok(model.tiles.some(t=>t.id==="work-folio" && t.html.includes(frontdoor.workFolio.title)===false && t.html.includes(frontdoor.workFolio.movements[0].title)));
+  assert.ok(model.tiles.some(t=>t.id==="work-folio" && t.html.includes('data-house="science"') && t.html.includes('href="https://science.561.group/"')));
 
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
