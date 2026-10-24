@@ -77,9 +77,14 @@ test("the browser refuses culture-as-homepage-advertising and missing visitor jo
   assert.ok(x.errors.some(e=>e.includes("accountable companies")));
 });
 
-test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
-  const mobile={...good(),viewportWidth:390,markSize:43.2,heroSize:32};
+test("phone navigation is balanced, keyboard-reachable and has actual usable touch targets",()=>{
+  const mobile={...good(),viewportWidth:390,markSize:43.2,heroSize:32,
+    navRowSizes:[3,3],navMinHitHeight:36};
   assert.equal(qualifyRenderedBrand(mobile).passed,true);
+  const orphaned={...mobile,navRowSizes:[5,1]};
+  assert.ok(qualifyRenderedBrand(orphaned).errors.some(x=>x.includes("orphaned action")));
+  const tiny={...mobile,navMinHitHeight:22};
+  assert.ok(qualifyRenderedBrand(tiny).errors.some(x=>x.includes("touch targets")));
 });
 
 test("a real secondary visitor page uses its own lead and independent tile count",()=>{
