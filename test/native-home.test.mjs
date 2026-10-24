@@ -26,6 +26,12 @@ test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline r
   const html=await response.text();
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.ok(html.includes(frontdoor.proposition));
+  assert.ok(html.includes("site-folio-grid"));
+  assert.ok(html.includes(frontdoor.workFolio.witnessedCase.title));
+  assert.ok(html.includes('href="https://services.561.group/green-web-service-pilot/"'));
+  assert.ok(html.includes('class="site-folio-proof-action"'));
+  for(const company of home.group.companies) assert.ok(html.includes('data-house="'+company.id+'"'));
+
   assert.ok(html.includes('href="https://science.561.group/"'),
     "the original Science reader journey must be directly usable in rendered HTML");
   assert.ok(html.includes('href="https://koios.news/"'),
@@ -55,6 +61,11 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.match(response.headers.get("content-type")??"",/application\/json/u);
   const model=await response.json();
   assert.equal(model.kind,"tufte.projection");
+  const creative=model.tiles.find(t=>t.id==="work-folio");
+  assert.ok(creative && creative.html.includes('data-house="science"'));
+  assert.ok(creative.html.includes('href="https://services.561.group/green-web-service-pilot/"'));
+  assert.ok(creative.html.includes(frontdoor.workFolio.witnessedCase.boundary.replace(/'/gu,"&#39;")));
+
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
@@ -62,7 +73,7 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
     "machine-readable TUFTE readers must receive the same research path");
 
   assert.deepEqual(model.tiles.map(t=>t.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","work-folio","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
   assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes("Artificial Abiogenesis and Smartgoo"));
   assert.ok(model.tiles.some(t=>t.id==="frontiers" && t.html.includes("silica")));
