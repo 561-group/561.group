@@ -58,6 +58,30 @@ function checkedSources(home, estate, frontdoor) {
         !["title","thesis","present","boundary"].every(
           field => typeof f[field] === "string" && f[field].trim())))
     throw new TypeError("Two complete, distinct, source-authored civilizational frontiers are required");
+  const folio = frontdoor.workFolio;
+  if (!folio || !["eyebrow","title","introduction","boundary"].every(
+      key => typeof folio[key] === "string" && folio[key].trim()) ||
+      !Array.isArray(folio.movements) || folio.movements.length !== 4 ||
+      folio.movements.some((part,index) =>
+        part.company !== home.group.companies[index].id ||
+        part.number !== String(index+1).padStart(2,"0") ||
+        !["register","title","line"].every(
+          key => typeof part[key] === "string" && part[key].trim())))
+    throw new TypeError("Public four-movement performance must have four real, ordered Group companies with attributable copy");
+
+  const caseFile=folio.witnessedCase;
+  if (!caseFile || !["eyebrow","title","incident","change","before","after",
+      "firstLabel","secondLabel","boundary"].every(k=>
+        typeof caseFile[k] === "string" && caseFile[k].trim()) ||
+      caseFile.before!=="404" || caseFile.after!=="200" ||
+      !caseFile.action || !["href","label"].every(k=>
+        typeof caseFile.action[k] === "string" && caseFile.action[k].trim()) ||
+      caseFile.action.href!=="https://services.561.group/green-web-service-pilot/" ||
+      !Array.isArray(caseFile.sources) || caseFile.sources.length!==2 ||
+      caseFile.sources.some(item=>!item || !["href","label"].every(k=>
+        typeof item[k] === "string" && item[k].trim()) ||
+        !/^https:\/\/github\.com\/(?:causeway-services)\/[\w.-]+\/pull\/\d+$/u.test(item.href)))
+    throw new TypeError("Original witnessed 404-to-200 service performance needs attributable Causeway sources, bounded outcome and real original route");
   if (frontdoor.schema !== "561.group/public-frontdoor/v1")
     throw new TypeError("Public editorial record has an unrecognized schema");
   if (typeof home.public?.headline !== "string" ||
@@ -255,6 +279,74 @@ function frontiers(frontdoor, concise = false) {
       actions([{href:"/work/",label:"Bring a practical problem"},
                {href:"https://science.561.group/",label:"Explore the science"}]));
 }
+/*
+ * This is an original graphic PERFORMANCE of source-owned responsibilities:
+ * no new logos, CSS theme, studio, claim of completed workflow or stock art.
+ * All meaningful text comes from the authored front-door source. The SVG
+ * is an ornamental web-native score, not a research diagram or proof.
+ */
+const WORK_FOLIO_VIGNETTES=Object.freeze({
+  science: '<ellipse cx="78" cy="61" rx="48" ry="40"/><ellipse cx="78" cy="61" rx="22" ry="47"/><circle class="site-folio-seed" cx="78" cy="61" r="5"/>',
+  engineering: '<path d="M27 35H129V86H27Z"/><path d="M45 35L73 86M114 35L84 86M27 61H129"/><circle class="site-folio-seed" cx="78" cy="61" r="5"/>',
+  operations: '<path d="M12 39Q45 24 78 39T144 39M12 55Q45 40 78 55T144 55M12 71Q45 56 78 71T144 71M12 87Q45 72 78 87T144 87"/><circle class="site-folio-seed" cx="78" cy="63" r="5"/>',
+  services: '<path d="M20 84Q78-18 136 84M20 84H136M35 84V92M121 84V92"/><path d="M54 84Q78 18 102 84"/><circle class="site-folio-seed" cx="78" cy="36" r="5"/>'
+});
+
+function witnessedServiceCase(c) {
+  return '<section class="site-folio-proof" aria-labelledby="site-folio-proof-heading">' +
+    para(c.eyebrow,"site-folio-proof-eyebrow") +
+    '<h3 id="site-folio-proof-heading">' + esc(c.title) + '</h3>' +
+    '<div class="site-folio-proof-transition" aria-label="' +
+      esc(c.firstLabel + ": " + c.before + "; " + c.secondLabel + ": " + c.after) + '">' +
+      '<div class="site-folio-proof-state site-folio-proof-before">' +
+        '<span aria-hidden="true">' + esc(c.before) + '</span>' +
+        para(c.firstLabel) + '</div>' +
+      '<div class="site-folio-proof-arrow" aria-hidden="true">→</div>' +
+      '<div class="site-folio-proof-state site-folio-proof-after">' +
+        '<span aria-hidden="true">' + esc(c.after) + '</span>' +
+        para(c.secondLabel) + '</div>' +
+    '</div>' +
+    '<div class="site-folio-proof-explanation">' +
+      '<div>' + para(c.incident,"site-folio-proof-incident") + '</div>' +
+      '<div>' + para(c.change,"site-folio-proof-change") +
+         anchor(c.action.href,c.action.label,"site-folio-proof-action") + '</div>' +
+    '</div>' +
+    '<div class="site-folio-proof-sources">' +
+      c.sources.map(source=>anchor(source.href,source.label,"site-folio-proof-source")).join("") +
+    '</div>' +
+    para(c.boundary,"site-folio-proof-boundary") +
+    '</section>';
+}
+
+function performanceFolio(frontdoor,companies) {
+  const folio=frontdoor.workFolio;
+  const available=new Map(companies.map(x=>[x.id,x]));
+  return '<figure class="site-folio">' +
+    para(folio.eyebrow,"site-folio-eyebrow") +
+    para(folio.introduction,"site-folio-introduction") +
+    '<div class="site-folio-grid" role="list">' +
+    folio.movements.map(movement=>{
+      const company=available.get(movement.company);
+      return '<section class="site-folio-movement" role="listitem" data-house="' +
+        esc(movement.company) + '">' +
+        '<div class="site-folio-meta"><span class="site-folio-number">' +
+          esc(movement.number) + '</span><span class="site-folio-register">' +
+          esc(movement.register) + '</span></div>' +
+        '<svg class="site-folio-figure" aria-hidden="true" focusable="false" viewBox="0 0 156 124" xmlns="http://www.w3.org/2000/svg">' +
+          '<path class="site-folio-current" d="M8 105Q42 93 78 105T148 105"/>' +
+          '<g class="site-folio-structure">' + WORK_FOLIO_VIGNETTES[movement.company] + '</g>' +
+          '</svg>' +
+        '<h3>' + esc(movement.title) + '</h3>' +
+        para(movement.line,"site-folio-verse") +
+        '<span class="site-folio-owner">' + esc(company.name) + '</span>' +
+        anchor(company.url,"Enter "+company.name,"site-folio-link") +
+        '</section>';
+    }).join("") +
+    '</div>' + witnessedServiceCase(folio.witnessedCase) +
+    '<figcaption class="site-folio-boundary">' + esc(folio.boundary) +
+    '</figcaption></figure>';
+}
+
 function endpoints(estate, limit = Infinity) {
   return '<ul class="site-endpoints">' + estate.machine.slice(0, limit).map(point =>
     "<li><span class=\"site-method\">" + esc(point.verb) + "</span>" +
@@ -269,6 +361,7 @@ function homepage(home, estate, frontdoor, source) {
         frontdoor.proposition,frontdoor.promise,
         [{href:"/work/",label:"Bring us a problem"},{href:"/projects/",label:"Explore what we build"}]) +
       para(home.public.intro,"site-hero-note"),12,"rail"),
+    panel("work-folio",frontdoor.workFolio.title,performanceFolio(frontdoor,home.group.companies),12),
     panel("frontiers",frontdoor.vision.headline,frontiers(frontdoor,true),12),
     panel("paths","What brings you here?",pathways(frontdoor),12),
     panel("services","Work you can ask us to do",
