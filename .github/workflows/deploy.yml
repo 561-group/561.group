@@ -313,3 +313,19 @@ jobs:
           }
           console.log('Received deployed Group source '+receipt.sourceCommit+' on actual public origin');
           NODE
+      # The same original public observer checks crawling, navigation, security
+      # and exact site revision only after production/source/provider receiving.
+      # This avoids a third chained workflow_run trigger and an early false
+      # negative, without creating a second site audit or provider authority.
+      - name: Record original public delivery observation after release
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: node scripts/observe-production.mjs
+      - name: Retain the original post-release public discovery witness
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 561-group-post-release-public-observation
+          path: observations/561.group-public-delivery.json
+          if-no-files-found: warn
+          retention-days: 30
