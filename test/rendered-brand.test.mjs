@@ -13,6 +13,7 @@ const good=()=>({
   introBackground:"rgba(0, 0, 0, 0)",heroSize:49.6,
   mainTileIds:["introduction","paths","companies","explore","contact"],
   companyCount:4,pathCount:4,ordinaryActionColor:"rgb(10, 10, 10)",
+  introActionTextColor:"rgb(242, 234, 216)",contactWidthRatio:1,
   prohibitedTopicLabels:false,
   fontFaces:[
     {family:"Space Grotesk",status:"loaded"},
@@ -58,6 +59,13 @@ test("the browser refuses the giant red mark, red general-purpose action and bil
   assert.equal(x.passed,false);
   for(const term of ["ink-on-bone","oversized","black billboard","giant display","hazard red"])
     assert.ok(x.errors.some(err=>err.includes(term)),term);
+});
+
+test("the real user-facing primary CTA and contact must be readable, not dark-on-dark or stranded in a narrow side tile",()=>{
+  const unreadable={...good(),introActionTextColor:"rgb(10, 10, 10)"};
+  assert.ok(qualifyRenderedBrand(unreadable).errors.some(x=>x.includes("button text is invisible")));
+  const cramped={...good(),contactWidthRatio:.32};
+  assert.ok(qualifyRenderedBrand(cramped).errors.some(x=>x.includes("crammed")));
 });
 
 test("the browser refuses culture-as-homepage-advertising and missing visitor journeys",()=>{
