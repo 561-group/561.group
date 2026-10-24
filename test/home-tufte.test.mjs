@@ -73,7 +73,11 @@ test("services are tied to an existing accountable company, and only inquiry is 
   for(const item of frontdoor.offers.filter(x=>x.evidence)){
     assert.ok(list.includes('href="'+item.evidence.href+'"'),
       "a reader can inspect directly related public material: "+item.id);
-    assert.ok(list.includes(item.evidence.label));
+    const escapedLabel=item.evidence.label.replace(/&/gu,"&amp;")
+      .replace(/</gu,"&lt;").replace(/>/gu,"&gt;")
+      .replace(/"/gu,"&quot;").replace(/'/gu,"&#39;");
+    assert.ok(list.includes(escapedLabel),
+      "visible links retain escaped HTML labels: "+item.id);
     assert.ok(list.includes(item.evidence.qualification));
   }
   assert.equal(frontdoor.offers.filter(x=>x.evidence).length,4,
