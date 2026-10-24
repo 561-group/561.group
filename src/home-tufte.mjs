@@ -324,6 +324,7 @@ function performanceFolio(frontdoor,companies) {
   return '<figure class="site-folio">' +
     para(folio.eyebrow,"site-folio-eyebrow") +
     para(folio.introduction,"site-folio-introduction") +
+    witnessedServiceCase(folio.witnessedCase) +
     '<div class="site-folio-grid" role="list">' +
     folio.movements.map(movement=>{
       const company=available.get(movement.company);
@@ -342,8 +343,7 @@ function performanceFolio(frontdoor,companies) {
         anchor(company.url,"Enter "+company.name,"site-folio-link") +
         '</section>';
     }).join("") +
-    '</div>' + witnessedServiceCase(folio.witnessedCase) +
-    '<figcaption class="site-folio-boundary">' + esc(folio.boundary) +
+    '</div><figcaption class="site-folio-boundary">' + esc(folio.boundary) +
     '</figcaption></figure>';
 }
 
