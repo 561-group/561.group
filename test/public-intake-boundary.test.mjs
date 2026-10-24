@@ -1,13 +1,52 @@
 import test from "node:test";
 import {runInNewContext} from "node:vm";
 import assert from "node:assert/strict";
-import {readFileSync,readdirSync} from "node:fs";
+import {readFileSync,readdirSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {spawnSync} from "node:child_process";
 import {dirname,join} from "node:path";
 import {fileURLToPath} from "node:url";
+import {bindContent} from "../scripts/bind-content.mjs";
 
 const root=join(dirname(fileURLToPath(import.meta.url)),"..");
 const read=path=>readFileSync(join(root,path),"utf8");
 const publicIssue="https://github.com/561-group/561.group/issues/new?template=service-submission.yml";
+
+test("Group-owned front-door files cannot be silently overwritten from a tracked app source",()=>{
+  const scratch=mkdtempSync(join(tmpdir(),"group-source-custody-"));
+  const source=join(scratch,"reviewed-group");
+  const target=join(scratch,"app");
+  const files=[
+    "data/home.json","data/estate.json","data/frontdoor.json","data/brand-source.json",
+    "locales/en.arb","locales/lkt.arb","locales/zh-Hans.arb",
+    "public/contact/index.html","public/favicon.svg","public/logo.png",
+  ];
+  try{
+    mkdirSync(target,{recursive:true});
+    for(const file of files){
+      const dest=join(source,file);
+      mkdirSync(dirname(dest),{recursive:true});
+      writeFileSync(dest,"source-owned "+file);
+    }
+    const git=(...args)=>{
+      const result=spawnSync("git",args,{cwd:target,encoding:"utf8"});
+      assert.equal(result.status,0,result.stderr);
+    };
+    git("init","-q");
+    const admitted=bindContent(source,target);
+    assert.equal(admitted.bound,true);
+    assert.equal(readFileSync(join(target,"public/contact/index.html"),"utf8"),
+      "source-owned public/contact/index.html");
+    // A legacy app PR may still hold an old tracked contact file. Refuse the
+    // next bind before destroying that authored evidence or claiming it shipped.
+    writeFileSync(join(target,"public/contact/index.html"),"unreceived application change");
+    git("add","public/contact/index.html");
+    assert.throws(()=>bindContent(source,target),
+      /Group-owned content is tracked in the application checkout/u);
+    assert.equal(readFileSync(join(target,"public/contact/index.html"),"utf8"),
+      "unreceived application change","refusal must happen before any overwrite");
+  }finally{rmSync(scratch,{recursive:true,force:true});}
+});
 
 test("public contact offers reporting, not media commission or executable authority",()=>{
   const page=read("public/contact/index.html");
@@ -19,29 +58,6 @@ test("public contact offers reporting, not media commission or executable author
   assert.doesNotMatch(page,/causeway-services\/public-media-services-section\/issues\/new/u);
   assert.match(page,/<form id="private-intake" action="mailto:/u);
   assert.match(page,/event\.preventDefault\(\)/u);
-});
-
-test("private work inquiry leads the actual contact page, with reporting and follow-up still available as native alternatives",()=>{
-  const html=read("public/contact/index.html");
-  const form=html.indexOf('<form id="private-intake"');
-  const help=html.indexOf('<h2 id="other-contact-options">');
-  const report=html.indexOf('Report an issue publicly');
-  assert.ok(form>0&&help>form&&report>help,
-    "a buyer should reach the real private intake before lengthy public-issue or aftercare instructions");
-  assert.equal((html.match(/<details class="contact-option">/gu)||[]).length,4);
-  for(const summary of ["More about buying or offering services",
-    "Report an issue publicly","Email or another existing private channel",
-    "Track an existing request"]){
-    assert.ok(html.includes('<summary>'+summary+'</summary>'),summary);
-  }
-  for(const preserved of ["Public submissions are untrusted reports for review",
-    "Preparing the draft does not send it","Only an authorized receiving office",
-    "An issue's closure alone does not establish",
-    'id="email-draft" hidden','id="data-stewardship-scope" class="governance-scope" hidden disabled']){
-    assert.ok(html.includes(preserved),"the original source must retain "+preserved);
-  }
-  assert.ok(html.includes('href="/work/"') && html.includes('href="/projects/"'),
-    "the contact page must share the Group's quiet institutional navigation");
 });
 
 test("source-qualified service hints prefill only editable fields, never authorization or transmission",()=>{
@@ -98,45 +114,6 @@ test("source-qualified service hints prefill only editable fields, never authori
   assert.match(page,/we will not treat an inquiry as an order/u);
 });
 
-test("actual CARE intake asks about roles, collective benefit, refusal and harm without collecting protected data automatically",()=>{
-  const html=read("public/contact/index.html");
-  const block=/<fieldset id="data-stewardship-scope"[^>]*>([\s\S]*?)<\/fieldset>/u.exec(html);
-  assert.ok(block,"the exact original contact page has a rights-governance gate");
-  assert.match(block[0],/hidden disabled/u,"no unrelated inquiry receives these questions");
-  assert.match(block[1],/https:\/\/www\.gida-global\.org\/careprinciples/u,
-    "link to the Global Indigenous Data Alliance, not our own invented badge");
-  for(const term of ["Collective benefit","Authority to control","Responsibility and ethics",
-    "who can restrict, correct, withhold or withdraw permission","rights holder"]){
-    assert.ok(block[1].toLowerCase().includes(term.toLowerCase()),term);
-  }
-  for(const name of ["data-peoples","data-authority","data-benefit",
-    "data-refusal","data-responsibility"]){
-    assert.ok(block[1].includes('name="'+name+'"'),name);
-  }
-  assert.match(block[1],/Not yet assessed/u);
-  assert.match(block[1],/No review or transfer is authorized by this form/u);
-  assert.match(block[1],/not proof that a rights holder has consented/u);
-  assert.match(html,/dataScope\.disabled = !selected/u,
-    "the same original form must disable out-of-scope governance fields");
-  assert.match(html,/refreshDataScope\(\);\s*const fields = \[\.\.\.new FormData\(intake\)\]/u,
-    "actual email construction checks scope before collecting relevant fields");
-  assert.doesNotMatch(html,/autocomplete="on"[^>]*data-authority/u);
-});
-
-test("actual work intake asks who receives and about material/energy and coordination constraints",()=>{
-  const html=read("public/contact/index.html");
-  const start=html.indexOf('<label for="conditions">');
-  const end=html.indexOf('<label for="evidence">',start);
-  assert.ok(start>0&&end>start);
-  const conditions=html.slice(start,end);
-  for(const expected of ["independently check or refuse","coordination","energy",
-    "material","time","operating constraints","do not paste sensitive records"]){
-    assert.ok(conditions.includes(expected),expected);
-  }
-  assert.ok(conditions.includes('name="conditions"'));
-  assert.match(html,/Preparing the draft does not send it/u);
-});
-
 test("sales contact consent is an explicit buyer-owned field, not inferred from a reply address",()=>{
   const page=read("public/contact/index.html");
   const start=page.indexOf('<label for="reply-permission">');
@@ -152,6 +129,110 @@ test("sales contact consent is an explicit buyer-owned field, not inferred from 
   assert.match(page,/const body = fields\.map/u,
     "the visitor-reviewed existing private email retains the selected contact scope");
   assert.match(page,/Preparing the draft does not send it/u);
+});
+
+test("long private buyer inquiries have a user-activated clipboard fallback without sending",async()=>{
+  const page=read("public/contact/index.html");
+  const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
+  assert.ok(script);
+  assert.match(page,/<button id="copy-email-body" class="action" type="button">Copy message<\/button>/u);
+  assert.match(page,/id="copy-email-status" role="status" aria-live="polite"/u);
+  assert.match(page,/button:focus-visible/u);
+  const fields=[
+    ["submission-type","Paid service inquiry"],
+    ["affected","Research and formal methods"],
+    ["need","A bounded demonstration. ".repeat(150)],
+    ["reply-channel","buyer@example.test"],
+    ["reply-permission","inquiry-only"],
+  ];
+  const nodes={
+    "email-subject":{value:""},
+    "email-text":{value:"",focus(){this.focused=true;},select(){this.selected=true;}},
+    "open-email":{href:""},
+    "copy-email":{hidden:true},
+    "email-draft":{hidden:true},
+    "copy-email-body":{onclick:null},
+    "copy-email-status":{textContent:""},
+  };
+  const handlers={};
+  const form={
+    elements:{"submission-type":{value:"Paid service inquiry"},"affected":{value:"Research and formal methods"}},
+    addEventListener:(name,fn)=>{handlers[name]=fn;},
+    querySelector:selector=>({textContent:selector.match(/label\[for="([^"]+)"\]/u)?.[1]??""}),
+  };
+  const rightsScope={hidden:false,disabled:false};
+  const doc={getElementById:id=>id==="private-intake"?form:
+    id==="data-stewardship-scope"?rightsScope:nodes[id]};
+  const copied=[];
+  const navigator={clipboard:{writeText:async value=>{copied.push(value);}}};
+  class FakeFormData {constructor(received){assert.equal(received,form);return fields;}}
+  runInNewContext(script,{document:doc,location:{search:""},URLSearchParams,FormData:FakeFormData,navigator},{timeout:1000});
+  let prevented=0;
+  handlers.submit({preventDefault:()=>{prevented++;}});
+  assert.equal(prevented,1);
+  assert.equal(nodes["copy-email"].hidden,false,"long mailto body is correctly omitted");
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.ok(nodes["open-email"].href.startsWith("mailto:emsenn@561.group?subject="));
+  assert.equal(nodes["open-email"].href.includes("&body="),false,
+    "no silent truncation or automatic external submission");
+  assert.equal(nodes["email-text"].value.includes("reply-permission\ninquiry-only"),true);
+  await nodes["copy-email-body"].onclick();
+  assert.deepEqual(copied,[nodes["email-text"].value]);
+  assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
+  // Re-preparing a visitor draft must invalidate a successful *previous* copy.
+  fields[2][1] = "Updated paid inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "newly prepared buyer copy must not inherit an old clipboard success");
+  let resolveClipboard;
+  navigator.clipboard = {writeText: value => {
+    copied.push(value);
+    return new Promise(resolve => { resolveClipboard = resolve; });
+  }};
+  const staleText = nodes["email-text"].value;
+  const pendingCopy = nodes["copy-email-body"].onclick();
+  fields[2][1] = "Later revised paid inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  assert.notEqual(nodes["email-text"].value, staleText);
+  resolveClipboard();
+  await pendingCopy;
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "a late clipboard completion must not falsely confirm the newer draft");
+  navigator.clipboard = {writeText: async value => { copied.push(value); }};
+  await nodes["copy-email-body"].onclick();
+  assert.equal(copied.at(-1), nodes["email-text"].value,
+    "the latest visitor-approved message remains copyable");
+  assert.match(nodes["copy-email-status"].textContent, /send it yourself/u);
+  // The same guard must refuse a delayed clipboard *error* on an obsolete draft.
+  let rejectClipboard;
+  navigator.clipboard = {writeText: () => new Promise((_, reject) => { rejectClipboard = reject; })};
+  const staleError = nodes["copy-email-body"].onclick();
+  fields[2][1] = "Final revised supplier inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  rejectClipboard(new Error("Browser rejected an obsolete clipboard attempt"));
+  await staleError;
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "an old async rejection must not focus or report fallback for a newer draft");
+  delete navigator.clipboard;
+  await nodes["copy-email-body"].onclick();
+  assert.equal(nodes["email-text"].selected,true,"fallback exposes text for manual copying");
+  assert.match(nodes["copy-email-status"].textContent,/manually/u);
+  // Buyers using webmail need Copy message even for short mailto drafts.
+  fields[2][1]="Short buyer inquiry asking for a bounded quote.";
+  navigator.clipboard={writeText:async value=>{copied.push(value);}};
+  handlers.submit({preventDefault() {}});
+  assert.equal(nodes["copy-email"].hidden,true,
+    "a short mailto needs no long-message warning");
+  assert.ok(nodes["open-email"].href.includes("&body="),
+    "short mailto messages keep their original complete body");
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.equal(typeof nodes["copy-email-body"].onclick,"function",
+    "the explicit copy control remains available to webmail users");
+  await nodes["copy-email-body"].onclick();
+  assert.equal(copied.at(-1),nodes["email-text"].value,
+    "the short message is copied exactly, with reply scope intact");
+  assert.ok(nodes["email-text"].value.includes("reply-permission\ninquiry-only"));
+  assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
@@ -219,6 +300,71 @@ test("a production deploy has a main-ref and predeploy safety boundary",()=>{
     /npm run build/u.test(before) && /source-revision\.json/u.test(before);
   assert.ok(legacyInterlock||qualifiedRelease,
     "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
+});
+
+test("production Group content admission verifies reviewed trees across merge and refusal cases",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const checkout=workflow.indexOf("Read reviewed Group front-door main");
+  const guard=workflow.indexOf("Refuse an unmerged or superseded Group source before production");
+  const bind=workflow.indexOf("Bind front-door content",guard);
+  const publish=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(checkout>0 && checkout<guard && guard<bind && bind<publish,
+    "Group main source must be checked before any production provider write");
+  const source=workflow.slice(checkout,guard);
+  assert.ok(source.includes("repository: 561-group/561-group-frontdoor-services-section"));
+  assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
+  assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
+  const admission=workflow.slice(guard,bind);
+  assert.match(admission,/QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5/u);
+  assert.match(admission,/git -C content rev-parse 'HEAD\^\{tree\}'/u);
+  const newline=String.fromCharCode(10);
+  const runBlock=admission.split("        run: |"+newline)[1];
+  assert.ok(runBlock,"exercise the actual installed deploy gate, not a test-only replacement");
+  const shell=runBlock.split(newline).filter(line=>line.startsWith("          "))
+    .map(line=>line.slice(10)).join(newline);
+  const temp=mkdtempSync(join(tmpdir(),"original-group-content-admission-"));
+  try {
+    mkdirSync(join(temp,"content"));
+    const git=(...args)=>{
+      const result=spawnSync("git",args,{cwd:temp,encoding:"utf8"});
+      assert.equal(result.status,0,result.stderr);
+      return result.stdout.trim();
+    };
+    git("init","-q","content");
+    const commit=(body,label)=>{
+      writeFileSync(join(temp,"content","fixture.txt"),body);
+      git("-C","content","add","fixture.txt");
+      git("-C","content","-c","user.name=Receiving Fixture",
+        "-c","user.email=fixture@example.invalid","commit","-qm",label);
+      return git("-C","content","rev-parse","HEAD");
+    };
+    const first=commit("accepted source","normal");
+    const firstTree=git("-C","content","rev-parse","HEAD^{tree}");
+    const run=expected=>spawnSync("bash",["-c",shell],{
+      cwd:temp,encoding:"utf8",
+      env:{...process.env,QUALIFIED_FRONTDOOR_TREE:expected}
+    });
+    assert.equal(run(firstTree).status,0,"qualified Group main content tree is admitted");
+    // A new merge/metadata commit with identical files must not trigger
+    // needless repinning or a repeat qualification cycle.
+    git("-C","content","-c","user.name=Receiving Fixture",
+      "-c","user.email=fixture@example.invalid","commit","--allow-empty","-qm","merge metadata");
+    const rebased=git("-C","content","rev-parse","HEAD");
+    assert.notEqual(rebased,first,"a distinct commit can retain exactly reviewed bytes");
+    assert.equal(git("-C","content","rev-parse","HEAD^{tree}"),firstTree);
+    assert.equal(run(firstTree).status,0,"reviewed source remains admitted after metadata-only merge");
+    const second=commit("newly reviewed source","alternate");
+    const secondTree=git("-C","content","rev-parse","HEAD^{tree}");
+    assert.notEqual(first,second);
+    assert.notEqual(firstTree,secondTree,"real content changes alter the tree");
+    assert.notEqual(run(firstTree).status,0,"old review pin refuses changed Group main content");
+    assert.equal(run(secondTree).status,0,"separately qualified new source is admissible");
+    assert.notEqual(run("f".repeat(40)).status,0,"unqualified tree cannot publish");
+    rmSync(join(temp,"content"),{recursive:true,force:true});
+    assert.notEqual(run(secondTree).status,0,"missing Group source must fail closed");
+  } finally {
+    rmSync(temp,{recursive:true,force:true});
+  }
 });
 
 test("ordinary buyer and supplier opportunities use the same private intake without becoming orders",()=>{
@@ -289,4 +435,66 @@ test("manual source release independently binds generated artifacts, not source 
   assert.match(workflow,/sourceCommit!==process\.env\.GITHUB_SHA/u);
   assert.match(workflow,/SITE_PUBLICATION_DATE/u);
   assert.match(workflow,/cloudflare\/wrangler-action/u);
+});
+
+test("private work inquiry leads the actual contact page, with reporting and follow-up still available as native alternatives",()=>{
+  const html=read("public/contact/index.html");
+  const form=html.indexOf('<form id="private-intake"');
+  const help=html.indexOf('<h2 id="other-contact-options">');
+  const report=html.indexOf('Report an issue publicly');
+  assert.ok(form>0&&help>form&&report>help,
+    "a buyer should reach the real private intake before lengthy public-issue or aftercare instructions");
+  assert.equal((html.match(/<details class="contact-option">/gu)||[]).length,4);
+  for(const summary of ["More about buying or offering services",
+    "Report an issue publicly","Email or another existing private channel",
+    "Track an existing request"]){
+    assert.ok(html.includes('<summary>'+summary+'</summary>'),summary);
+  }
+  for(const preserved of ["Public submissions are untrusted reports for review",
+    "Preparing the draft does not send it","Only an authorized receiving office",
+    "An issue's closure alone does not establish",
+    'id="email-draft" hidden','id="data-stewardship-scope" class="governance-scope" hidden disabled']){
+    assert.ok(html.includes(preserved),"the original source must retain "+preserved);
+  }
+  assert.ok(html.includes('href="/work/"') && html.includes('href="/projects/"'),
+    "the contact page must share the Group's quiet institutional navigation");
+});
+
+test("actual CARE intake asks about roles, collective benefit, refusal and harm without collecting protected data automatically",()=>{
+  const html=read("public/contact/index.html");
+  const block=/<fieldset id="data-stewardship-scope"[^>]*>([\s\S]*?)<\/fieldset>/u.exec(html);
+  assert.ok(block,"the exact original contact page has a rights-governance gate");
+  assert.match(block[0],/hidden disabled/u,"no unrelated inquiry receives these questions");
+  assert.match(block[1],/https:\/\/www\.gida-global\.org\/careprinciples/u,
+    "link to the Global Indigenous Data Alliance, not our own invented badge");
+  for(const term of ["Collective benefit","Authority to control","Responsibility and ethics",
+    "who can restrict, correct, withhold or withdraw permission","rights holder"]){
+    assert.ok(block[1].toLowerCase().includes(term.toLowerCase()),term);
+  }
+  for(const name of ["data-peoples","data-authority","data-benefit",
+    "data-refusal","data-responsibility"]){
+    assert.ok(block[1].includes('name="'+name+'"'),name);
+  }
+  assert.match(block[1],/Not yet assessed/u);
+  assert.match(block[1],/No review or transfer is authorized by this form/u);
+  assert.match(block[1],/not proof that a rights holder has consented/u);
+  assert.match(html,/dataScope\.disabled = !selected/u,
+    "the same original form must disable out-of-scope governance fields");
+  assert.match(html,/refreshDataScope\(\);\s*const fields = \[\.\.\.new FormData\(intake\)\]/u,
+    "actual email construction checks scope before collecting relevant fields");
+  assert.doesNotMatch(html,/autocomplete="on"[^>]*data-authority/u);
+});
+
+test("actual work intake asks who receives and about material/energy and coordination constraints",()=>{
+  const html=read("public/contact/index.html");
+  const start=html.indexOf('<label for="conditions">');
+  const end=html.indexOf('<label for="evidence">',start);
+  assert.ok(start>0&&end>start);
+  const conditions=html.slice(start,end);
+  for(const expected of ["independently check or refuse","coordination","energy",
+    "material","time","operating constraints","do not paste sensitive records"]){
+    assert.ok(conditions.includes(expected),expected);
+  }
+  assert.ok(conditions.includes('name="conditions"'));
+  assert.match(html,/Preparing the draft does not send it/u);
 });
