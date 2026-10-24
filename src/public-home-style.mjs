@@ -145,7 +145,7 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
   box-shadow:inset 0 0 0 4px var(--house-witness)
 }
 .site-folio-meta {
-  display:flex;align-items:flex-end;justify-content:space-between;gap:.65rem;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:.5rem;
   padding-bottom:.6rem;border-bottom:1px solid currentColor
 }
 .site-folio-number {
@@ -154,9 +154,11 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
   padding-right:.15em
 }
 .site-folio-register {
-  font:700 .65rem/1.3 var(--house-mono);
-  letter-spacing:.055em;text-transform:uppercase;text-align:right;
-  max-width:10ch;margin-bottom:.2rem
+  display:block;width:100%;min-width:0;max-width:none;
+  font:700 .67rem/1.3 var(--house-mono);
+  letter-spacing:.045em;text-transform:uppercase;text-align:right;
+  white-space:nowrap;overflow-wrap:normal;word-break:normal;
+  margin-bottom:.2rem
 }
 .site-folio-figure {
   display:block;width:100%;height:clamp(7rem,10.8vw,10.5rem);
