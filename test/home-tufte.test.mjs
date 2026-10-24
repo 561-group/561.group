@@ -10,7 +10,7 @@ const home=read("data/home.json"),estate=read("data/estate.json"),
   frontdoor=read("data/frontdoor.json");
 const model=path=>project561GroupPage({home,estate,frontdoor,path});
 const tile=(page,id)=>page.tiles.find(t=>t.id===id);
-const htmlEsc=text=>String(text).replace(/[&<>"\']/gu,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const htmlEsc=text=>String(text).replace(/[&<>"']/gu,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 test("a visitor can tell what the Group is, what they can hire, and where to go immediately",()=>{
   const root=project561GroupHome({home,estate,frontdoor});
