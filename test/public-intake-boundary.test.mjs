@@ -317,7 +317,7 @@ test("production Group content admission verifies reviewed trees across merge an
   const admission=workflow.slice(guard,bind);
   // Test the installed source acceptance rule against the actual CI
   // checkout, not a revision-dependent literal copied from an older PR.
-  const declaration=/QUALIFIED_FRONTDOOR_TREE: ([a-f0-9]{40})\\b/u.exec(admission);
+  const declaration=/QUALIFIED_FRONTDOOR_TREE: ([a-f0-9]{40})/u.exec(admission);
   assert.ok(declaration,"release must declare a specific accepted Group tree");
   if(process.env.GITHUB_ACTIONS==="true") {
     const candidate=spawnSync("git",["-C",join(root,"content"),"rev-parse","HEAD^{tree}"],
