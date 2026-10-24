@@ -6,6 +6,7 @@ import {readFile,mkdir,writeFile} from "node:fs/promises";
 import {createHash} from "node:crypto";
 import {resolve,join} from "node:path";
 import {pathToFileURL} from "node:url";
+import {readerStudyPacket} from "./reader-study.mjs";
 import {create561GroupLivingApplication} from "../src/living-home.mjs";
 
 const readJson=async path=>JSON.parse(await readFile(new URL("../"+path,import.meta.url),"utf8"));
@@ -47,6 +48,20 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
   need(value?.focusWidth>=3,"Keyboard focus has no sufficiently visible outline");
   need(value?.overflowX===false,"Layout overflows viewport horizontally");
   need(value?.identityAppeal===false,"Rejected Lakota-founded appeal is visible again");
+
+  if(path==="/"){
+    need(Array.isArray(value?.folioLabels) && value.folioLabels.length===4 &&
+      value.folioLabels.every(item=>item.whiteSpace==="nowrap" && item.fits===true),
+      "Original work-folio editorial registers break or overflow their actual cards");
+    need(value?.witnessedCase?.before==="404" && value?.witnessedCase?.after==="200",
+      "Original public repair story lost its witnessed 404-to-200 progression");
+    need(value?.witnessedCase?.action==="https://services.561.group/green-web-service-pilot/",
+      "Original service-customer action no longer links to the real Causeway publisher");
+    need(value?.witnessedCase?.sources===2,
+      "Original service case lost its two separate source-owner/publisher receipts");
+    need(value?.witnessedCase?.boundary===true,
+      "Original public repair case does not display its limits");
+  }
   need(value?.viewportWidth>=320,"Visual assay viewport is not a supported width");
   return Object.freeze({passed:errors.length===0,errors});
 }
@@ -117,6 +132,15 @@ export function visualReviewPacket(witness){
       c.viewport.height+" | "+(c.passed?"pass":"REFUSED: "+c.errors.join("; "))+ 
       " | ["+c.screenshot+"]("+c.screenshot+") | "+c.sha256+" |"),
     "",
+    "An accompanying [offline reader-study worksheet](READER-STUDY.html) can collect",
+    "voluntary observations without transmission. It is NOT human testimony",
+    "until a real participant consents and returns it.",
+    "",
+    "The source-owned 404→200 story is documentary and artistically provisional:",
+    "inspect the independently recorded publisher receipts, working customer",
+    "journey, emotional clarity, truthful bounds, keyboard use and screen-reader",
+    "reading order. A technical HTTP repair does not prove customer approval.",
+    "",
     "## Independent reader/visual-review task",
     "",
     "Inspect each image without treating implementation tickets as evidence",
@@ -137,6 +161,54 @@ export function visualReviewPacket(witness){
     "or a passing CI as its own independent customer-acceptance record.",
     ""
   ].join("\n");
+}
+
+/**
+ * Exercise the actual generated offline participant worksheet in the SAME
+ * Chromium job that received the original screenshots. This checks local
+ * interaction, not artistic quality, human response or acceptance.
+ */
+async function verifyOfflineStudyInteraction(browser,html){
+  const context=await browser.newContext({javaScriptEnabled:true,acceptDownloads:true});
+  try{
+    const page=await context.newPage();
+    const errors=[];
+    page.on("pageerror",error=>errors.push(error.message));
+    await page.setContent(html,{waitUntil:"load"});
+    const scenes=page.locator("[data-reader-case]");
+    if(await scenes.count()!==pages.length)
+      throw Error("Offline study lost an original witnessed scene");
+    const first=scenes.first();
+    await first.locator("[data-reveal]").click();
+    if(await first.locator("[data-view]").isVisible())
+      throw Error("Offline study displayed a specimen before participant consent");
+    await page.locator("#consent").check();
+    await first.locator("[data-reveal]").click();
+    if(!await first.locator("[data-view]").isVisible())
+      throw Error("Consented source specimen did not reveal");
+    await first.locator("[data-hide]").click();
+    if(!await first.locator("[data-questions]").isVisible()||
+       await first.locator("[data-view]").isVisible())
+      throw Error("Source remained exposed during first-impression reporting");
+    await first.locator('textarea[name="case-0.firstImpression"]')
+      .fill("READER-STUDY-BROWSER-TEST-ONLY");
+    await first.locator('select[name="case-0.reportedValence"]')
+      .selectOption("3 — neither / mixed");
+    const [download]=await Promise.all([
+      page.waitForEvent("download",{timeout:8000}),
+      page.locator('button[type="submit"]').click()
+    ]);
+    const report=JSON.parse(await readFile(await download.path(),"utf8"));
+    if(download.suggestedFilename()!=="561-reader-observation.json"||
+       report.schema!=="561.group/reader-observation-candidate/v1"||
+       report.independentAcceptance!==false||
+       report.declaredConsent!==true||
+       report.responses?.["case-0.firstImpression"]!=="READER-STUDY-BROWSER-TEST-ONLY"||
+       !report.responses?.["case-0.visibleSeconds"])
+      throw Error("Offline study browser export lost provenance, recorded observation or unreceived state");
+    if(errors.length)throw Error("Offline study browser script error: "+errors.join("; "));
+    return {result:"local-reader-study-interaction-conformant",sceneCount:await scenes.count()};
+  }finally{await context.close()}
 }
 
 export async function receiveBrowserVisuals({output="artifacts/brand-visual",sourceCommit=process.env.GITHUB_SHA??null}={}) {
@@ -192,6 +264,29 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             focusWidth:Number.isFinite(focusWidth)?focusWidth:0,
             overflowX:root.scrollWidth>innerWidth+1,
             identityAppeal:/Lakota-founded/i.test(document.body.innerText),
+
+            folioLabels:[...document.querySelectorAll(".site-folio-register")].map(node=>({
+              text:node.textContent.trim(),
+              whiteSpace:getComputedStyle(node).whiteSpace,
+              fits:node.scrollWidth<=node.clientWidth+1
+            })),
+            witnessedCase:(()=>{
+              const proof=el(".site-folio-proof");
+              if(!proof)return null;
+              const before=el(".site-folio-proof-before>span");
+              const after=el(".site-folio-proof-after>span");
+              const action=el(".site-folio-proof-action");
+              return {
+                before:before?.textContent,
+                after:after?.textContent,
+                action:action?.href,
+                sources:proof.querySelectorAll(".site-folio-proof-source").length,
+                boundary:!!proof.querySelector(".site-folio-proof-boundary"),
+                proofWidth:proof.getBoundingClientRect().width,
+                viewportWidth:innerWidth
+              };
+            })(),
+
             fontFaces:[...document.fonts].map(f=>({family:f.family,status:f.status})),
             title:document.title
           };
@@ -221,8 +316,12 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
       acceptance:"CANDIDATE: machine browser conformance; golden-baseline and independent human approval NOT established",
       playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases
     };
+    const studyHtml=readerStudyPacket(witness);
+    const studyAssay=await verifyOfflineStudyInteraction(browser,studyHtml);
+    console.log(JSON.stringify(studyAssay));
     await writeFile(join(output,"witness.json"),JSON.stringify(witness,null,2)+"\n");
     await writeFile(join(output,"REVIEW.md"),visualReviewPacket(witness));
+    await writeFile(join(output,"READER-STUDY.html"),studyHtml);
     const failing=cases.filter(x=>!x.passed);
     if(failing.length)throw Error("Rendered brand did not conform: "+
       failing.map(x=>x.name+": "+x.errors.join("; ")).join(" | "));
