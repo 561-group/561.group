@@ -92,15 +92,149 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
 .site-frontier .site-frontier-boundary {font:.84rem/1.55 var(--house-mono);
   color:var(--house-soft);border-top:1px solid var(--house-rule);padding-top:1rem;margin-top:1rem}
 .site-frontier-throughline {font:700 clamp(1.05rem,1.5vw,1.35rem)/1.4 var(--house-sans);max-width:66ch}
+
+/* One source-owned editorial work-score. Symbols are illustrative, not logos.
+   Source words and company identities come from data/frontdoor.json + data/home.json.
+   Restrained existing House colors; no new palettes, fonts, images or CDN. */
+.tufte-grid>#work-folio {
+  grid-column:span 12;
+  border-top:8px solid var(--house-witness);
+  border-bottom:3px solid var(--house-ink);
+  padding:clamp(1.4rem,3vw,2.5rem) 0 clamp(2rem,4vw,3rem);
+}
+#work-folio header {
+  border:0;
+  border-bottom:1px solid var(--house-rule);
+  padding:0 0 .8rem;
+  margin:0 0 clamp(1rem,2vw,2rem)
+}
+#work-folio h2 {
+  font:700 clamp(2.45rem,5.9vw,5.7rem)/.96 var(--house-sans);
+  letter-spacing:-.065em;text-transform:none;
+  text-wrap:balance;max-width:16ch
+}
+.site-folio {margin:0;padding:0}
+.site-folio-eyebrow {
+  margin:0 0 .65rem;
+  font:700 .76rem/1.4 var(--house-mono);
+  letter-spacing:.11em;text-transform:uppercase;
+  color:var(--house-witness)
+}
+.site-folio-introduction {
+  max-width:55ch;margin:0 0 clamp(1.25rem,3vw,2.5rem);
+  font:400 clamp(1.15rem,1.72vw,1.5rem)/1.42 var(--house-slab);
+  text-wrap:pretty
+}
+.site-folio-grid {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:2px;background:var(--house-ink);
+  border:2px solid var(--house-ink);
+  margin:0 0 .85rem
+}
+.site-folio-movement {
+  min-width:0;display:flex;flex-direction:column;
+  gap:.9rem;padding:clamp(1rem,1.8vw,1.55rem);
+  background:var(--house-bone);color:var(--house-ink);
+  min-height:clamp(25rem,36vw,31rem);
+  transition:background-color .32s ease
+}
+.site-folio-movement:nth-child(even) {
+  background:var(--house-ink);color:var(--house-bone)
+}
+.site-folio-movement:hover,.site-folio-movement:focus-within {
+  box-shadow:inset 0 0 0 4px var(--house-witness)
+}
+.site-folio-meta {
+  display:flex;align-items:flex-end;justify-content:space-between;gap:.65rem;
+  padding-bottom:.6rem;border-bottom:1px solid currentColor
+}
+.site-folio-number {
+  font:700 clamp(3.5rem,7vw,7rem)/.83 var(--house-sans);
+  letter-spacing:-.115em;display:block;
+  padding-right:.15em
+}
+.site-folio-register {
+  font:700 .65rem/1.3 var(--house-mono);
+  letter-spacing:.055em;text-transform:uppercase;text-align:right;
+  max-width:10ch;margin-bottom:.2rem
+}
+.site-folio-figure {
+  display:block;width:100%;height:clamp(7rem,10.8vw,10.5rem);
+  overflow:visible;
+  color:var(--house-witness);
+  margin:.25rem 0
+}
+.site-folio-structure {
+  fill:none;stroke:currentColor;stroke-width:2.35;
+  stroke-linecap:round;stroke-linejoin:round
+}
+.site-folio-seed {
+  fill:var(--house-witness);stroke:none
+}
+.site-folio-current {
+  fill:none;stroke:currentColor;stroke-width:2.2;
+  stroke-dasharray:8 11;
+  animation:site-folio-tide 15s linear infinite
+}
+.site-folio-movement:nth-child(2) .site-folio-current {animation-delay:-3s}
+.site-folio-movement:nth-child(3) .site-folio-current {animation-delay:-6s}
+.site-folio-movement:nth-child(4) .site-folio-current {animation-delay:-9s}
+@keyframes site-folio-tide {
+  to {stroke-dashoffset:-228}
+}
+.site-folio-movement h3 {
+  font:700 clamp(1.55rem,2.2vw,2.35rem)/1.06 var(--house-sans);
+  letter-spacing:-.043em;max-width:14ch;
+  text-wrap:balance;
+  margin:0
+}
+.site-folio-verse {
+  font:400 clamp(.96rem,1.16vw,1.08rem)/1.5 var(--house-slab);
+  margin:0 0 auto;
+  max-width:25ch
+}
+.site-folio-owner {
+  font:700 .72rem/1.5 var(--house-mono);
+  letter-spacing:.045em;text-transform:uppercase;
+  border-top:1px solid currentColor;
+  padding-top:.75rem;margin-top:1.1rem
+}
+a.site-folio-link {
+  display:block;width:fit-content;max-width:100%;
+  padding:.45rem 0;margin:0;
+  color:inherit;
+  font:700 .8rem/1.4 var(--house-mono);
+  text-decoration:underline;text-underline-offset:.25em
+}
+a.site-folio-link:hover {text-decoration-thickness:3px}
+a.site-folio-link:focus-visible {
+  outline:3px solid var(--house-witness)!important;
+  outline-offset:4px!important
+}
+.site-folio-boundary {
+  max-width:76ch;padding:.35rem 0 0;
+  font:400 .72rem/1.6 var(--house-mono);
+  color:var(--house-soft);letter-spacing:.005em
+}
+
 @media(max-width:1050px){
   .site-card-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
   .site-project-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
   .site-steps {grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+@media(max-width:1050px) and (min-width:761px){
+  .site-folio-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .site-folio-movement {min-height:26rem}
+}
 @media(max-width:760px){
   .tufte-grid>.tufte-tile{grid-column:span 12!important}
   .site-service-grid,.site-house-list,.site-frontier-grid,.site-directory {grid-template-columns:1fr}
   .site-display {font-size:clamp(2.6rem,10vw,4.4rem)}
+  .site-folio-grid {grid-template-columns:1fr}
+  .site-folio-movement {min-height:unset}
+  .site-folio-figure {height:8.4rem;max-width:19rem}
+  .site-folio-movement h3 {max-width:unset}
+  .site-folio-verse {max-width:unset}
 }
 @media(max-width:430px){
   .site-card-grid,.site-card-grid--three,.site-project-grid,.site-steps{grid-template-columns:1fr}
@@ -110,10 +244,15 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
   .site-endpoints p{grid-column:1}
 }
 @media(prefers-reduced-motion:reduce){
+  .site-folio-current {animation:none}
+  .site-folio-movement {transition:none}
   html{scroll-behavior:auto}
   a.site-action{transition:none}
 }
 @media print{
+  .site-folio-current {animation:none}
+  .site-folio-movement {background:#fff!important;color:#000!important;break-inside:avoid}
+  .site-folio-grid {background:#000!important}
   .site-frontier,.site-project,.site-card{break-inside:avoid}
   a.site-action{background:transparent!important;color:#000!important}
 }
