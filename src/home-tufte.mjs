@@ -107,7 +107,7 @@ function checkedSources(home, estate, frontdoor) {
       const framework=offer.framework;
       if (!framework || !["href","label","qualification"].every(key=>
           typeof framework[key]==="string" && framework[key].trim()) ||
-          !framework.href.startsWith("https://www.rd-alliance.org/") ||
+          framework.href!=="https://www.gida-global.org/careprinciples" ||
           offer.id!=="indigenous-data")
         throw new TypeError("Data-rights practice must cite the original CARE Principles, not claim a group compliance badge");
       publicHref(framework.href);
