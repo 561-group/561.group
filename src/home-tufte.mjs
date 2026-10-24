@@ -146,7 +146,13 @@ function structure(home, pathname, frontdoor) {
     name:home.name,url:home.origin + "/",description:home.description,
     foundingDate:String(home.established),
     sameAs:[home.group.githubOrg,home.group.actor],
-    knowsAbout:home.group.knowsAbout,
+    // Metadata describes THIS page's useful task. Reserve the complete
+    // research and cultural topics for the source-owned About context;
+    // otherwise bots receive the very speculative homepage billboard
+    // that the visible navigation correctly refuses.
+    knowsAbout:pathname==="/about/" ? home.group.knowsAbout :
+      ["research","software engineering","operational coordination",
+       "energy and resource management","public services"],
     subOrganization:home.group.companies.map(company => ({
       "@type":"Organization","@id":company.url + "#organization",
       name:company.name,url:company.url,sameAs:[company.github,company.actor]
