@@ -27,10 +27,10 @@
     },
     {
       "id": "read",
-      "title": "Follow the work",
-      "detail": "Follow current public research and systems-focused reporting, including the evidence behind our long-term ambitions.",
-      "action": "Read Koios.News",
-      "href": "https://koios.news/"
+      "title": "Read original research",
+      "detail": "Explore Lenticule Science publications, distinguish proofs from observations and proposals, and inspect the limits of current work.",
+      "action": "Explore Lenticule Science",
+      "href": "https://science.561.group/"
     }
   ],
   "offers": [
