@@ -42,6 +42,10 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
   need(value?.fontFaces?.every(x=>x.status==="loaded") &&
        expectedFontNames.every(name=>value.fontFaces.some(x=>x.family===name)),
        "A local required font was not loaded");
+  if(path==="/work/")need(Array.isArray(value?.serviceDetails) &&
+    value.serviceDetails.length===8 &&
+    value.serviceDetails.every(item=>item.hasSummary && !item.open && item.hasInquiry),
+    "Public service entries no longer allow native compact scanning with an immediate lawful inquiry");
   if(path==="/"){
     need(value?.introBackground==="rgba(0, 0, 0, 0)",
       "Homepage introduction reverted to a heavy black billboard");
@@ -215,6 +219,10 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             contactWidthRatio:el("#contact")&&el(".tufte-grid")?
               el("#contact").getBoundingClientRect().width/el(".tufte-grid").getBoundingClientRect().width:0,
             prohibitedTopicLabels:location.pathname==="/" && /Indigenous-grounded|Indigenous data governance|Union of Harmonious Colonies|silica-rich|Artificial Abiogenesis|Jiangshi|SHRIMP/iu.test(document.body.innerText),
+            serviceDetails:[...document.querySelectorAll("#services .site-service-detail")].map(node=>({
+              hasSummary:!!node.querySelector("summary"),open:node.open,
+              hasInquiry:!!node.closest("li.site-service")?.querySelector("a.site-service-inquiry")
+            })),
 
             houseStyle:!!el('style[data-561-house="visual-design-bible-v0.4-candidate"]'),
             tufte:!!el(".tufte-shell[data-tufte]"),
@@ -235,6 +243,19 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
         await page.evaluate(()=>document.activeElement?.blur());
         await page.screenshot({path:screenshot,fullPage:true,animations:"disabled"});
         const hash=createHash("sha256").update(await readFile(screenshot)).digest("hex");
+        if(item.path==="/work/"){
+          // A real native HTML control must remain usable without script:
+          // the initial screenshot is collapsed so the reader sees all eight
+          // services before choosing one, and the viewer can open/close it.
+          const first=page.locator("#services .site-service-detail").first();
+          const opener=first.locator("summary");
+          await opener.click();
+          if(!await first.evaluate(node=>node.open))
+            throw Error("The original source detail cannot open without JavaScript");
+          await opener.click();
+          if(await first.evaluate(node=>node.open))
+            throw Error("The original source detail cannot close without JavaScript");
+        }
         cases.push({name:item.name,path:item.path,viewport:{width:item.width,height:item.height},
           ...result,reading,screenshot:item.name+".png",sha256:hash});
       }finally{await context.close()}
