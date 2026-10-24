@@ -24,7 +24,7 @@ const good=()=>({
   witnessedCase:{
     before:"404",after:"200",
     action:"https://services.561.group/green-web-service-pilot/",
-    sources:2,boundary:true
+    sources:2,boundary:true,proofTop:620,cardsTop:1030
   }
 });
 test("rendered Chromium observation has a passable explicit conformance shape",()=>{
@@ -65,6 +65,8 @@ test("the real homepage artwork refuses broken typography or counterfeit service
   assert.ok(qualifyRenderedBrand(noProof).errors.some(x=>x.includes("404-to-200")));
   const forged={...good(),witnessedCase:{...good().witnessedCase,action:"https://elsewhere.example/pay"}};
   assert.ok(qualifyRenderedBrand(forged).errors.some(x=>x.includes("real Causeway publisher")));
+  const buried={...good(),witnessedCase:{...good().witnessedCase,proofTop:2200,cardsTop:1000}};
+  assert.ok(qualifyRenderedBrand(buried).errors.some(x=>x.includes("buried")));
   const noReceipt={...good(),witnessedCase:{...good().witnessedCase,sources:0,boundary:false}};
   assert.ok(qualifyRenderedBrand(noReceipt).errors.some(x=>x.includes("two separate")));
   assert.ok(qualifyRenderedBrand(noReceipt).errors.some(x=>x.includes("limits")));
