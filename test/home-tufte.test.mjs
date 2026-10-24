@@ -40,6 +40,9 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
     assert.ok(folio.includes(htmlEsc(beat.title)));
     assert.ok(folio.includes(htmlEsc(beat.line)));
   }
+  assert.ok(folio.indexOf('class="site-folio-proof"')<
+    folio.indexOf('class="site-folio-grid"'),
+    "the real useful public act must lead the four-house story, not follow all four cards");
   const proof=frontdoor.workFolio.witnessedCase;
   assert.ok(folio.includes('id="site-folio-proof-heading"'));
   assert.ok(folio.includes(htmlEsc(proof.title)));
