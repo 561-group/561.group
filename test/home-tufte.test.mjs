@@ -90,8 +90,8 @@ test("services are tied to an existing accountable company, and only inquiry is 
       "visible links retain escaped HTML labels: "+item.id);
     assert.ok(list.includes(item.evidence.qualification));
   }
-  assert.equal(frontdoor.offers.filter(x=>x.evidence).length,4,
-    "unverified service areas do not invent client proof");
+  assert.equal(frontdoor.offers.filter(x=>x.evidence).length,5,
+    "only five independently labeled, bounded original evidence entrances are admitted");
   const pilots=frontdoor.offers.filter(x=>x.paidProposal);
   assert.deepEqual(pilots.map(x=>x.id),["green-web-pilot","evidence-marketing-pilot"]);
   assert.equal(frontdoor.offers.length,8);
@@ -305,4 +305,33 @@ test("original paid Work-receiving pilot exposes an honest, bounded customer inq
     home.group.companies.find(x=>x.id==="services").url+"#organization");
   assert.equal("offers" in entry.item,false,
     "a provisional service estimate must not become an enforceable schema.org Offer or payment claim");
+});
+
+test("first-party GitHub audit evidence gives a paying prospect a bounded example without fake client proof",()=>{
+ const service=frontdoor.offers.find(s=>s.id==="agent-operations");
+ const source="https://github.com/561-group/561.group/issues/17#issuecomment-6378737097";
+ assert.equal(service.evidence.href,source);
+ assert.match(service.evidence.label,/20-record Work-continuity sample/u);
+ assert.match(service.evidence.qualification,/First-party source inspection/u);
+ assert.match(service.evidence.qualification,/Not an outside customer audit/u);
+ assert.match(service.evidence.qualification,/earned sale or Asana\/Jira parity evidence/u);
+ for(const page of ["/","/work/"]){
+  const markup=tile(model(page),"services").html;
+  assert.ok(markup.includes('href="'+source+'"'),
+    "real first-party Work source can be reached from the original service card");
+  assert.ok(markup.includes(service.evidence.label));
+  assert.ok(markup.includes(service.evidence.qualification));
+  assert.ok(markup.includes('href="/contact/?service=Persistent%20AI%20systems#work"'),
+    "original seller intake survives public source-evidence discovery");
+  assert.doesNotMatch(markup,/Buy now|guaranteed savings|validated customer results/u);
+ }
+ const business=model("/work/").metadata.structuredData["@graph"][2].mainEntity;
+ const details=business.itemListElement.find(row=>row.item["@id"].endsWith("#agent-operations")).item;
+ assert.equal(details.provider["@id"],home.group.companies.find(p=>p.id==="services").url+"#organization");
+ assert.equal("offers" in details,false);
+ assert.equal("aggregateRating" in details,false);
+ const noEvidence=structuredClone(frontdoor);
+ noEvidence.offers.find(s=>s.id==="agent-operations").evidence.href="javascript:alert(1)";
+ assert.throws(()=>project561GroupPage({home,estate,frontdoor:noEvidence,path:"/work/"}),
+   /Only public HTTPS resources/u);
 });
