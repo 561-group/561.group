@@ -20,7 +20,7 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.deepEqual(root.navigation.map(x=>x.href),
     ["/","/work/","/projects/","/about/","/for-agents/","/contact/"]);
   assert.deepEqual(root.tiles.map(x=>x.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","work-folio","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   const hero=tile(root,"introduction").html;
   assert.ok(hero.includes(frontdoor.proposition));
   assert.ok(hero.includes(frontdoor.promise));
@@ -28,6 +28,23 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.ok(hero.includes('href="/work/"'));
   assert.ok(hero.includes('href="/projects/"'));
   assert.doesNotMatch(hero,/conurbanized|Huidu Guanli|type-theoretic/u);
+  const folio=tile(root,"work-folio").html;
+  assert.equal(tile(root,"work-folio").title,frontdoor.workFolio.title);
+  assert.ok(folio.includes(frontdoor.workFolio.introduction));
+  assert.ok(folio.includes(frontdoor.workFolio.boundary));
+  assert.equal((folio.match(/class="site-folio-movement"/gu)||[]).length,4);
+  for(const house of home.group.companies){
+    assert.ok(folio.includes('data-house="'+house.id+'"'));
+    assert.ok(folio.includes('href="'+house.url+'"'));
+    assert.ok(folio.includes(house.name));
+  }
+  for(const beat of frontdoor.workFolio.movements) {
+    assert.ok(folio.includes(beat.title));
+    assert.ok(folio.includes(beat.line));
+  }
+  assert.ok(folio.includes('aria-hidden="true"'),"art must remain decorative");
+  assert.ok(root.tiles.findIndex(t=>t.id==="work-folio")<root.tiles.findIndex(t=>t.id==="frontiers"),
+    "real responsibilities must appear before abstract future frontiers");
   const horizon=tile(root,"frontiers").html;
   assert.ok(horizon.includes("Union of Harmonious Colonies"));
   assert.ok(horizon.includes("settler-colonial"));
@@ -158,6 +175,19 @@ test("public editorial records are data, escaped and checked at the original bou
   const incompletePosition=structuredClone(home);
   delete incompletePosition.public.materialApproach.scope;
   assert.throws(()=>project561GroupPage({home:incompletePosition,estate,frontdoor}),/material-world position/u);
+  const strippedFolio=structuredClone(frontdoor);
+  strippedFolio.workFolio.movements.pop();
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:strippedFolio}),
+    /four real, ordered Group companies/u);
+  const displaced=structuredClone(frontdoor);
+  displaced.workFolio.movements[1].company="science";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:displaced}),
+    /four real, ordered Group companies/u);
+  const marked=structuredClone(frontdoor);
+  marked.workFolio.movements[0].title="<script>alert(1)</script>";
+  const safeFolio=tile(project561GroupPage({home,estate,frontdoor:marked}),"work-folio").html;
+  assert.ok(safeFolio.includes("&lt;script&gt;"));
+  assert.doesNotMatch(safeFolio,/<script>/u);
   const missingVision=structuredClone(frontdoor);
   missingVision.vision.frontiers.pop();
   assert.throws(()=>project561GroupPage({home,estate,frontdoor:missingVision}),
