@@ -61,6 +61,9 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
       "Original service case lost its two separate source-owner/publisher receipts");
     need(value?.witnessedCase?.boundary===true,
       "Original public repair case does not display its limits");
+    need(Number.isFinite(value?.witnessedCase?.proofTop) &&
+      value.witnessedCase.proofTop < value.witnessedCase.cardsTop,
+      "Actual user service repair is buried after the decorative four-house explanation");
   }
   need(value?.viewportWidth>=320,"Visual assay viewport is not a supported width");
   return Object.freeze({passed:errors.length===0,errors});
@@ -283,6 +286,8 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
                 sources:proof.querySelectorAll(".site-folio-proof-source").length,
                 boundary:!!proof.querySelector(".site-folio-proof-boundary"),
                 proofWidth:proof.getBoundingClientRect().width,
+                proofTop:proof.getBoundingClientRect().top,
+                cardsTop:el(".site-folio-grid")?.getBoundingClientRect().top,
                 viewportWidth:innerWidth
               };
             })(),
