@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import { observeProduction, markdownSummary } from '../scripts/observe-production.mjs';
 const SHA = '1234567890abcdef1234567890abcdef12345678';
 const estate = { revision: 'dated-original-archive', nodes: [{host:'node.561.group',told:'both'}] };
@@ -143,4 +144,26 @@ test('the independent public witness rejects an alpha placeholder for a real vis
   const normal=await observeProduction({fetchImpl:provider(),expectedSourceSha:SHA});
   assert.ok(['work-journey','projects-journey','about-journey','agent-journey'].every(name=>
     normal.checks.find(c=>c.name===name).outcome==='pass'));
+});
+
+
+test('read-only public witness runs after a successful qualified release, not prematurely on a source push',()=>{
+  const witness=readFileSync(new URL('../.github/workflows/public-delivery-witness.yml',import.meta.url),'utf8');
+  const producer=readFileSync(new URL('../.github/workflows/deploy.yml',import.meta.url),'utf8');
+  assert.match(producer,/^name: Publish and receive 561\.group \(TUFTE \+ LivingWebServer\)$/mu);
+  assert.match(witness,/^\s{2}workflow_run:\s*$/mu);
+  assert.match(witness,/workflows:\s*\n\s+- "Publish and receive 561\.group \(TUFTE \+ LivingWebServer\)"/u);
+  assert.match(witness,/types: \[completed\]/u);
+  assert.match(witness,/github\.event\.workflow_run\.conclusion == 'success'/u);
+  assert.match(witness,/github\.event\.workflow_run\.head_branch == 'main'/u);
+  assert.match(witness,/github\.event\.workflow_run\.head_sha/u,
+    'the observed revision must be the completed release, not the latest branch ref');
+  assert.doesNotMatch(witness,/^\s{2}push:\s*$/mu,
+    'the old main-push observer races the release and invents an outage/mismatch');
+  assert.doesNotMatch(witness,/inputs\.expected_source_sha\s*\|\|\s*github\.sha/u,
+    'workflow_run GITHUB_SHA is not the source the deployment ran');
+  assert.match(witness,/^\s{2}pull_request:\s*$/mu);
+  assert.match(witness,/^\s{2}workflow_dispatch:\s*$/mu);
+  assert.match(witness,/if:\s*>-\s*\n\s+github\.event_name == 'workflow_dispatch'/u,
+    'manual diagnostics and PR-only fixture tests retain their original boundaries');
 });

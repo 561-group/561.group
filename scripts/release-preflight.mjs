@@ -40,6 +40,45 @@ export function qualifyRelease({mainBranch,sourceSha,checkoutSha,receipt,
     application:"LivingWebServer",renderer:"TUFTE",providerDeployed:false,
     independentlyAccepted:false});
 }
+// A successful Wrangler deploy may precede Cloudflare's public edge receiving.
+// This is bounded observation, not an alternate release, bypass or optimistic
+// assertion. The deployment workflow still compares exact public asset digests
+// and the independently observed provider-native active Worker version.
+export async function awaitPublishedRevision({
+  sourceSha,origin="https://561.group",fetchImpl=fetch,
+  wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)),
+  attempts=8,intervalMs=3000
+}={}){
+  if(!SHA.test(sourceSha??"")||origin!=="https://561.group"||
+     !Number.isInteger(attempts)||attempts<1||attempts>8||
+     !Number.isInteger(intervalMs)||intervalMs<0||intervalMs>3000)
+    throw new TypeError("Only a bounded, exact-source original release can be observed");
+  let last="not-observed";
+  for(let step=1;step<=attempts;step++){
+    try{
+      const response=await fetchImpl(origin+"/source-revision.json",{
+        method:"GET",redirect:"manual",cache:"no-store",
+        headers:{"cache-control":"no-cache",accept:"application/json"},
+        signal:AbortSignal.timeout(12000)
+      });
+      if(response.status!==200)last="http-"+response.status;
+      else {
+        const receipt=await response.json();
+        if(receipt?.repository==="561-group/561.group"&&
+           receipt?.origin===origin&&receipt?.renderer==="TUFTE"&&
+           receipt?.application==="LivingWebServer"&&
+           receipt?.sourceCommit===sourceSha) {
+          return receipt;
+        }
+        last=receipt?.sourceCommit?"source-mismatch":"invalid-receipt";
+      }
+    }catch { last="unreadable-public-receipt"; }
+    if(step<attempts)await wait(intervalMs);
+  }
+  throw new Error("Public origin failed exact "+sourceSha+
+    " release readback after "+attempts+" bounded attempts ("+last+")");
+}
+
 const missing=async path=>{try{await stat(path);return false;}catch(error){
   if(error.code==="ENOENT")return true;throw error;
 }};
