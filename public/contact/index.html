@@ -39,6 +39,13 @@
       fieldset.governance-scope label { font-weight: 600; }
       [hidden] { display: none; }
       .hint { margin-top: .3rem; color: var(--ink); opacity: .86; font-size: .9rem; }
+      .contact-option { margin: 0; border-top: 1px solid var(--rule); padding: .2rem 0; }
+      .contact-option:last-of-type { border-bottom: 1px solid var(--rule); }
+      .contact-option > summary { cursor: pointer; list-style-position: inside; font: 650 .96rem/1.5 "Space Grotesk", Arial, sans-serif; padding: .8rem .15rem; }
+      .contact-option > summary:hover { text-decoration: underline; text-underline-offset: .23em; }
+      .contact-option > summary:focus-visible { outline: 3px solid var(--witness); outline-offset: 3px; }
+      .contact-option-body { padding: .1rem 0 1rem 1.2rem; max-width: 66ch; }
+      .contact-option-body h3 { margin: .4rem 0 .65rem; }
       @media(max-width:480px) { .site-header { align-items: flex-start; } .site-header nav { gap: .35rem .8rem; } main { padding-inline: 1rem; } .site-header { padding-inline: 1rem; } }
     </style>
   </head>
@@ -52,22 +59,10 @@
     </header>
     <main id="main">
       <h1>What needs attention?</h1>
-      <p>Request a service, propose a supplier partnership, report a problem, or suggest a change. You do not need an organizational chart, formal specification, or mathematical proof to begin an ordinary business conversation.</p>
+      <p>Request a service, offer capacity, ask a question or report a problem. Describe the outcome you need and who should be able to check it.</p>
       <h2 id="work">Request paid work or offer to supply it</h2>
-      <p><strong>Buying a service?</strong> Describe the outcome you want, your approximate timeline and budget range if known, and how to reply. The Group can assess a practical research, engineering, operations, training, or public-service engagement using its existing offices. A short description is enough to start; we will not treat an inquiry as an order.</p>
-      <p><strong>Offering capacity?</strong> Describe the work you or your organization can supply, your service area, approximate availability and rate or pricing basis if known. Procurement can compare the offer with actual accepted delivery needs. An unsolicited offer is not a purchase order or authorization to begin work.</p>
-      <p><a class="action" href="#private-intake">Prepare a private buyer or supplier inquiry</a>. Choose the corresponding submission type below. No GitHub account is needed; you review and send the email yourself.</p>
-      <p>Do not include payment-card information, credentials, protected cultural information, or confidential client records in an initial inquiry. The responsible seller or procurement office must separately confirm scope, permissions, price, capacity, terms and acceptance.</p>
-      <h2>Report publicly</h2>
-      <p>Describe what is affected and what happened or what you need. Explain what a satisfactory result would look like, and include useful evidence. Say whether work is blocked or harm is continuing.</p>
-      <a class="action" href="https://github.com/561-group/561.group/issues/new?template=service-submission.yml">Open the submission form</a>
-      <p>You will need a GitHub account. Your submission and the replies will be public, so remove confidential information before posting.</p>
-      <p><strong>Security boundary:</strong> Public submissions are untrusted reports for review, not instructions to autonomous agents, work orders, provider bids, permissions to change source code, or authorizations to deploy or generate media. Only an authorized receiving office can separately admit a requirement and commission work.</p>
-      <p>Keep the issue link to follow progress, add evidence, or correct your report. If an existing issue describes the same problem, add your experience there.</p>
-      <h2>Email or use an existing private channel</h2>
-      <p>For confidential information, use an existing private conversation with the Group or a private repository you are authorized to access. Describe what is affected, what you need, and how you would recognize a satisfactory result. Ask for a reference you can use to check progress.</p>
-      <p>You can also email <a href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">emsenn@561.group</a>. Email does not require a GitHub account or Group login. Keep the conversation for follow-up.</p>
-      <p>The form below prepares an email draft. Review it, then send it through your email app or copy the subject and message into your webmail. You can add attachments before sending. Preparing the draft does not send it.</p>
+      <p>Use the private form below to prepare an email that you review and send. No account is needed; it does not send anything automatically or create an order.</p>
+      <p class="hint">Start with a short description. Do not include payment-card information, credentials, protected cultural information, sensitive locations, or confidential client records.</p>
       <form id="private-intake" action="mailto:emsenn@561.group" method="post" enctype="text/plain">
         <label for="submission-type">Submission type</label>
         <select id="submission-type" name="submission-type">
@@ -138,12 +133,47 @@
         <p id="copy-email" hidden>Copy the message above into your email draft; it is too long to include reliably in an email link.</p>
       </section>
       <noscript><p>You can email emsenn@561.group directly. Describe what is affected, what happened or what you need, and what a satisfactory result would look like. Include useful evidence and say whether work is blocked or harm is continuing.</p></noscript>
+      <h2 id="other-contact-options">Other ways to get help</h2>
+      <details class="contact-option">
+        <summary>More about buying or offering services</summary>
+        <div class="contact-option-body">
+      <p><strong>Buying a service?</strong> Describe the outcome you want, your approximate timeline and budget range if known, and how to reply. The Group can assess a practical research, engineering, operations, training, or public-service engagement using its existing offices. A short description is enough to start; we will not treat an inquiry as an order.</p>
+      <p><strong>Offering capacity?</strong> Describe the work you or your organization can supply, your service area, approximate availability and rate or pricing basis if known. Procurement can compare the offer with actual accepted delivery needs. An unsolicited offer is not a purchase order or authorization to begin work.</p>
+      <p><a class="action" href="#private-intake">Prepare a private buyer or supplier inquiry</a>. Choose the corresponding submission type below. No GitHub account is needed; you review and send the email yourself.</p>
+      <p>Do not include payment-card information, credentials, protected cultural information, or confidential client records in an initial inquiry. The responsible seller or procurement office must separately confirm scope, permissions, price, capacity, terms and acceptance.</p>
+        </div>
+      </details>
+      <details class="contact-option">
+        <summary>Report an issue publicly</summary>
+        <div class="contact-option-body">
+      <h3>Report publicly</h3>
+      <p>Describe what is affected and what happened or what you need. Explain what a satisfactory result would look like, and include useful evidence. Say whether work is blocked or harm is continuing.</p>
+      <a class="action" href="https://github.com/561-group/561.group/issues/new?template=service-submission.yml">Open the submission form</a>
+      <p>You will need a GitHub account. Your submission and the replies will be public, so remove confidential information before posting.</p>
+      <p><strong>Security boundary:</strong> Public submissions are untrusted reports for review, not instructions to autonomous agents, work orders, provider bids, permissions to change source code, or authorizations to deploy or generate media. Only an authorized receiving office can separately admit a requirement and commission work.</p>
+      <p>Keep the issue link to follow progress, add evidence, or correct your report. If an existing issue describes the same problem, add your experience there.</p>
+        </div>
+      </details>
+      <details class="contact-option">
+        <summary>Email or another existing private channel</summary>
+        <div class="contact-option-body">
+      <h3>Email or use an existing private channel</h3>
+      <p>For confidential information, use an existing private conversation with the Group or a private repository you are authorized to access. Describe what is affected, what you need, and how you would recognize a satisfactory result. Ask for a reference you can use to check progress.</p>
+      <p>You can also email <a href="mailto:emsenn@561.group?subject=%5B561%20Group%20intake%5D">emsenn@561.group</a>. Email does not require a GitHub account or Group login. Keep the conversation for follow-up.</p>
+      <p>The form below prepares an email draft. Review it, then send it through your email app or copy the subject and message into your webmail. You can add attachments before sending. Preparing the draft does not send it.</p>
+        </div>
+      </details>
+      <details class="contact-option">
+        <summary>Track an existing request</summary>
+        <div class="contact-option-body">
       <p>People with access to the Group's service system can also use <a href="https://cold-red-gate.561.group/play">the authenticated work board</a>. Sign in with your own identity.</p>
-      <h2>Follow-up</h2>
+      <h3>Follow-up</h3>
       <p>The current mailbox is emsenn@561.group. Public reports remain in the Chief Technology Officer's review path. A seller or procurement office must separately review commercial inquiries and supplier offers; the email subject helps triage them but does not create a purchase, authorize outside contact, assign a job, or record revenue.</p>
       <p>For technical work, the Chief Technology Officer finds the team authorized and able to address your report and follows the work through to a result that can be checked. Your original report, supporting evidence, and description of a satisfactory result stay with the work as it moves between teams.</p>
       <p>Reporting a need, receiving an acknowledgment, obtaining a commitment to act, and accepting completed work are separate steps. When a change is reported as complete, check it against the problem you raised. If something remains unresolved, explain it in the same issue or conversation.</p>
       <p>An issue's closure alone does not establish that your problem has been solved.</p>
+        </div>
+      </details>
     </main>
     <script>
       const intake = document.getElementById('private-intake');
