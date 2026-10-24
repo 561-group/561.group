@@ -28,6 +28,15 @@ const SIMPLE_CHECKS = Object.freeze([
   { name: 'security-contact', path: '/.well-known/security.txt', accept: 'text/plain', type: 'plain', required: false },
 ]);
 
+// This is a reader capability, not a traffic count. Reuse the *same* sampled
+// homepage response so monitoring an additional intended journey does not
+// double our network, response-body or energy consumption.
+const RESEARCH_CHECK = Object.freeze({
+  name: 'research-discovery', path: '/', accept: 'text/html',
+  type: 'html', required: true,
+  mustContain: 'href="https://science.561.group/"',
+});
+
 async function limitedBytes(response) {
   const length = Number(response.headers.get('content-length'));
   if (Number.isFinite(length) && length > MAX_BYTES) throw new RangeError('body too large');
@@ -154,13 +163,18 @@ export async function observeProduction({ fetchImpl = fetch, expectedSourceSha =
     throw new TypeError('expected source must be a 40-character hexadecimal commit');
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 500 || timeoutMs > 60000)
     throw new RangeError('timeout must be between 500 and 60000ms');
-  const [simple, alias, revision] = await Promise.all([
-    Promise.all(SIMPLE_CHECKS.map(async def => evaluateSimple(def,
-      await observe(`${ORIGIN}${def.path}`, def.accept, fetchImpl, timeoutMs)))),
+  const [simpleSamples, alias, revision] = await Promise.all([
+    Promise.all(SIMPLE_CHECKS.map(def =>
+      observe(`${ORIGIN}${def.path}`, def.accept, fetchImpl, timeoutMs))),
     observe('https://www.561.group/contact/?witness=1', 'text/html', fetchImpl, timeoutMs),
     observe(`${ORIGIN}/source-revision.json`, 'application/json', fetchImpl, timeoutMs),
   ]);
-  const checks = [...simple, evaluateAlias(alias), evaluateRevision(revision, expectedSourceSha)];
+  const simple = SIMPLE_CHECKS.map((def, i) => evaluateSimple(def, simpleSamples[i]));
+  const researchRaw = evaluateSimple(RESEARCH_CHECK, simpleSamples[0]);
+  const research = researchRaw.reason === 'missing-useful-visitor-page'
+    ? { ...researchRaw, reason: 'missing-research-discovery-link' } : researchRaw;
+  const checks = [simple[0], research, ...simple.slice(1),
+    evaluateAlias(alias), evaluateRevision(revision, expectedSourceSha)];
   const requiredChecks = checks.filter(check => check.required);
   const passed = requiredChecks.every(check => check.outcome === 'pass') && !checks.some(check => check.outcome === 'fail');
   const uncertain = requiredChecks.some(check => check.outcome === 'unknown');
