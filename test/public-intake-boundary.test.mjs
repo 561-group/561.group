@@ -202,16 +202,17 @@ test("production Group content admission executes main-pinned normal, alternate 
   assert.ok(checkout>0 && checkout<guard && guard<bind && bind<publish,
     "Group main source must be checked before any production provider write");
   const source=workflow.slice(checkout,guard);
-  assert.match(source,/repository: 561-group\\/561-group-frontdoor-services-section/u);
+  assert.ok(source.includes("repository: 561-group/561-group-frontdoor-services-section"));
   assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
   assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
   const admission=workflow.slice(guard,bind);
   assert.match(admission,/QUALIFIED_FRONTDOOR_SHA: 081d9e51a288e447e27f315f349eff2a6831bdc9/u);
   assert.match(admission,/git -C content rev-parse HEAD/u);
-  const runBlock=admission.split("        run: |\\n")[1];
+  const newline=String.fromCharCode(10);
+  const runBlock=admission.split("        run: |"+newline)[1];
   assert.ok(runBlock,"exercise the actual installed deploy gate, not a test-only replacement");
-  const shell=runBlock.split("\\n").filter(line=>line.startsWith("          "))
-    .map(line=>line.slice(10)).join("\\n");
+  const shell=runBlock.split(newline).filter(line=>line.startsWith("          "))
+    .map(line=>line.slice(10)).join(newline);
   const temp=mkdtempSync(join(tmpdir(),"original-group-content-admission-"));
   try {
     mkdirSync(join(temp,"content"));
