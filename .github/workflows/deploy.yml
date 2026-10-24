@@ -48,14 +48,25 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Read the pinned Group front-door content (Public data repository)
+      - name: Read reviewed Group front-door main (Public data repository)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: 561-group/561-group-frontdoor-services-section
-          ref: 081d9e51a288e447e27f315f349eff2a6831bdc9
+          ref: main
           path: content
           ssh-key: ${{ secrets.SITE_CONTENT_DEPLOY_KEY }}
           persist-credentials: false
+      - name: Refuse an unmerged or superseded Group source before production
+        env:
+          QUALIFIED_FRONTDOOR_SHA: 081d9e51a288e447e27f315f349eff2a6831bdc9
+        run: |
+          set -euo pipefail
+          selected="$(git -C content rev-parse HEAD)"
+          if test "$selected" != "$QUALIFIED_FRONTDOOR_SHA"; then
+            echo "::error::Group main is not the exact qualified content commit; receive and repin Group source before publication"
+            exit 1
+          fi
+          echo "Exact Group main content $selected admitted for this release."
       - name: Bind front-door content (data/, locales/, authored public/ assets) into the application
         run: node scripts/bind-content.mjs
       - name: Select one source-qualified UTC publication day
