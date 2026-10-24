@@ -315,7 +315,18 @@ test("production Group content admission verifies reviewed trees across merge an
   assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
   assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
   const admission=workflow.slice(guard,bind);
-  assert.match(admission,/QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5/u);
+  // Test the installed source acceptance rule against the actual CI
+  // checkout, not a revision-dependent literal copied from an older PR.
+  const declaration=/QUALIFIED_FRONTDOOR_TREE: ([a-f0-9]{40})\\b/u.exec(admission);
+  assert.ok(declaration,"release must declare a specific accepted Group tree");
+  if(process.env.GITHUB_ACTIONS==="true") {
+    const candidate=spawnSync("git",["-C",join(root,"content"),"rev-parse","HEAD^{tree}"],
+      {encoding:"utf8"});
+    assert.equal(candidate.status,0,
+      "native CI must checkout original Group source: "+candidate.stderr);
+    assert.equal(candidate.stdout.trim(),declaration[1],
+      "CI must qualify exactly the Group tree that production will admit");
+  }
   assert.match(admission,/git -C content rev-parse 'HEAD\^\{tree\}'/u);
   const newline=String.fromCharCode(10);
   const runBlock=admission.split("        run: |"+newline)[1];
