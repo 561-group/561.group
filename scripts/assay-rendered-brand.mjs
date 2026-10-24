@@ -67,6 +67,12 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
   else need(value?.hasLead===true,"Non-home visitor page lost its own lead section");
   need(value?.tileCount>=(path==="/"?5:3),"A real public visitor route lost its content tiles");
   need(value?.hasNavigation===true,"Useful public navigation disappeared");
+  if(value?.viewportWidth<=430){
+    need(value?.navRowSizes?.length===2 && value.navRowSizes.every(size=>size===3),
+      "Phone navigation has an orphaned action instead of six paths in balanced rows");
+    need(value?.navMinHitHeight>=36,
+      "Phone navigation touch targets have dropped below their 36px designed hit height");
+  }
   need(value?.hasContact===true,"An actual contact pathway disappeared");
   need(value?.focusWidth>=3,"Keyboard focus has no sufficiently visible outline");
   need(value?.overflowX===false,"Layout overflows viewport horizontally");
@@ -371,6 +377,13 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             tufte:!!el(".tufte-shell[data-tufte]"),
             tileCount:tileElements.length,hasLead:!!el("#lead"),
             hasNavigation:!!el("[data-tufte-navigation] a"),
+            navRowSizes:(()=>{
+              const tops=[...document.querySelectorAll("[data-tufte-navigation] a")]
+                .map(node=>Math.round(node.getBoundingClientRect().top));
+              return [...new Set(tops)].map(top=>tops.filter(value=>value===top).length);
+            })(),
+            navMinHitHeight:Math.min(...[...document.querySelectorAll("[data-tufte-navigation] a")]
+              .map(node=>node.getBoundingClientRect().height)),
             hasContact:!![...document.querySelectorAll("a")].find(a=>a.getAttribute("href")==="/contact/"),
             focusWidth:Number.isFinite(focusWidth)?focusWidth:0,
             overflowX:root.scrollWidth>innerWidth+1,
