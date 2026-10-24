@@ -97,8 +97,8 @@ test("each substantive source-owned page renders different useful HTML AND JSON"
     assert.ok(discoveryText.includes("561 Group"),path+" names its responsible institution");
     assert.notEqual(discoveryText,data.subtitle,
       path+" page-specific description should answer the external reader's actual question");
-    const metaDescription=[...html.matchAll(/<meta\\b[^>]*>/giu)].map(match=>match[0])
-      .find(tag=>/\\bname=["']description["']/iu.test(tag));
+    const metaDescription=[...html.matchAll(/<meta\b[^>]*>/giu)].map(match=>match[0])
+      .find(tag=>/\bname=["']description["']/iu.test(tag));
     assert.ok(metaDescription,path+" emits original HTML description metadata");
     const escapedDescription=discoveryText.replaceAll("&","&amp;")
       .replaceAll("'","&#39;").replaceAll('"',"&quot;");
