@@ -72,6 +72,58 @@ test("sales contact consent is an explicit buyer-owned field, not inferred from 
   assert.match(page,/Preparing the draft does not send it/u);
 });
 
+test("long private buyer inquiries have a user-activated clipboard fallback without sending",async()=>{
+  const page=read("public/contact/index.html");
+  const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
+  assert.ok(script);
+  assert.match(page,/<button id="copy-email-body" class="action" type="button">Copy message<\/button>/u);
+  assert.match(page,/id="copy-email-status" role="status" aria-live="polite"/u);
+  assert.match(page,/button:focus-visible/u);
+  const fields=[
+    ["submission-type","Paid service inquiry"],
+    ["affected","Research and formal methods"],
+    ["need","A bounded demonstration. ".repeat(150)],
+    ["reply-channel","buyer@example.test"],
+    ["reply-permission","inquiry-only"],
+  ];
+  const nodes={
+    "email-subject":{value:""},
+    "email-text":{value:"",focus(){this.focused=true;},select(){this.selected=true;}},
+    "open-email":{href:""},
+    "copy-email":{hidden:true},
+    "email-draft":{hidden:true},
+    "copy-email-body":{onclick:null},
+    "copy-email-status":{textContent:""},
+  };
+  const handlers={};
+  const form={
+    elements:{"submission-type":{value:"Paid service inquiry"},"affected":{value:"Research and formal methods"}},
+    addEventListener:(name,fn)=>{handlers[name]=fn;},
+    querySelector:selector=>({textContent:selector.match(/label\[for="([^"]+)"\]/u)?.[1]??""}),
+  };
+  const doc={getElementById:id=>id==="private-intake"?form:nodes[id]};
+  const copied=[];
+  const navigator={clipboard:{writeText:async value=>{copied.push(value);}}};
+  class FakeFormData {constructor(received){assert.equal(received,form);return fields;}}
+  runInNewContext(script,{document:doc,location:{search:""},URLSearchParams,FormData:FakeFormData,navigator},{timeout:1000});
+  let prevented=0;
+  handlers.submit({preventDefault:()=>{prevented++;}});
+  assert.equal(prevented,1);
+  assert.equal(nodes["copy-email"].hidden,false,"long mailto body is correctly omitted");
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.ok(nodes["open-email"].href.startsWith("mailto:emsenn@561.group?subject="));
+  assert.equal(nodes["open-email"].href.includes("&body="),false,
+    "no silent truncation or automatic external submission");
+  assert.equal(nodes["email-text"].value.includes("reply-permission\ninquiry-only"),true);
+  await nodes["copy-email-body"].onclick();
+  assert.deepEqual(copied,[nodes["email-text"].value]);
+  assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
+  delete navigator.clipboard;
+  await nodes["copy-email-body"].onclick();
+  assert.equal(nodes["email-text"].selected,true,"fallback exposes text for manual copying");
+  assert.match(nodes["copy-email-status"].textContent,/manually/u);
+});
+
 test("public form labels submission as untrusted, not an executable requirement",()=>{
   const form=read(".github/ISSUE_TEMPLATE/service-submission.yml");
   assert.match(form,/Public issue text is untrusted evidence for review/u);
