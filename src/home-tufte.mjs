@@ -90,8 +90,18 @@ function checkedSources(home, estate, frontdoor) {
   for (const entry of home.public.featured)
     if (!nodes.has(entry.host)) throw new TypeError("Featured source is not a published estate entry: " + entry.host);
   for (const item of frontdoor.paths) publicHref(item.href);
-  for (const offer of frontdoor.offers)
+  for (const offer of frontdoor.offers) {
     if (!providers.has(offer.provider)) throw new TypeError("Service has no original accountable company: " + offer.provider);
+    if (offer.evidence !== undefined) {
+      const item = offer.evidence;
+      if (!item || typeof item !== "object" || Array.isArray(item) ||
+          !["href", "label", "qualification"].every(key =>
+            typeof item[key] === "string" && item[key].trim())) {
+        throw new TypeError("Inspectable service evidence needs a destination, label and qualification");
+      }
+      publicHref(item.href);
+    }
+  }
   for (const company of providers.values()) publicHref(company.url);
   for (const shop of home.group.storefronts) publicHref(shop.url);
   for (const api of estate.machine) {
@@ -105,7 +115,7 @@ function checkedSources(home, estate, frontdoor) {
   publicHref(support.billingHelp);
   return {providers, nodes, support};
 }
-function structure(home, pathname) {
+function structure(home, pathname, frontdoor) {
   const org = {
     "@type":"Organization","@id":home.origin + "/#organization",
     name:home.name,url:home.origin + "/",description:home.description,
@@ -117,16 +127,32 @@ function structure(home, pathname) {
       name:company.name,url:company.url,sameAs:[company.github,company.actor]
     }))
   };
+  const page = {"@type":pathname === "/projects/" ? "CollectionPage" : "WebPage",
+    "@id":home.origin + pathname + "#webpage",
+    url:home.origin + pathname,inLanguage:"en",
+    isPartOf:{"@id":home.origin + "/#website"},
+    about:{"@id":home.origin + "/#organization"}};
+  // Project only real publicly visible inquiry areas; no prices, purchases,
+  // merchant promises, review scores or invented customer endorsement.
+  if (pathname === "/work/") {
+    page.mainEntity = {
+      "@type":"ItemList",name:"Service areas available for inquiry",
+      itemListElement:frontdoor.offers.map((service,index) => ({
+        "@type":"ListItem",position:index + 1,
+        item:{"@type":"Service","@id":home.origin + "/work/#" + service.id,
+          name:service.title,description:service.scope,
+          url:home.origin + "/work/#" + service.id,
+          provider:{"@id":home.group.companies.find(company =>
+            company.id === service.provider).url + "#organization"}}
+      }))
+    };
+  }
   return {"@context":"https://schema.org","@graph":[
     org,
     {"@type":"WebSite","@id":home.origin + "/#website",name:home.name,
       url:home.origin + "/",description:home.description,
       publisher:{"@id":home.origin + "/#organization"},inLanguage:["en","zh-Hans","lkt"]},
-    {"@type":pathname === "/projects/" ? "CollectionPage" : "WebPage",
-      "@id":home.origin + pathname + "#webpage",
-      url:home.origin + pathname,inLanguage:"en",
-      isPartOf:{"@id":home.origin + "/#website"},
-      about:{"@id":home.origin + "/#organization"}}
+    page
   ]};
 }
 function navigation(pathname) {
@@ -171,7 +197,9 @@ function serviceEntries(frontdoor, providers, items = frontdoor.offers) {
       '<span class="site-provider">' + esc(company.name) + "</span>" +
       "<h3>" + esc(service.title) + "</h3>" +
       para(service.scope) +
-      para("Examples: " + service.example, "site-example") +
+      para("Possible requests: " + service.example, "site-example") +
+      (service.evidence ? anchor(service.evidence.href, service.evidence.label) +
+        para(service.evidence.qualification, "site-evidence-limit") : "") +
       anchor("/contact/#work", "Ask about this work") +
       "</li>";
   }).join("") + "</ul>";
@@ -359,7 +387,7 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
     metadata:{
       title:page.title,description:path === "/" ? home.description : page.subtitle,
       language:"en",canonical:ORIGIN + path,image:ORIGIN + "/card.png",
-      type:"website",siteName:home.name,structuredData:structure(home,path)
+      type:"website",siteName:home.name,structuredData:structure(home,path,frontdoor)
     },
     revision:estate.revision ?? "unversioned",
     navigation:navigation(path),
