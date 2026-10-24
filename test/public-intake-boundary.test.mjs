@@ -68,9 +68,11 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
     const called=[];
     const elements={"submission-type":{value:"Issue"},"affected":{value:""},"reply-permission":{value:"not-specified"}};
     const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
+    const rightsScope={hidden:false,disabled:false};
     const document={getElementById:id=>{
-      assert.equal(id,"private-intake","no other consumer should be touched before review");
-      return form;
+      if(id==="private-intake")return form;
+      if(id==="data-stewardship-scope")return rightsScope;
+      assert.fail("unrecognized source-qualified contact control: "+id);
     }};
     runInNewContext(script,{document,location:{search},URLSearchParams},{timeout:1000});
     return {elements,called};
@@ -80,7 +82,15 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
   assert.equal(actual.elements["reply-permission"].value,"not-specified",
     "a service URL hint does not establish permission to contact");
   assert.equal(actual.elements.affected.value,"Research and formal methods");
-  assert.equal(actual.called.length,1);
+  assert.ok(actual.called.some(([event])=>event==="submit"),
+    "source-qualified hint preserves an explicit user-controlled submit");
+  // Group PR #1 and its rights-scoped successor PR #2 are legitimate
+  // original content producers. Extra input/change handlers only update
+  // field visibility; they grant neither contact permission nor work.
+  const events=actual.called.map(([event])=>event).sort();
+  assert.ok(JSON.stringify(events)===JSON.stringify(["submit"]) ||
+    JSON.stringify(events)===JSON.stringify(["change","input","submit"]),
+    "the public URL hint cannot add unsolicited actions");
   assert.equal(actual.called[0][0],"submit");
   // No input in the URL becomes a sent message or asserted legitimate order.
   for(const bad of ["", "?service=%3Cscript%3E", "?service="+encodeURIComponent("x".repeat(150))]){
@@ -88,7 +98,7 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
     assert.equal(item.elements.affected.value,"");
     assert.equal(item.elements["submission-type"].value,"Issue");
     assert.equal(item.elements["reply-permission"].value,"not-specified");
-    assert.equal(item.called.length,1);
+    assert.deepEqual(item.called.map(([event])=>event).sort(),events);
   }
   assert.match(page,/Preparing the draft does not send it/u);
   assert.match(page,/we will not treat an inquiry as an order/u);
@@ -140,7 +150,9 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
     addEventListener:(name,fn)=>{handlers[name]=fn;},
     querySelector:selector=>({textContent:selector.match(/label\[for="([^"]+)"\]/u)?.[1]??""}),
   };
-  const doc={getElementById:id=>id==="private-intake"?form:nodes[id]};
+  const rightsScope={hidden:false,disabled:false};
+  const doc={getElementById:id=>id==="private-intake"?form:
+    id==="data-stewardship-scope"?rightsScope:nodes[id]};
   const copied=[];
   const navigator={clipboard:{writeText:async value=>{copied.push(value);}}};
   class FakeFormData {constructor(received){assert.equal(received,form);return fields;}}
@@ -195,6 +207,22 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
   await nodes["copy-email-body"].onclick();
   assert.equal(nodes["email-text"].selected,true,"fallback exposes text for manual copying");
   assert.match(nodes["copy-email-status"].textContent,/manually/u);
+  // Buyers using webmail need Copy message even for short mailto drafts.
+  fields[2][1]="Short buyer inquiry asking for a bounded quote.";
+  navigator.clipboard={writeText:async value=>{copied.push(value);}};
+  handlers.submit({preventDefault() {}});
+  assert.equal(nodes["copy-email"].hidden,true,
+    "a short mailto needs no long-message warning");
+  assert.ok(nodes["open-email"].href.includes("&body="),
+    "short mailto messages keep their original complete body");
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.equal(typeof nodes["copy-email-body"].onclick,"function",
+    "the explicit copy control remains available to webmail users");
+  await nodes["copy-email-body"].onclick();
+  assert.equal(copied.at(-1),nodes["email-text"].value,
+    "the short message is copied exactly, with reply scope intact");
+  assert.ok(nodes["email-text"].value.includes("reply-permission\\ninquiry-only"));
+  assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
