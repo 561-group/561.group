@@ -27,7 +27,7 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
   assert.ok(script,"the same original public contact form owns the visitor prefill");
   const simulate=search=>{
     const called=[];
-    const elements={"submission-type":{value:"Issue"},"affected":{value:""}};
+    const elements={"submission-type":{value:"Issue"},"affected":{value:""},"reply-permission":{value:"not-specified"}};
     const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
     const document={getElementById:id=>{
       assert.equal(id,"private-intake","no other consumer should be touched before review");
@@ -38,6 +38,8 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
   };
   const actual=simulate("?service="+encodeURIComponent("Research and formal methods"));
   assert.equal(actual.elements["submission-type"].value,"Paid service inquiry");
+  assert.equal(actual.elements["reply-permission"].value,"not-specified",
+    "a service URL hint does not establish permission to contact");
   assert.equal(actual.elements.affected.value,"Research and formal methods");
   assert.equal(actual.called.length,1);
   assert.equal(actual.called[0][0],"submit");
@@ -46,10 +48,28 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
     const item=simulate(bad);
     assert.equal(item.elements.affected.value,"");
     assert.equal(item.elements["submission-type"].value,"Issue");
+    assert.equal(item.elements["reply-permission"].value,"not-specified");
     assert.equal(item.called.length,1);
   }
   assert.match(page,/Preparing the draft does not send it/u);
   assert.match(page,/we will not treat an inquiry as an order/u);
+});
+
+test("sales contact consent is an explicit buyer-owned field, not inferred from a reply address",()=>{
+  const page=read("public/contact/index.html");
+  const start=page.indexOf('<label for="reply-permission">');
+  const end=page.indexOf('<label for="conditions">',start);
+  assert.ok(start>0&&end>start,"the existing original form carries explicit reply scope");
+  const segment=page.slice(start,end);
+  assert.match(segment,/<select id="reply-permission" name="reply-permission">/u);
+  const choices=[...segment.matchAll(/<option value="([^"]+)">/gu)].map(match=>match[1]);
+  assert.deepEqual(choices,["not-specified","inquiry-only","no-contact"],
+    "unknown is the default; no marketing or contact grant is inferred");
+  assert.match(segment,/reply about this inquiry only, not marketing/u);
+  assert.match(segment,/A reply address alone does not authorize outreach/u);
+  assert.match(page,/const body = fields\.map/u,
+    "the visitor-reviewed existing private email retains the selected contact scope");
+  assert.match(page,/Preparing the draft does not send it/u);
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
