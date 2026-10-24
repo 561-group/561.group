@@ -64,6 +64,13 @@
         <input id="timing" name="timing" placeholder="Start date, delivery deadline, or availability">
         <label for="reply-channel">Preferred reply contact (optional)</label>
         <input id="reply-channel" name="reply-channel" placeholder="Email address or another existing safe channel">
+        <label for="reply-permission">May we reply about this inquiry?</label>
+        <select id="reply-permission" name="reply-permission">
+          <option value="not-specified">Not specified — no contact permission is established</option>
+          <option value="inquiry-only">Yes — reply about this inquiry only, not marketing</option>
+          <option value="no-contact">No — do not initiate contact; I will follow up</option>
+        </select>
+        <p class="hint">A reply address alone does not authorize outreach. Your selection travels only in the email draft you review and send; it does not grant a subscription, marketing permission, contract, or a CRM record.</p>
         <label for="conditions">What would a satisfactory outcome look like?</label>
         <textarea id="conditions" name="conditions"></textarea>
         <label for="evidence">Context and evidence</label>
