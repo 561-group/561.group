@@ -169,10 +169,12 @@ jobs:
           node --input-type=module <<'NODE'
           const host='https://561.group';
           const read=(path,accept)=>fetch(host+path,{cache:'no-store',headers:{'cache-control':'no-cache',...(accept?{accept}:{})}});
-          const manifest=await read('/source-revision.json');
-          if(!manifest.ok)throw Error('Public source receipt not served: '+manifest.status);
-          const receipt=await manifest.json();
-          if(receipt.sourceCommit!==process.env.GITHUB_SHA)throw Error('Public origin not serving this main commit');
+          // Wrangler can finish before the new Worker reaches the public edge.
+          // Observe the exact source with a bounded wait; never accept stale
+          // HTML, a merely successful upload or an unqualified alias.
+          const {awaitPublishedRevision}=await import('./scripts/release-preflight.mjs');
+          const receipt=await awaitPublishedRevision({sourceSha:process.env.GITHUB_SHA});
+          console.log('Exact public source observed after qualified deploy: '+receipt.sourceCommit);
           // Cloudflare's native active version is distinct from the site's source claim.
           const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/iu;
           if(!uuid.test(receipt.workerVersionId??''))throw Error('Public receipt lacks executing Worker version metadata');
