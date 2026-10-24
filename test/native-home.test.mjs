@@ -41,6 +41,12 @@ test("real installed TUFTE/LWS publishes a quiet useful homepage, not a thematic
   assert.match(html,/rel="canonical" href="https:\/\/561\.group\/"/u);
   assert.match(html,/name="fediverse:creator"/u);
   assert.match(html,/type="application\/ld\+json"/u);
+  const structured=[...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gu)];
+  assert.equal(structured.length,1,"The real served page emits one original entity graph");
+  const servedGraph=JSON.parse(structured[0][1])["@graph"];
+  assert.equal(servedGraph[0].alternateName,"561 Group");
+  assert.equal(servedGraph[1].alternateName,servedGraph[0].alternateName);
+  assert.equal(servedGraph[0].logo.url,"https://561.group/logo.png");
   assert.ok(html.includes(":focus-visible"));
   assert.ok(html.includes("max-width:430px"));
   assert.deepEqual(f.reads.map(x=>x[0]),["home","estate","frontdoor"]);
