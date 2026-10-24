@@ -7,32 +7,50 @@
     <link rel="canonical" href="https://561.group/contact/">
     <meta name="description" content="Ask the 561 Group for paid services, offer supplier or subcontracting capacity, or report an issue. Use one existing private contact channel.">
     <style>
-      :root { color-scheme: light dark; --ink: #0a0a0a; --surface: #f2ead8; }
-      @media(prefers-color-scheme: dark) { :root { --ink: #e4e4e4; --surface: #120c02; } }
+      /* This standalone original contact asset shares the installed 561 Group
+         type/ink/bone roles without inventing a second visual identity. */
+      @font-face { font-family: "Space Grotesk"; src: url("/fonts/space-grotesk.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
+      @font-face { font-family: "Roboto Slab"; src: url("/fonts/roboto-slab.woff2") format("woff2"); font-weight: 300 800; font-display: swap; }
+      @font-face { font-family: "JetBrains Mono"; src: url("/fonts/jetbrains-mono.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+      :root { color-scheme: light dark; --ink: #0a0a0a; --surface: #f2ead8; --rule: #cdc6b7; --witness: #3d5588; }
+      @media(prefers-color-scheme: dark) { :root { --ink: #f2ead8; --surface: #120c02; --rule: #494035; --witness: #a4b8ef; } }
       * { box-sizing: border-box; }
-      body { margin: 0; color: var(--ink); background: var(--surface); font: 1.1rem/1.6 Georgia, serif; }
-      main { max-width: 48rem; padding: 3rem 1.5rem; margin: auto; }
-      h1, h2 { font-family: "Helvetica Neue", Arial, sans-serif; line-height: 1.2; }
-      h1 { font-size: clamp(2rem, 5vw, 2.8rem); }
-      h2 { margin-top: 2rem; font-size: 1.4rem; }
-      a { color: inherit; text-underline-offset: .2em; }
-      a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
-      .action { display: inline-block; border: 1px solid; padding: .6rem 1rem; margin: .5rem 0; }
-      label { display: block; margin-top: 1rem; font-weight: bold; }
+      body { margin: 0; color: var(--ink); background: var(--surface); font: 400 1rem/1.64 "Roboto Slab", Georgia, serif; }
+      .site-header { max-width: 56rem; margin: auto; padding: 1.1rem 1.5rem .85rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .7rem 1.6rem; border-bottom: 1px solid var(--rule); }
+      .site-header .site-brand { font: 700 1.4rem/1.1 "Space Grotesk", Arial, sans-serif; letter-spacing: -.035em; text-decoration: none; }
+      .site-header nav { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem 1.15rem; font: 600 .82rem/1.5 "Space Grotesk", Arial, sans-serif; }
+      main { max-width: 56rem; padding: 1.5rem 1.5rem 3rem; margin: auto; }
+      h1, h2, h3 { font-family: "Space Grotesk", Arial, sans-serif; line-height: 1.23; letter-spacing: -.025em; }
+      h1 { font-size: clamp(1.85rem, 3.3vw, 2.5rem); font-weight: 650; }
+      h2 { margin-top: 2rem; padding-top: .8rem; border-top: 1px solid var(--rule); font-size: clamp(1.25rem, 1.7vw, 1.5rem); font-weight: 650; }
+      h3 { font-size: 1.18rem; }
+      a { color: var(--witness); text-underline-offset: .2em; }
+      a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 3px solid var(--witness); outline-offset: 3px; }
+      .site-header a { color: var(--ink); }
+      .action { display: inline-block; border: 1px solid var(--ink); padding: .65rem 1rem; margin: .5rem 0; color: var(--ink); text-decoration: none; font: 650 .88rem/1.45 "Space Grotesk", Arial, sans-serif; }
+      .action:hover { text-decoration: underline; }
+      label { display: block; margin-top: 1rem; font-weight: 650; }
       input, select, textarea, button { font: inherit; }
-      input, select, textarea { width: 100%; padding: .5rem; color: inherit; background: transparent; border: 1px solid; }
-      textarea { min-height: 7rem; resize: vertical; }
-      button { color: inherit; background: transparent; cursor: pointer; }
-      fieldset.governance-scope { border: 1px solid currentColor; margin: 1.3rem 0; padding: 1rem; }
-      fieldset.governance-scope legend { font: 650 1.06rem/1.35 "Helvetica Neue", Arial, sans-serif; padding: 0 .45rem; }
+      input, select, textarea { width: 100%; padding: .55rem .7rem; color: inherit; background: transparent; border: 1px solid var(--ink); border-radius: 0; }
+      textarea { min-height: 6.5rem; resize: vertical; }
+      button { cursor: pointer; }
+      fieldset.governance-scope { border: 1px solid var(--rule); margin: 1.5rem 0; padding: 1rem; }
+      fieldset.governance-scope legend { font: 650 1.06rem/1.35 "Space Grotesk", Arial, sans-serif; padding: 0 .45rem; }
       fieldset.governance-scope label { font-weight: 600; }
       [hidden] { display: none; }
-      .hint { margin-top: .3rem; font-size: .95rem; }
+      .hint { margin-top: .3rem; color: var(--ink); opacity: .86; font-size: .9rem; }
+      @media(max-width:480px) { .site-header { align-items: flex-start; } .site-header nav { gap: .35rem .8rem; } main { padding-inline: 1rem; } .site-header { padding-inline: 1rem; } }
     </style>
   </head>
   <body>
-    <main>
-      <a href="/">The 561 Group</a>
+    <header class="site-header">
+      <a class="site-brand" href="/" aria-label="561 Group home">561 Group</a>
+      <nav aria-label="Primary">
+        <a href="/work/">Work</a><a href="/projects/">Projects</a>
+        <a href="/about/">About</a><a href="/contact/" aria-current="page">Contact</a>
+      </nav>
+    </header>
+    <main id="main">
       <h1>What needs attention?</h1>
       <p>Request a service, propose a supplier partnership, report a problem, or suggest a change. You do not need an organizational chart, formal specification, or mathematical proof to begin an ordinary business conversation.</p>
       <h2 id="work">Request paid work or offer to supply it</h2>
