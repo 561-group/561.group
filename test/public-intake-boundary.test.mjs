@@ -6,10 +6,47 @@ import {tmpdir} from "node:os";
 import {spawnSync} from "node:child_process";
 import {dirname,join} from "node:path";
 import {fileURLToPath} from "node:url";
+import {bindContent} from "../scripts/bind-content.mjs";
 
 const root=join(dirname(fileURLToPath(import.meta.url)),"..");
 const read=path=>readFileSync(join(root,path),"utf8");
 const publicIssue="https://github.com/561-group/561.group/issues/new?template=service-submission.yml";
+
+test("Group-owned front-door files cannot be silently overwritten from a tracked app source",()=>{
+  const scratch=mkdtempSync(join(tmpdir(),"group-source-custody-"));
+  const source=join(scratch,"reviewed-group");
+  const target=join(scratch,"app");
+  const files=[
+    "data/home.json","data/estate.json","data/frontdoor.json","data/brand-source.json",
+    "locales/en.arb","locales/lkt.arb","locales/zh-Hans.arb",
+    "public/contact/index.html","public/favicon.svg","public/logo.png",
+  ];
+  try{
+    mkdirSync(target,{recursive:true});
+    for(const file of files){
+      const dest=join(source,file);
+      mkdirSync(dirname(dest),{recursive:true});
+      writeFileSync(dest,"source-owned "+file);
+    }
+    const git=(...args)=>{
+      const result=spawnSync("git",args,{cwd:target,encoding:"utf8"});
+      assert.equal(result.status,0,result.stderr);
+    };
+    git("init","-q");
+    const admitted=bindContent(source,target);
+    assert.equal(admitted.bound,true);
+    assert.equal(readFileSync(join(target,"public/contact/index.html"),"utf8"),
+      "source-owned public/contact/index.html");
+    // A legacy app PR may still hold an old tracked contact file. Refuse the
+    // next bind before destroying that authored evidence or claiming it shipped.
+    writeFileSync(join(target,"public/contact/index.html"),"unreceived application change");
+    git("add","public/contact/index.html");
+    assert.throws(()=>bindContent(source,target),
+      /Group-owned content is tracked in the application checkout/u);
+    assert.equal(readFileSync(join(target,"public/contact/index.html"),"utf8"),
+      "unreceived application change","refusal must happen before any overwrite");
+  }finally{rmSync(scratch,{recursive:true,force:true});}
+});
 
 test("public contact offers reporting, not media commission or executable authority",()=>{
   const page=read("public/contact/index.html");
