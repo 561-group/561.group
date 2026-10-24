@@ -53,6 +53,10 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
       "Homepage lost the accountable companies or useful navigation choices");
     need(value?.ordinaryActionColor===rgb(10,10,10),
       "Ordinary homepage action is using hazard red instead of ink");
+    need(value?.introActionTextColor===rgb(242,234,216),
+      "Actual primary homepage button text is invisible or lacks source bone contrast");
+    need(value?.contactWidthRatio>=0.9,
+      "Actual contact region is crammed into a narrow incidental grid column");
     need(value?.prohibitedTopicLabels===false,
       "Identity labels, speculative research or mythopoetry are being promoted on the homepage");
   }
@@ -206,6 +210,10 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             companyCount:document.querySelectorAll("#companies .site-house-list>li").length,
             pathCount:document.querySelectorAll("#paths .site-card").length,
             ordinaryActionColor:el(".site-action")?getComputedStyle(el(".site-action")).backgroundColor:"",
+            introActionTextColor:el("#introduction a.site-action:not(.site-action--quiet)")?
+              getComputedStyle(el("#introduction a.site-action:not(.site-action--quiet)")).color:"",
+            contactWidthRatio:el("#contact")&&el(".tufte-grid")?
+              el("#contact").getBoundingClientRect().width/el(".tufte-grid").getBoundingClientRect().width:0,
             prohibitedTopicLabels:location.pathname==="/" && /Indigenous-grounded|Indigenous data governance|Union of Harmonious Colonies|silica-rich|Artificial Abiogenesis|Jiangshi|SHRIMP/iu.test(document.body.innerText),
 
             houseStyle:!!el('style[data-561-house="visual-design-bible-v0.4-candidate"]'),
