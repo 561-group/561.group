@@ -38,8 +38,8 @@
       "id": "agent-operations",
       "title": "Persistent AI systems",
       "provider": "services",
-      "scope": "Commission agent workflows, roles, handoffs, review, failure recovery and human oversight.",
-      "example": "Agent operations and practical team training"
+      "scope": "Commission agent workflows, roles, handoffs, review, failure recovery and human oversight. A bounded read-only pilot can inspect one public GitHub Work/Actions source or one customer-authorized, redacted Asana/Jira export, without account access, migration or customer-system changes.",
+      "example": "Provisional $200 pilot estimate (not a quote): inspect up to 20 source Work records; deliver an attributed discrepancy and acceptance report plus prioritized repairs, including a no-purchase recommendation when appropriate. Scope, rights, capacity and written terms must be agreed before any paid work. Do not send tokens or private records with the initial inquiry."
     },
     {
       "id": "ai-discovery",
