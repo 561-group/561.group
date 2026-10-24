@@ -35,7 +35,9 @@ test("real installed TUFTE/LWS publishes a quiet useful homepage, not a thematic
     assert.ok(html.includes('href="'+route+'"'),"one-click public route "+route);
   assert.ok(html.includes('href="https://science.561.group/"'));
   assert.ok(html.includes('href="https://koios.news/"'));
-  assert.doesNotMatch(html,/Indigenous-grounded|Indigenous data governance|SHRIMP|Jiangshi|Artificial Abiogenesis|silica-rich|Beyond settler-colonial governance/iu);
+  const visibleMain=html.slice(html.indexOf("<main"),html.indexOf("</main>")+7);
+  assert.doesNotMatch(visibleMain,/Indigenous-grounded|Indigenous data governance|SHRIMP|Jiangshi|Artificial Abiogenesis|silica-rich|Beyond settler-colonial governance/iu,
+    "Homepage visible content must not inherit the legitimate long-form research metadata");
   assert.match(html,/rel="canonical" href="https:\/\/561\.group\/"/u);
   assert.match(html,/name="fediverse:creator"/u);
   assert.match(html,/type="application\/ld\+json"/u);
