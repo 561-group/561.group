@@ -29,17 +29,33 @@ export function qualifyRenderedBrand(value,{path="/"}={}) {
   need(value?.houseStyle===true,"Original Group CSS not emitted into real TUFTE head");
   need(value?.tufte===true,"Real TUFTE shell is absent");
   need(value?.bodyBackground===rgb(242,234,216),"Visible body background lost house bone");
-  need(value?.mastheadTop==="8px","Institutional masthead lost eight-pixel ink rule");
-  need(value?.markContent==='"561"', "Giant original typographic 561 mark is absent");
-  need(value?.markColor===rgb(255,69,48),"561 mark lost reserved alarm-red role");
-  need(value?.markSize>=105,"561 mark is no longer large enough to carry hierarchy");
+  need(value?.mastheadTop==="1px","Homepage header lost its quiet rule");
+  need(value?.markContent==='"561"', "Original source-owned 561 wordmark is absent");
+  need(value?.markColor===rgb(10,10,10),"Original 561 mark must be ink-on-bone, not decorative alarm red");
+  need(value?.markSize>=32 && value.markSize<=88,
+    "561 mark is oversized or too small for the actual institutional masthead");
+  need(value?.markBracket==="8px",
+    "Original source-owned 561 mark lost its compact ink bracket rule");
   need(value?.markFamily?.includes("Space Grotesk"),"561 mark lost display type channel");
   need(value?.readingFamily?.includes("Roboto Slab"),"Main reading type lost slab channel");
   need(value?.metadataFamily?.includes("JetBrains Mono"),"Evidence labels lost monospaced channel");
   need(value?.fontFaces?.every(x=>x.status==="loaded") &&
        expectedFontNames.every(name=>value.fontFaces.some(x=>x.family===name)),
        "A local required font was not loaded");
-  if(path==="/")need(value?.introBackground===rgb(10,10,10),"Homepage introduction lost black-ink mass");
+  if(path==="/"){
+    need(value?.introBackground==="rgba(0, 0, 0, 0)",
+      "Homepage introduction reverted to a heavy black billboard");
+    need(value?.heroSize>=28 && value.heroSize<=56,
+      "Homepage headline is giant display type, not usable institutional hierarchy");
+    need(value?.mainTileIds?.join(",")==="introduction,paths,companies,explore,contact",
+      "Homepage grew topic-of-the-day cards or lost practical visitor paths");
+    need(value?.companyCount===4 && value?.pathCount===4,
+      "Homepage lost the accountable companies or useful navigation choices");
+    need(value?.ordinaryActionColor===rgb(10,10,10),
+      "Ordinary homepage action is using hazard red instead of ink");
+    need(value?.prohibitedTopicLabels===false,
+      "Identity labels, speculative research or mythopoetry are being promoted on the homepage");
+  }
   else need(value?.hasLead===true,"Non-home visitor page lost its own lead section");
   need(value?.tileCount>=(path==="/"?5:3),"A real public visitor route lost its content tiles");
   need(value?.hasNavigation===true,"Useful public navigation disappeared");
@@ -123,9 +139,9 @@ export function visualReviewPacket(witness){
     "of aesthetic fit. Compare to the approved original Group works and the",
     "source-owned Design Bible:",
     "https://github.com/561-group/561-group-content-design-services-section",
-    "Review hierarchy, typography, giant numeral, bone/ink, the semantically",
-    "restrained witness/alarm accents, hard grid/rules, useful navigation,",
-    "mobile readability and any rejected identity-led persuasion.",
+    "Review hierarchy, modest ink numeral, bone/ink, reserved alarm color,",
+    "clear paths to services/projects/research, readable company responsibility,",
+    "mobile readability, and whether research/culture remains on About rather than the homepage.",
     "The historical v0.3 6% alarm and 3% witness bounding-box color budgets",
     "require a separate measured image proof; CSS declaration is insufficient.",
     "Keyboard focus and reduced-motion settings were checked, but full WCAG",
@@ -180,10 +196,18 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
             viewportWidth:innerWidth,bodyBackground:style("body").backgroundColor,
             mastheadTop:style(".tufte-masthead").borderTopWidth,
             markContent:pseudo.content,markColor:pseudo.color,markSize:parseFloat(pseudo.fontSize),
+            markBracket:pseudo.borderTopWidth,
             markFamily:pseudo.fontFamily,
             readingFamily:style(".tufte-tile-body").fontFamily,
             metadataFamily:meta?getComputedStyle(meta).fontFamily:style(".tufte-eyebrow").fontFamily,
             introBackground:intro?getComputedStyle(intro).backgroundColor:"",
+            heroSize:parseFloat(style(".site-display").fontSize),
+            mainTileIds:tileElements.map(tile=>tile.id),
+            companyCount:document.querySelectorAll("#companies .site-house-list>li").length,
+            pathCount:document.querySelectorAll("#paths .site-card").length,
+            ordinaryActionColor:el(".site-action")?getComputedStyle(el(".site-action")).backgroundColor:"",
+            prohibitedTopicLabels:location.pathname==="/" && /Indigenous-grounded|Indigenous data governance|Union of Harmonious Colonies|silica-rich|Artificial Abiogenesis|Jiangshi|SHRIMP/iu.test(document.body.innerText),
+
             houseStyle:!!el('style[data-561-house="visual-design-bible-v0.4-candidate"]'),
             tufte:!!el(".tufte-shell[data-tufte]"),
             tileCount:tileElements.length,hasLead:!!el("#lead"),
