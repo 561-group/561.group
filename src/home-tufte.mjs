@@ -143,8 +143,10 @@ function checkedSources(home, estate, frontdoor) {
 function structure(home, pathname, frontdoor) {
   const org = {
     "@type":"Organization","@id":home.origin + "/#organization",
-    name:home.name,url:home.origin + "/",description:home.description,
+    name:home.name,alternateName:home.name.replace(/^The\s+/u,""),
+    url:home.origin + "/",description:home.description,
     foundingDate:String(home.established),
+    logo:{"@type":"ImageObject",url:home.origin + "/logo.png",width:512,height:512},
     sameAs:[home.group.githubOrg,home.group.actor],
     // Metadata describes THIS page's useful task. Reserve the complete
     // research and cultural topics for the source-owned About context;
@@ -181,6 +183,7 @@ function structure(home, pathname, frontdoor) {
   return {"@context":"https://schema.org","@graph":[
     org,
     {"@type":"WebSite","@id":home.origin + "/#website",name:home.name,
+      alternateName:home.name.replace(/^The\s+/u,""),
       url:home.origin + "/",description:home.description,
       publisher:{"@id":home.origin + "/#organization"},inLanguage:["en","zh-Hans","lkt"]},
     page
