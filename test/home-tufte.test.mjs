@@ -10,6 +10,8 @@ const home=read("data/home.json"),estate=read("data/estate.json"),
   frontdoor=read("data/frontdoor.json");
 const model=path=>project561GroupPage({home,estate,frontdoor,path});
 const tile=(page,id)=>page.tiles.find(t=>t.id===id);
+const htmlEsc=value=>String(value).replace(/[&<>"']/gu,c=>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 test("a visitor can tell what the Group is, what they can hire, and where to go immediately",()=>{
   const root=project561GroupHome({home,estate,frontdoor});
@@ -31,7 +33,7 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   const folio=tile(root,"work-folio").html;
   assert.equal(tile(root,"work-folio").title,frontdoor.workFolio.title);
   assert.ok(folio.includes(frontdoor.workFolio.introduction));
-  assert.ok(folio.includes(frontdoor.workFolio.boundary));
+  assert.ok(folio.includes(htmlEsc(frontdoor.workFolio.boundary)));
   assert.equal((folio.match(/class="site-folio-movement"/gu)||[]).length,4);
   for(const house of home.group.companies){
     assert.ok(folio.includes('data-house="'+house.id+'"'));
@@ -39,8 +41,8 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
     assert.ok(folio.includes(house.name));
   }
   for(const beat of frontdoor.workFolio.movements) {
-    assert.ok(folio.includes(beat.title));
-    assert.ok(folio.includes(beat.line));
+    assert.ok(folio.includes(htmlEsc(beat.title)));
+    assert.ok(folio.includes(htmlEsc(beat.line)));
   }
   assert.ok(folio.includes('aria-hidden="true"'),"art must remain decorative");
   assert.ok(root.tiles.findIndex(t=>t.id==="work-folio")<root.tiles.findIndex(t=>t.id==="frontiers"),
