@@ -26,6 +26,10 @@ test("real installed TUFTE/LWS gives a useful homepage in HTML, not a pipeline r
   const html=await response.text();
   assert.match(html,/<main[^>]*data-tufte/u);
   assert.ok(html.includes(frontdoor.proposition));
+  assert.ok(html.includes(frontdoor.workFolio.title));
+  assert.ok(html.includes('class="site-folio-grid"'));
+  for(const house of home.group.companies)assert.ok(html.includes('data-house="'+house.id+'"'));
+
   assert.ok(html.includes('href="https://science.561.group/"'),
     "the original Science reader journey must be directly usable in rendered HTML");
   assert.ok(html.includes('href="https://koios.news/"'),
@@ -55,6 +59,8 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.match(response.headers.get("content-type")??"",/application\/json/u);
   const model=await response.json();
   assert.equal(model.kind,"tufte.projection");
+  assert.ok(model.tiles.some(t=>t.id==="work-folio" && t.html.includes(frontdoor.workFolio.title)===false && t.html.includes(frontdoor.workFolio.movements[0].title)));
+
   assert.equal(model.title,home.name);
   assert.equal(model.metadata.description,home.description);
   assert.equal(model.revision,estate.revision);
@@ -62,7 +68,7 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
     "machine-readable TUFTE readers must receive the same research path");
 
   assert.deepEqual(model.tiles.map(t=>t.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","work-folio","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
   assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes("Artificial Abiogenesis and Smartgoo"));
   assert.ok(model.tiles.some(t=>t.id==="frontiers" && t.html.includes("silica")));
