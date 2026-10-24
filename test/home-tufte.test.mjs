@@ -10,6 +10,7 @@ const home=read("data/home.json"),estate=read("data/estate.json"),
   frontdoor=read("data/frontdoor.json");
 const model=path=>project561GroupPage({home,estate,frontdoor,path});
 const tile=(page,id)=>page.tiles.find(t=>t.id===id);
+const htmlEsc=text=>String(text).replace(/[&<>"\']/gu,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 test("a visitor can tell what the Group is, what they can hire, and where to go immediately",()=>{
   const root=project561GroupHome({home,estate,frontdoor});
@@ -20,7 +21,7 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.deepEqual(root.navigation.map(x=>x.href),
     ["/","/work/","/projects/","/about/","/for-agents/","/contact/"]);
   assert.deepEqual(root.tiles.map(x=>x.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","work-folio","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
   const hero=tile(root,"introduction").html;
   assert.ok(hero.includes(frontdoor.proposition));
   assert.ok(hero.includes(frontdoor.promise));
@@ -28,6 +29,28 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.ok(hero.includes('href="/work/"'));
   assert.ok(hero.includes('href="/projects/"'));
   assert.doesNotMatch(hero,/conurbanized|Huidu Guanli|type-theoretic/u);
+  const folio=tile(root,"work-folio").html;
+  assert.equal(tile(root,"work-folio").title,frontdoor.workFolio.title);
+  assert.ok(folio.includes(htmlEsc(frontdoor.workFolio.introduction)));
+  assert.equal((folio.match(/class="site-folio-movement"/gu)||[]).length,4);
+  for(const [n,house] of home.group.companies.entries()) {
+    const beat=frontdoor.workFolio.movements[n];
+    assert.ok(folio.includes('data-house="'+house.id+'"'));
+    assert.ok(folio.includes('href="'+house.url+'"'));
+    assert.ok(folio.includes(htmlEsc(beat.title)));
+    assert.ok(folio.includes(htmlEsc(beat.line)));
+  }
+  const proof=frontdoor.workFolio.witnessedCase;
+  assert.ok(folio.includes('id="site-folio-proof-heading"'));
+  assert.ok(folio.includes(htmlEsc(proof.title)));
+  assert.ok(folio.includes(htmlEsc(proof.incident)));
+  assert.ok(folio.includes(htmlEsc(proof.change)));
+  assert.ok(folio.includes('href="'+proof.action.href+'"'));
+  assert.ok(folio.includes(htmlEsc(proof.boundary)));
+  for(const receipt of proof.sources)assert.ok(folio.includes('href="'+receipt.href+'"'));
+  assert.ok(folio.includes('aria-label="'+htmlEsc(proof.firstLabel+": 404; "+proof.secondLabel+": 200")+'"'));
+  assert.ok(root.tiles.findIndex(t=>t.id==="work-folio")<root.tiles.findIndex(t=>t.id==="frontiers"),
+    "the actual responsible work appears before future aspirational projects");
   const horizon=tile(root,"frontiers").html;
   assert.ok(horizon.includes("Union of Harmonious Colonies"));
   assert.ok(horizon.includes("settler-colonial"));
@@ -54,6 +77,26 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.match(tile(root,"physical-world").html,/Indigenous and treaty rights/u);
   assert.ok(root.tiles.findIndex(t=>t.id==="services")<root.tiles.findIndex(t=>t.id==="support"),
     "public sales and use are not hidden behind a donation pitch");
+});
+
+test("the documented 404→200 creative case has real sources, real route and HTML escaping",()=>{
+  const damaged=structuredClone(frontdoor);
+  damaged.workFolio.movements.pop();
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:damaged}),
+    /four real, ordered Group companies/u);
+  const wrong=structuredClone(frontdoor);
+  wrong.workFolio.witnessedCase.action.href="https://untrusted.example/buy-now";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:wrong}),
+    /Original witnessed 404-to-200/u);
+  const invented=structuredClone(frontdoor);
+  invented.workFolio.witnessedCase.sources[0].href="https://example.invalid/receipt";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:invented}),
+    /Original witnessed 404-to-200/u);
+  const literal=structuredClone(frontdoor);
+  literal.workFolio.witnessedCase.title="<script>faked approval</script>";
+  const html=tile(project561GroupPage({home,estate,frontdoor:literal}),"work-folio").html;
+  assert.ok(html.includes("&lt;script&gt;"));
+  assert.ok(!html.includes("<script>"));
 });
 
 test("services are tied to an existing accountable company, and only inquiry is offered",()=>{
