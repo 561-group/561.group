@@ -61,7 +61,35 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
 .site-card .site-category {color:var(--house-soft)}
 .site-card .site-category::before {content:none}
 .site-section-lead {font:400 clamp(1.07rem,1.5vw,1.27rem)/1.55 var(--house-slab);margin:0 0 1.45rem}
-.site-service {border-top:1px solid var(--house-rule);padding:1rem 0;min-width:0}
+
+.site-service {
+  border:1px solid var(--house-rule);padding:clamp(.85rem,1.35vw,1.35rem);
+  min-width:0;display:flex;flex-direction:column;gap:.4rem;
+}
+.site-service-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem
+}
+.site-service h3{margin:.12rem 0 .5rem}
+.site-service-detail{min-width:0}
+.site-service-detail>summary{
+  display:list-item;list-style-position:inside;cursor:pointer;
+  color:var(--house-witness);
+  font:650 .83rem/1.5 var(--house-sans);
+  padding:.5rem 0;margin:.15rem 0 .4rem
+}
+.site-service-detail>summary:hover{text-decoration:underline;text-underline-offset:.2em}
+.site-service-detail>summary:focus-visible{outline:3px solid var(--house-witness);outline-offset:3px}
+.site-service-detail-body{
+  padding:.9rem 0 .7rem;
+  border-top:1px solid var(--house-rule)
+}
+.site-service-detail-body>*{max-width:64ch}
+.site-service-inquiry {
+  align-self:flex-start;margin-top:auto;padding-top:.55rem;
+  font:650 .85rem/1.5 var(--house-sans);
+  text-decoration:underline;text-underline-offset:.2em
+}
+
 .site-service h3 {font:650 clamp(1.08rem,1.5vw,1.3rem)/1.28 var(--house-sans);margin:.5rem 0}
 .site-service p {font-size:.96rem;line-height:1.5;margin:.5rem 0}
 .site-service .site-provider {color:var(--house-witness)}
