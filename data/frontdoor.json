@@ -175,5 +175,66 @@
     ],
     "throughline": "We are building for generations, not just product cycles. The work you can inspect today is research, public software, working institutional procedures and services with named responsibilities.",
     "engagement": "Explore the work, bring a practical problem, or support the long horizon. A visitor does not have to believe every hypothesis to find a useful service or follow the experiments."
+  },
+  "workFolio": {
+    "eyebrow": "A FIELD SCORE / FOUR RESPONSIBILITIES",
+    "title": "Make something the world can argue with.",
+    "introduction": "There is no inevitable future here. Someone asks, someone makes, the world pushes back, and another person gets to judge the result.",
+    "movements": [
+      {
+        "company": "science",
+        "number": "01",
+        "register": "THE QUESTION",
+        "title": "Something doesn't add up.",
+        "line": "Make a question precise enough to be wrong."
+      },
+      {
+        "company": "engineering",
+        "number": "02",
+        "register": "THE FORM",
+        "title": "Give it a body.",
+        "line": "Make the idea something the world can break."
+      },
+      {
+        "company": "operations",
+        "number": "03",
+        "register": "THE RESISTANCE",
+        "title": "The world answers.",
+        "line": "Find what survives, what fails, and what must change."
+      },
+      {
+        "company": "services",
+        "number": "04",
+        "register": "THE OTHER PERSON",
+        "title": "Now let somebody refuse.",
+        "line": "Use, disagreement and consequences decide what mattered."
+      }
+    ],
+    "boundary": "This is an illustrated performance of the Group's responsibilities, not evidence that a particular project completed every step. Each linked company owns its actual work and receipts.",
+    "witnessedCase": {
+      "eyebrow": "ONE REAL TURN / OCTOBER 2026",
+      "title": "This page was missing.",
+      "incident": "A useful website service had been written, but its public page returned 404. You could not reach the work from the place it was meant to live.",
+      "change": "The original Causeway publisher repaired the route and discovery records. Its independently checked release returned 200 and exposed a free website-performance worksheet.",
+      "before": "404",
+      "after": "200",
+      "firstLabel": "Public route before the repair",
+      "secondLabel": "Public route after the verified release",
+      "action": {
+        "href": "https://services.561.group/green-web-service-pilot/",
+        "label": "Try the actual website worksheet"
+      },
+      "sources": [
+        {
+          "href": "https://github.com/causeway-services/public-services-section/pull/98",
+          "label": "Inspect the service and source repair"
+        },
+        {
+          "href": "https://github.com/causeway-services/public-web-services-section/pull/27",
+          "label": "Inspect the publisher's public receiving"
+        }
+      ],
+      "boundary": "These are dated source-owned HTTP and release receipts, not a claim of a current uptime guarantee, completed buyer contract, aesthetic audience response, ecological benefit, or superiority over a competitor."
+    }
   }
 }
