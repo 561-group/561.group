@@ -237,3 +237,34 @@ test("the genuine TUFTE document keeps discoverability, responsive design, keybo
   assert.doesNotMatch(project561GroupHead(modified),/<script>/u);
   assert.throws(()=>project561GroupHead({...home,origin:"https://other.example"}),TypeError);
 });
+
+
+test("original paid Work-receiving pilot exposes an honest, bounded customer inquiry rather than a fake checkout",()=>{
+  const service=frontdoor.offers.find(item=>item.id==="agent-operations");
+  assert.equal(service.provider,"services");
+  assert.match(service.scope,/public GitHub Work\/Actions source/u);
+  assert.match(service.scope,/customer-authorized, redacted Asana\/Jira export/u);
+  assert.match(service.scope,/without account access, migration or customer-system changes/u);
+  assert.match(service.example,/Provisional \$200 pilot estimate \(not a quote\)/u);
+  assert.match(service.example,/up to 20 source Work records/u);
+  assert.match(service.example,/no-purchase recommendation/u);
+  assert.match(service.example,/Do not send tokens or private records/u);
+  const homepage=tile(model("/"),"services").html;
+  const work=tile(model("/work/"),"services").html;
+  for(const html of [homepage,work]){
+    assert.ok(html.includes("Provisional $200 pilot estimate"),
+      "the actual source-owned service pitch must be visible to prospective customers");
+    assert.ok(html.includes("customer-authorized, redacted Asana/Jira export"));
+    assert.ok(html.includes("up to 20 source Work records"));
+    assert.doesNotMatch(html,/Buy now|guaranteed return|payment complete|instant checkout/u);
+  }
+  assert.ok(work.includes('href="/contact/?service=Persistent%20AI%20systems#work"'),
+    "keep the original accepted customer-inquiry path; no invented payment or lead intake");
+  const registered=model("/work/").metadata.structuredData["@graph"][2].mainEntity;
+  const entry=registered.itemListElement.find(x=>x.item["@id"].endsWith("#agent-operations"));
+  assert.ok(entry);
+  assert.equal(entry.item.provider["@id"],
+    home.group.companies.find(x=>x.id==="services").url+"#organization");
+  assert.equal("offers" in entry.item,false,
+    "a provisional service estimate must not become an enforceable schema.org Offer or payment claim");
+});
