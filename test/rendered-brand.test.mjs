@@ -83,8 +83,13 @@ test("a narrow supported viewport with unchanged visual hierarchy is admissible"
 });
 
 test("a real secondary visitor page uses its own lead and independent tile count",()=>{
-  const work={...good(),tileCount:4,hasLead:true,introBackground:""};
+  const work={...good(),tileCount:4,hasLead:true,introBackground:"",
+    serviceDetails:Array.from({length:8},()=>({hasSummary:true,open:false,hasInquiry:true}))};
   assert.equal(qualifyRenderedBrand(work,{path:"/work/"}).passed,true);
+  const expanded={...work,serviceDetails:work.serviceDetails.map((x,i)=>
+    i===0?{...x,open:true}:x)};
+  assert.ok(qualifyRenderedBrand(expanded,{path:"/work/"}).errors.some(x=>
+    x.includes("native compact scanning")));
   const noLead={...work,hasLead:false};
   assert.ok(qualifyRenderedBrand(noLead,{path:"/work/"}).errors.some(x=>
     x.includes("own lead section")));
