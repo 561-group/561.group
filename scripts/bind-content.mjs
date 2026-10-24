@@ -46,7 +46,7 @@ export function bindContent(source = process.env.SITE_CONTENT_ROOT ?? join(appli
       tracked = execFileSync("git",
         ["ls-files", "-z", "--", "data/", "locales/", "public/"],
         { cwd: target, encoding: "utf8" })
-        .split("\\0").filter(Boolean);
+        .split("\0").filter(Boolean);
     } catch (error) {
       throw new Error("Cannot independently verify the application Git content boundary", { cause: error });
     }
