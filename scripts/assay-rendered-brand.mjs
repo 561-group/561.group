@@ -91,6 +91,13 @@ async function servedOriginalApplication() {
         res.writeHead(200,{"content-type":"font/woff2","cache-control":"no-store"});
         res.end(bytes);return;
       }
+      if(pathname==="/contact/" && req.method==="GET"){
+        // Contact is the exact original static asset owned by this Worker,
+        // not a second TUFTE projection or a mocked intake implementation.
+        const bytes=await readFile(new URL("../public/contact/index.html",import.meta.url));
+        res.writeHead(200,{"content-type":"text/html; charset=utf-8","cache-control":"no-store"});
+        res.end(bytes);return;
+      }
       if(!["/","/work/","/about/"].includes(pathname)||req.method!=="GET"){
         res.writeHead(404);res.end();return;
       }
@@ -152,6 +159,12 @@ export function visualReviewPacket(witness){
     "mobile readability, and whether research/culture remains on About rather than the homepage.",
     "The historical v0.3 6% alarm and 3% witness bounding-box color budgets",
     "require a separate measured image proof; CSS declaration is insufficient.",
+    "Two additional actual /contact/ screenshots and a native browser interaction",
+    "check the public private-email draft for both a normal and CARE-related service.",
+    "The source-owned rights scope is disabled when not selected, and the visitor",
+    "can change the service without leaking previously entered scoped responses.",
+    "This is a technically tested input boundary, NOT community consent or review.",
+    "",
     "Keyboard focus and reduced-motion settings were checked, but full WCAG",
     "or screen-reader accessibility audits were not performed by this job.",
     "",
@@ -161,6 +174,103 @@ export function visualReviewPacket(witness){
     "or a passing CI as its own independent customer-acceptance record.",
     ""
   ].join("\n");
+}
+
+
+/**
+ * Exercise the ACTUAL source-owned, static /contact/ and its existing
+ * client-side email draft. A separate Actor's approval or data transfer is
+ * never inferred. Test that rights-specific fields are absent from unrelated
+ * inquiries, visible when truly selected, and omitted again when deselected.
+ */
+async function receivePrivateDataIntake(browser,host,output){
+  const context=await browser.newContext({
+    viewport:{width:390,height:844},deviceScaleFactor:1,
+    colorScheme:"light",reducedMotion:"reduce",javaScriptEnabled:true
+  });
+  try{
+    await context.route("**/*",async route=>{
+      const target=new URL(route.request().url());
+      if(target.origin===host.origin)await route.continue();
+      else await route.abort("blockedbyclient");
+    });
+    const page=await context.newPage(),errors=[];
+    page.on("pageerror",error=>errors.push(error.message));
+    const general=await page.goto(host.origin+
+      "/contact/?service=Research%20and%20formal%20methods",{waitUntil:"networkidle"});
+    if(!general || general.status()!==200)
+      throw Error("Original public static contact route failed");
+    const scope=page.locator("#data-stewardship-scope");
+    if(!await scope.isHidden() || !await scope.isDisabled())
+      throw Error("Unrelated service inquiry exposed protected-data scope");
+    const genericPath=join(output,"contact-mobile.png");
+    await page.screenshot({path:genericPath,fullPage:true,animations:"disabled"});
+    const rights=await page.goto(host.origin+
+      "/contact/?service=Data%20rights%20and%20stewardship",{waitUntil:"networkidle"});
+    if(!rights || rights.status()!==200 || await scope.isHidden() ||
+       await scope.isDisabled())
+      throw Error("Original CARE-related service source did not activate the rights gate");
+    if(await page.locator("#reply-permission").inputValue()!=="not-specified" ||
+       await page.locator("#submission-type").inputValue()!=="Paid service inquiry" ||
+       await page.locator("#affected").inputValue()!=="Data rights and stewardship")
+      throw Error("CARE service route silently granted a reply or order permission");
+    await page.evaluate(()=>document.fonts.ready);
+    const screen=await page.evaluate(()=>({
+      overflow:document.documentElement.scrollWidth>innerWidth+1,
+      gateVisible:!!document.querySelector("#data-stewardship-scope")?.getClientRects().length,
+      heading:document.querySelector("h1")?.textContent?.trim(),
+      hasPrimaryNav:!!document.querySelector('nav[aria-label="Primary"]'),
+      externalForms:[...document.querySelectorAll("form")].filter(form=>
+        !form.getAttribute("action")?.startsWith("mailto:")).length
+    }));
+    if(screen.overflow || !screen.gateVisible || !screen.hasPrimaryNav ||
+       screen.externalForms!==0 || screen.heading!=="What needs attention?")
+      throw Error("Actual private data service route lost coherent usable intake or privacy");
+    const sourceScreenshot=join(output,"contact-data-stewardship-mobile.png");
+    await page.screenshot({path:sourceScreenshot,fullPage:true,animations:"disabled"});
+    const hash=async path=>createHash("sha256").update(await readFile(path)).digest("hex");
+    const screenshotDigest=await hash(sourceScreenshot),genericDigest=await hash(genericPath);
+    await page.locator("#need").fill("Discuss a rights review. No source records enclosed.");
+    await page.locator("#data-authority").fill("REVIEW-PENDING-ROLE-NOT-A-PERSON");
+    await page.locator("#data-benefit").fill("COMMUNITY-BENEFIT-UNASSESSED");
+    await page.locator("#data-refusal").fill("PERMISSIONS-UNVERIFIED");
+    await page.locator("#data-responsibility").fill("FUTURE-USE-NOT-APPROVED");
+    await page.locator('button[type="submit"]').click();
+    if(!await page.locator("#email-draft").isVisible())
+      throw Error("Private data inquiry failed to produce the visitor-owned email draft");
+    const rightsDraft=await page.locator("#email-text").inputValue();
+    for(const text of ["REVIEW-PENDING-ROLE-NOT-A-PERSON",
+      "COMMUNITY-BENEFIT-UNASSESSED","PERMISSIONS-UNVERIFIED",
+      "FUTURE-USE-NOT-APPROVED","not-specified"]){
+      if(!rightsDraft.includes(text))
+        throw Error("Private scoped rights draft omitted necessary context: "+text);
+    }
+    if(await page.locator("#copy-email").isHidden() &&
+       (await page.locator("#open-email").getAttribute("href"))?.startsWith("http"))
+      throw Error("Private draft unexpectedly sends the data to a server");
+    // Changing only the service restores the default: hidden, disabled, and
+    // omitted from the email draft, even if it was filled earlier.
+    await page.locator("#affected").fill("Research and formal methods");
+    if(!await scope.isHidden() || !await scope.isDisabled())
+      throw Error("A changed service cannot remove the rights-specific collection");
+    await page.locator('button[type="submit"]').click();
+    const genericDraft=await page.locator("#email-text").inputValue();
+    for(const marker of ["REVIEW-PENDING-ROLE-NOT-A-PERSON",
+      "COMMUNITY-BENEFIT-UNASSESSED","PERMISSIONS-UNVERIFIED",
+      "FUTURE-USE-NOT-APPROVED"]){
+      if(genericDraft.includes(marker))
+        throw Error("Private email leaked formerly scoped data into an unrelated inquiry");
+    }
+    if(errors.length)throw Error("Actual contact script error: "+errors.join("; "));
+    return {
+      source:"public/contact/index.html",
+      result:"source-owned-private-rights-gate-interaction-conformant",
+      labels:["contact-mobile.png","contact-data-stewardship-mobile.png"],
+      sha256:[genericDigest,screenshotDigest],
+      simulatedParticipant:false,contactPermission:false,independentAcceptance:false,
+      noPublicPost:true
+    };
+  }finally{await context.close()}
 }
 
 export async function receiveBrowserVisuals({output="artifacts/brand-visual",sourceCommit=process.env.GITHUB_SHA??null}={}) {
@@ -266,13 +376,17 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
     if(sourceRole==="pull-request-merge-evaluation" &&
       !/^[a-f0-9]{40}$/u.test(originalPrHead??""))
       throw Error("A PR visual witness must distinguish its real head from the evaluated merge ref");
+    const contactIntake=await receivePrivateDataIntake(browser,host,output);
+    console.log(JSON.stringify({result:contactIntake.result,
+      screenshotCount:contactIntake.labels.length,externallyAccepted:false}));
     const witness={
       schema:"561.group/rendered-visual-witness/v1",
       sourceCommit,sourceRole,originalPrHead,
       kind:"actual-original-LivingWebServer-TUFTE-in-headless-Chromium",
       houseSource:"data/brand-source.json",
       acceptance:"CANDIDATE: machine browser conformance; golden-baseline and independent human approval NOT established",
-      playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases
+      playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases,
+      contactIntake
     };
     await writeFile(join(output,"witness.json"),JSON.stringify(witness,null,2)+"\n");
     await writeFile(join(output,"REVIEW.md"),visualReviewPacket(witness));
