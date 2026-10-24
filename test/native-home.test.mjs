@@ -61,7 +61,11 @@ test("the SAME real source yields useful machine-readable TUFTE JSON",async()=>{
   assert.deepEqual(model.tiles.map(t=>t.id),
     ["introduction","paths","companies","explore","contact"]);
   assert.equal(model.metadata.structuredData["@graph"][0].subOrganization.length,4);
-  assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes("Artificial Abiogenesis and Smartgoo"));
+  const homeTopics=model.metadata.structuredData["@graph"][0].knowsAbout;
+  assert.deepEqual(homeTopics,["research","software engineering",
+    "operational coordination","energy and resource management","public services"]);
+  assert.ok(!homeTopics.includes("Artificial Abiogenesis and Smartgoo"),
+    "homepage semantic metadata must match its useful visible public purpose");
   assert.ok(!model.tiles.some(t=>["frontiers","physical-world","support","trade","services"].includes(t.id)),
     "projected home stays a five-part visitor entrance, not a place for every research or commercial subject");
   assert.ok(model.tiles.some(t=>t.id==="companies" && t.html.includes("Causeway Services")));
@@ -149,6 +153,9 @@ test("public about page makes the two literal long-horizon programs inspectable,
   const res=await request("/about/",{headers:{accept:"application/json"}});
   assert.equal(res.status,200);
   const model=await res.json();
+  assert.ok(model.metadata.structuredData["@graph"][0].knowsAbout.includes(
+    "Artificial Abiogenesis and Smartgoo"),
+    "long-form original research metadata must remain discoverable on About");
   const frontier=model.tiles.find(x=>x.id==="frontiers");
   assert.ok(frontier);
   assert.ok(frontier.html.includes("Coordinating autonomous communities"));
