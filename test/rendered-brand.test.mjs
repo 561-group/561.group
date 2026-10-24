@@ -82,8 +82,8 @@ test("an automated visual witness prepares a review packet but cannot approve it
 
 test("the real screenshot witness yields a usable, offline consent-first reader worksheet",()=>{
   const witness={sourceCommit:"a".repeat(40),sourceRole:"source-commit",cases:[
-    {path:"/",viewport:{width:1440,height:900},screenshot:"home.png",sha256:"b".repeat(64)},
-    {path:"/work/",viewport:{width:390,height:844},screenshot:"work-mobile.png",sha256:"c".repeat(64)}
+    {path:"/",viewport:{width:1440,height:900},screenshot:"home.png",sha256:"b".repeat(64),passed:true,errors:[]},
+    {path:"/work/",viewport:{width:390,height:844},screenshot:"work-mobile.png",sha256:"c".repeat(64),passed:true,errors:[]}
   ]};
   const html=readerStudyPacket(witness);
   assert.match(html,/READER-STUDY|Independent reader study/u);
