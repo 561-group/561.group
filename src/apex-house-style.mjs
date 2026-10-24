@@ -157,7 +157,7 @@ body{
     width:100%;column-gap:.7rem;row-gap:.15rem;justify-content:stretch;
   }
   [data-tufte-navigation] a{
-    display:inline-flex;align-items:center;min-height:2.25rem;
+    display:inline-flex;align-items:center;min-height:2.5rem;
   }
 }
 @media(prefers-reduced-motion:reduce){
