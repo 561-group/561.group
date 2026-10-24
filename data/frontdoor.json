@@ -39,7 +39,12 @@
       "title": "Persistent AI systems",
       "provider": "services",
       "scope": "Commission agent workflows, roles, handoffs, review, failure recovery and human oversight. A bounded read-only pilot can inspect one public GitHub Work/Actions source or one customer-authorized, redacted Asana/Jira export, without account access, migration or customer-system changes.",
-      "example": "Provisional $200 pilot estimate (not a quote): inspect up to 20 source Work records; deliver an attributed discrepancy and acceptance report plus prioritized repairs, including a no-purchase recommendation when appropriate. Scope, rights, capacity and written terms must be agreed before any paid work. Do not send tokens or private records with the initial inquiry."
+      "example": "Provisional $200 pilot estimate (not a quote): inspect up to 20 source Work records; deliver an attributed discrepancy and acceptance report plus prioritized repairs, including a no-purchase recommendation when appropriate. Scope, rights, capacity and written terms must be agreed before any paid work. Do not send tokens or private records with the initial inquiry.",
+      "evidence": {
+        "href": "https://github.com/561-group/561.group/issues/17#issuecomment-6378737097",
+        "label": "Read a dated 20-record Work-continuity sample",
+        "qualification": "First-party source inspection of 20 GitHub pull requests, with explicit merge-versus-release-versus-user-acceptance distinctions. Not an outside customer audit, a vendor certification, an earned sale or Asana/Jira parity evidence."
+      }
     },
     {
       "id": "ai-discovery",
