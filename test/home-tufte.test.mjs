@@ -62,7 +62,8 @@ test("services are tied to an existing accountable company, and only inquiry is 
   assert.ok(data.scope.includes("relevant rights holders"));
   assert.ok(data.example.includes("Authority-to-control"));
   assert.ok(list.includes('href="'+data.framework.href+'"'));
-  assert.ok(list.includes(data.framework.qualification));
+  assert.ok(list.includes(data.framework.qualification.replace(/'/gu,"&#39;")),
+    "actual HTML must preserve and safely escape the rights-holder caveat");
 
   for(const item of frontdoor.offers) {
     assert.ok(list.includes('id="'+item.id+'"'));
