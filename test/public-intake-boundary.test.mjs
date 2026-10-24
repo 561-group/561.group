@@ -264,7 +264,7 @@ test("a production deploy has a main-ref and predeploy safety boundary",()=>{
     "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
 });
 
-test("production Group content admission executes main-pinned normal, alternate and refusal cases",()=>{
+test("production Group content admission verifies reviewed trees across merge and refusal cases",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   const checkout=workflow.indexOf("Read reviewed Group front-door main");
   const guard=workflow.indexOf("Refuse an unmerged or superseded Group source before production");
@@ -277,8 +277,8 @@ test("production Group content admission executes main-pinned normal, alternate 
   assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
   assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
   const admission=workflow.slice(guard,bind);
-  assert.match(admission,/QUALIFIED_FRONTDOOR_SHA: 189b06e6841c7c172f2903222dfcd73e94c248e9/u);
-  assert.match(admission,/git -C content rev-parse HEAD/u);
+  assert.match(admission,/QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5/u);
+  assert.match(admission,/git -C content rev-parse 'HEAD\^\{tree\}'/u);
   const newline=String.fromCharCode(10);
   const runBlock=admission.split("        run: |"+newline)[1];
   assert.ok(runBlock,"exercise the actual installed deploy gate, not a test-only replacement");
@@ -301,18 +301,29 @@ test("production Group content admission executes main-pinned normal, alternate 
       return git("-C","content","rev-parse","HEAD");
     };
     const first=commit("accepted source","normal");
+    const firstTree=git("-C","content","rev-parse","HEAD^{tree}");
     const run=expected=>spawnSync("bash",["-c",shell],{
       cwd:temp,encoding:"utf8",
-      env:{...process.env,QUALIFIED_FRONTDOOR_SHA:expected}
+      env:{...process.env,QUALIFIED_FRONTDOOR_TREE:expected}
     });
-    assert.equal(run(first).status,0,"accepted Group main pin admits its exact commit");
+    assert.equal(run(firstTree).status,0,"qualified Group main content tree is admitted");
+    // A new merge/metadata commit with identical files must not trigger
+    // needless repinning or a repeat qualification cycle.
+    git("-C","content","-c","user.name=Receiving Fixture",
+      "-c","user.email=fixture@example.invalid","commit","--allow-empty","-qm","merge metadata");
+    const rebased=git("-C","content","rev-parse","HEAD");
+    assert.notEqual(rebased,first,"a distinct commit can retain exactly reviewed bytes");
+    assert.equal(git("-C","content","rev-parse","HEAD^{tree}"),firstTree);
+    assert.equal(run(firstTree).status,0,"reviewed source remains admitted after metadata-only merge");
     const second=commit("newly reviewed source","alternate");
+    const secondTree=git("-C","content","rev-parse","HEAD^{tree}");
     assert.notEqual(first,second);
-    assert.notEqual(run(first).status,0,"old pin refuses a superseded Group main");
-    assert.equal(run(second).status,0,"repinned alternate main commit is admissible");
-    assert.notEqual(run("f".repeat(40)).status,0,"an unmerged candidate must not publish");
+    assert.notEqual(firstTree,secondTree,"real content changes alter the tree");
+    assert.notEqual(run(firstTree).status,0,"old review pin refuses changed Group main content");
+    assert.equal(run(secondTree).status,0,"separately qualified new source is admissible");
+    assert.notEqual(run("f".repeat(40)).status,0,"unqualified tree cannot publish");
     rmSync(join(temp,"content"),{recursive:true,force:true});
-    assert.notEqual(run(second).status,0,"missing Group source must fail closed");
+    assert.notEqual(run(secondTree).status,0,"missing Group source must fail closed");
   } finally {
     rmSync(temp,{recursive:true,force:true});
   }
@@ -347,10 +358,11 @@ test("production deployment consumes the exact dependency lock before provider w
   }
 });
 
-test("the production receiver accepts the current authored civilizational story, not the displaced generic slogan",()=>{
+test("the production receiver verifies source-owned editorial copy without freezing an obsolete slogan",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   const editorial=JSON.parse(read("data/frontdoor.json"));
-  assert.ok(editorial.proposition.includes("Another civilization"));
+  assert.equal(typeof editorial.proposition,"string");
+  assert.ok(editorial.proposition.trim().length>0,"the Group publisher owns meaningful editorial copy");
   assert.deepEqual(editorial.vision.frontiers.map(f=>f.id),["union-of-harmonious-colonies","bicameral-biology"]);
   assert.ok(workflow.includes("html.includes(frontdoor.proposition)"));
   assert.ok(workflow.includes("frontdoor.vision.frontiers.map"));
