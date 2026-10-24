@@ -8,6 +8,8 @@ export const SITE_STYLES = String.raw`
 .tufte-grid>#paths,.tufte-grid>#explore,.tufte-grid>#trade,.tufte-grid>#companies {grid-column:span 12}
 .tufte-grid>#services,.tufte-grid>#method,.tufte-grid>#agents,.tufte-grid>#support {grid-column:span 6}
 .tufte-grid>#physical-world {grid-column:span 12}
+.tufte-grid>#contact {grid-column:span 12}
+#contact .tufte-tile-body {max-width:50rem}
 .site-overline,.site-category,.site-provider,.site-step-number,.site-eyeline {
   font:650 .76rem/1.5 var(--house-mono);text-transform:uppercase;
   letter-spacing:.09em
@@ -28,6 +30,12 @@ a.site-action {
   color:var(--house-bone);border-radius:0
 }
 a.site-action--quiet {background:transparent;color:var(--house-ink)}
+/* In the original TUFTE hero, the #introduction link color has ID
+   specificity: it must not make the normal ink button text invisible. */
+#introduction a.site-action:not(.site-action--quiet){
+  color:var(--house-bone)
+}
+#introduction a.site-action--quiet{color:var(--house-ink)}
 a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
 .site-card-grid,.site-project-grid,.site-house-list,.site-service-grid {
   display:grid;list-style:none;padding:0!important;margin:0;gap:clamp(.7rem,1.8vw,1.5rem)
@@ -100,7 +108,7 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
 @media(max-width:760px){
   .tufte-grid>.tufte-tile{grid-column:span 12!important}
   .site-service-grid,.site-house-list,.site-frontier-grid,.site-directory {grid-template-columns:1fr}
-  .site-display {font-size:clamp(1.85rem,6.2vw,2.65rem)}
+  .site-display {font-size:clamp(2.15rem,6.2vw,2.65rem)}
 }
 @media(max-width:430px){
   .site-card-grid,.site-card-grid--three,.site-project-grid,.site-steps{grid-template-columns:1fr}
@@ -114,6 +122,7 @@ a.site-action:hover {outline:2px solid currentColor;outline-offset:3px}
   a.site-action{transition:none}
 }
 @media print{
+  #introduction a.site-action{color:#000!important;background:transparent!important}
   .site-frontier,.site-project,.site-card{break-inside:avoid}
   a.site-action{background:transparent!important;color:#000!important}
 }
