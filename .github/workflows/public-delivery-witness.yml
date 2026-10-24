@@ -1,10 +1,14 @@
 name: Observe 561.group public delivery (read-only)
 
-# Read-only public evidence: main selects its own exact commit for comparison.
-# No secrets, provider mutation or automatic promotion.
-# The existing qualified source -> build -> production workflow remains separate.
+# A source push and a completed release are different times.
+# Observe actual public bytes *after* the original deployment workflow finishes,
+# otherwise the old live revision appears to be a false search/crawl incident.
+# No provider mutation or automatic promotion; release authority stays in deploy.yml.
 on:
-  push:
+  workflow_run:
+    workflows:
+      - "Publish and receive 561.group (TUFTE + LivingWebServer)"
+    types: [completed]
     branches: [main]
   pull_request:
     paths:
@@ -46,7 +50,11 @@ jobs:
 
   public-delivery-observation:
     needs: observer-fixture-tests
-    if: github.event_name != 'pull_request'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -61,7 +69,9 @@ jobs:
         run: node scripts/observe-provider-deployment.mjs
       - name: Observe real external public endpoints independently of the build
         env:
-          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha || github.sha }}
+          # workflow_run GITHUB_SHA points at the latest default branch, not
+          # necessarily the release that actually finished. Use its own head.
+          EXPECTED_SOURCE_SHA: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.head_sha) || inputs.expected_source_sha || '' }}
         run: node scripts/observe-production.mjs
       - name: Reconcile independent public source and active Worker version evidence
         if: always()
