@@ -5,12 +5,15 @@ import {qualifyRenderedBrand,visualReviewPacket} from "../scripts/assay-rendered
 const good=()=>({
   viewportWidth:1440,houseStyle:true,tufte:true,
   bodyBackground:"rgb(242, 234, 216)",
-  mastheadTop:"8px",markContent:'"561"',
-  markColor:"rgb(255, 69, 48)",markSize:416,
+  mastheadTop:"1px",markContent:'"561"',markBracket:"8px",
+  markColor:"rgb(10, 10, 10)",markSize:76,
   markFamily:'"Space Grotesk", "Helvetica Neue", Arial, sans-serif',
   readingFamily:'"Roboto Slab", Rockwell, Georgia, serif',
   metadataFamily:'"JetBrains Mono", ui-monospace, "Courier New", monospace',
-  introBackground:"rgb(10, 10, 10)",
+  introBackground:"rgba(0, 0, 0, 0)",heroSize:49.6,
+  mainTileIds:["introduction","paths","companies","explore","contact"],
+  companyCount:4,pathCount:4,ordinaryActionColor:"rgb(10, 10, 10)",
+  prohibitedTopicLabels:false,
   fontFaces:[
     {family:"Space Grotesk",status:"loaded"},
     {family:"Roboto Slab",status:"loaded"},
@@ -47,8 +50,27 @@ test("the original user-visible regression is independently rejected",()=>{
   for(const fragment of ["Lakota-founded","horizontally","Keyboard focus","navigation","content tiles"])
     assert.ok(result.errors.some(x=>x.includes(fragment)),fragment);
 });
+test("the browser refuses the giant red mark, red general-purpose action and billboard introduction",()=>{
+  const old={...good(),markSize:416,markColor:"rgb(255, 69, 48)",
+    introBackground:"rgb(10, 10, 10)",heroSize:104,
+    ordinaryActionColor:"rgb(255, 69, 48)"};
+  const x=qualifyRenderedBrand(old);
+  assert.equal(x.passed,false);
+  for(const term of ["ink-on-bone","oversized","black billboard","giant display","hazard red"])
+    assert.ok(x.errors.some(err=>err.includes(term)),term);
+});
+
+test("the browser refuses culture-as-homepage-advertising and missing visitor journeys",()=>{
+  const x=qualifyRenderedBrand({...good(),mainTileIds:["introduction","frontiers","paths","services","support"],
+    prohibitedTopicLabels:true,companyCount:0,pathCount:3});
+  assert.equal(x.passed,false);
+  assert.ok(x.errors.some(e=>e.includes("topic-of-the-day")));
+  assert.ok(x.errors.some(e=>e.includes("Identity labels")));
+  assert.ok(x.errors.some(e=>e.includes("accountable companies")));
+});
+
 test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
-  const mobile={...good(),viewportWidth:390,markSize:136.5};
+  const mobile={...good(),viewportWidth:390,markSize:43.2,heroSize:32};
   assert.equal(qualifyRenderedBrand(mobile).passed,true);
 });
 
