@@ -76,6 +76,12 @@ test("services are tied to an existing accountable company, and only inquiry is 
     assert.ok(list.includes('href="'+href+'"'),
       "each service can open its own existing intake context: "+service.id);
   }
+  assert.equal((list.match(/<details class="site-service-detail">/gu)||[]).length,
+    frontdoor.offers.length,"all eight original service details are accessible but collapsed");
+  assert.equal((list.match(/<summary>Scope, examples and source evidence<\/summary>/gu)||[]).length,
+    frontdoor.offers.length,"native disclosure is a real no-script HTML control");
+  assert.equal((list.match(/class="site-service-inquiry"/gu)||[]).length,
+    frontdoor.offers.length,"buyer inquiries remain reachable without opening details");
   assert.equal((list.match(/Ask about this work/g)||[]).length,frontdoor.offers.length,
     "do not duplicate the existing inquiry destination or invent an order path");
   for(const item of frontdoor.offers.filter(x=>x.evidence)){
