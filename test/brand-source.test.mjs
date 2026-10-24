@@ -65,12 +65,12 @@ test("wrong font, missing compact ink mark or missing focus behavior fail",()=>{
 });
 test("alarm-red stays a reserved functional signal, not a giant masthead or normal button",()=>{
   const c=candidate();
-  assert.throws(()=>verifyApexBrand({...c,siteStyles:SITE_STYLES+
-    "\n.site-action{background:var(--house-alarm)}"}),
-    /Alarm red was used/u);
-  assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES+
-    "\n.site-display{color:var(--house-alarm)}"}),
-    /Alarm red was used/u);
+  const replacedSite=SITE_STYLES+"\n.site-action{background:var(--house-alarm)}";
+  assert.throws(()=>verifyApexBrand({...c,siteStyles:replacedSite,
+    head:c.head.replace(SITE_STYLES,replacedSite)}),/Alarm red was used/u);
+  const replacedHouse=HOUSE_STYLES+"\n.site-display{color:var(--house-alarm)}";
+  assert.throws(()=>verifyApexBrand({...c,houseStyles:replacedHouse,
+    head:c.head.replace(HOUSE_STYLES,replacedHouse)}),/Alarm red was used/u);
 });
 
 test("a style string merely declared in a file cannot pass unless TUFTE actually emits it",()=>{
