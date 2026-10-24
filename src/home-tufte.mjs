@@ -200,7 +200,7 @@ function serviceEntries(frontdoor, providers, items = frontdoor.offers) {
       para("Possible requests: " + service.example, "site-example") +
       (service.evidence ? anchor(service.evidence.href, service.evidence.label) +
         para(service.evidence.qualification, "site-evidence-limit") : "") +
-      anchor("/contact/#work", "Ask about this work") +
+      anchor("/contact/?service=" + encodeURIComponent(service.title) + "#work", "Ask about this work") +
       "</li>";
   }).join("") + "</ul>";
 }
