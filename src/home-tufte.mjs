@@ -406,11 +406,16 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
   if (!PUBLIC_ROUTES.includes(path)) throw new RangeError("Unadmitted Group public route");
   const source = checkedSources(home,estate,frontdoor);
   const page = {
-    "/": {title:home.name,subtitle:"Research · Engineering · Operations · Public services"},
-    "/work/": {title:"Work with the 561 Group",subtitle:"Capabilities, scoping, providers and actual terms"},
-    "/projects/": {title:"Explore the 561 Group",subtitle:"Public projects, commerce, worlds and publications"},
-    "/about/": {title:"About the 561 Group",subtitle:"Four companies, energy, coordination and accountable work"},
-    "/for-agents/": {title:"For agents · 561 Group",subtitle:"Public machine endpoints and authorization boundaries"}
+    "/": {title:home.name,subtitle:"Research · Engineering · Operations · Public services",
+      description:home.description},
+    "/work/": {title:"Work with the 561 Group",subtitle:"Capabilities, scoping, providers and actual terms",
+      description:"Explore 561 Group services in AI systems, software engineering, website discovery, research and data stewardship. See evidence and inquire about a scoped project."},
+    "/projects/": {title:"Explore the 561 Group",subtitle:"Public projects, commerce, worlds and publications",
+      description:"Explore 561 Group publications, software, games and public worlds, and find the separate Shop, Bazaar and Market destinations with their own terms."},
+    "/about/": {title:"About the 561 Group",subtitle:"Four companies, energy, coordination and accountable work",
+      description:"Meet the 561 Group's four companies and how research, engineering, operations and public services coordinate under material and energy constraints."},
+    "/for-agents/": {title:"For agents · 561 Group",subtitle:"Public machine endpoints and authorization boundaries",
+      description:"Read 561 Group public machine endpoints, source feeds, service-discovery links and authorization boundaries before using any interface or payment venue."}
   }[path];
   const tiles = path === "/" ? homepage(home,estate,frontdoor,source) :
     path === "/work/" ? workPage(home,frontdoor,source) :
@@ -421,7 +426,7 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
     title:page.title,subtitle:page.subtitle,
     eyebrow:"561 Group · A working public institution",
     metadata:{
-      title:page.title,description:path === "/" ? home.description : page.subtitle,
+      title:page.title,description:page.description,
       language:"en",canonical:ORIGIN + path,image:ORIGIN + "/card.png",
       type:"website",siteName:home.name,structuredData:structure(home,path,frontdoor)
     },
