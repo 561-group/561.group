@@ -101,6 +101,20 @@ function checkedSources(home, estate, frontdoor) {
       }
       publicHref(item.href);
     }
+    if (offer.paidProposal !== undefined) {
+      const proposal = offer.paidProposal;
+      if (offer.provider !== "services" ||
+          !proposal || typeof proposal !== "object" || Array.isArray(proposal) ||
+          !["href", "label", "qualification"].every(key =>
+            typeof proposal[key] === "string" && proposal[key].trim())) {
+        throw new TypeError("A paid pilot must be sourced to a competent Causeway seller and qualified proposal");
+      }
+      const url = new URL(publicHref(proposal.href));
+      if (url.origin !== "https://services.561.group" ||
+          !/^\/[a-z0-9-]+\/$/u.test(url.pathname) || url.search || url.hash) {
+        throw new TypeError("Paid pilot preview must link to a canonical original Causeway publication");
+      }
+    }
   }
   for (const company of providers.values()) publicHref(company.url);
   for (const shop of home.group.storefronts) publicHref(shop.url);
@@ -200,6 +214,8 @@ function serviceEntries(frontdoor, providers, items = frontdoor.offers) {
       para("Possible requests: " + service.example, "site-example") +
       (service.evidence ? anchor(service.evidence.href, service.evidence.label) +
         para(service.evidence.qualification, "site-evidence-limit") : "") +
+      (service.paidProposal ? anchor(service.paidProposal.href, service.paidProposal.label) +
+        para(service.paidProposal.qualification, "site-evidence-limit") : "") +
       anchor("/contact/?service=" + encodeURIComponent(service.title) + "#work", "Ask about this work") +
       "</li>";
   }).join("") + "</ul>";
@@ -258,7 +274,8 @@ function homepage(home, estate, frontdoor, source) {
     panel("services","Work you can ask us to do",
       para("We can scope actual research, technical and public-service work with an accountable company.","site-section-lead") +
       serviceEntries(frontdoor,source.providers,frontdoor.offers.slice(0,4)) +
-      actions([{href:"/work/",label:"See all service areas"}]),8),
+      actions([{href:"/work/",label:"See all service areas"},
+               {href:"/work/#green-web-pilot",label:"Discuss an existing paid pilot"}]),8),
     panel("method","From idea to outcome",
       para("Science → Engineering → Operations → Public Services","site-quote") +
       para("We distinguish an idea, a model, a working demonstration, a real service and a result the customer has accepted.") +
