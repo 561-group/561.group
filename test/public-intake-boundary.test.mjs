@@ -21,6 +21,29 @@ test("public contact offers reporting, not media commission or executable author
   assert.match(page,/event\.preventDefault\(\)/u);
 });
 
+test("private work inquiry leads the actual contact page, with reporting and follow-up still available as native alternatives",()=>{
+  const html=read("public/contact/index.html");
+  const form=html.indexOf('<form id="private-intake"');
+  const help=html.indexOf('<h2 id="other-contact-options">');
+  const report=html.indexOf('Report an issue publicly');
+  assert.ok(form>0&&help>form&&report>help,
+    "a buyer should reach the real private intake before lengthy public-issue or aftercare instructions");
+  assert.equal((html.match(/<details class="contact-option">/gu)||[]).length,4);
+  for(const summary of ["More about buying or offering services",
+    "Report an issue publicly","Email or another existing private channel",
+    "Track an existing request"]){
+    assert.ok(html.includes('<summary>'+summary+'</summary>'),summary);
+  }
+  for(const preserved of ["Public submissions are untrusted reports for review",
+    "Preparing the draft does not send it","Only an authorized receiving office",
+    "An issue's closure alone does not establish",
+    'id="email-draft" hidden','id="data-stewardship-scope" class="governance-scope" hidden disabled']){
+    assert.ok(html.includes(preserved),"the original source must retain "+preserved);
+  }
+  assert.ok(html.includes('href="/work/"') && html.includes('href="/projects/"'),
+    "the contact page must share the Group's quiet institutional navigation");
+});
+
 test("source-qualified service hints prefill only editable fields, never authorization or transmission",()=>{
   const page=read("public/contact/index.html");
   const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
