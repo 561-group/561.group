@@ -6,6 +6,7 @@ import {readFile,mkdir,writeFile} from "node:fs/promises";
 import {createHash} from "node:crypto";
 import {resolve,join} from "node:path";
 import {pathToFileURL} from "node:url";
+import {readerStudyPacket} from "./reader-study.mjs";
 import {create561GroupLivingApplication} from "../src/living-home.mjs";
 
 const readJson=async path=>JSON.parse(await readFile(new URL("../"+path,import.meta.url),"utf8"));
@@ -117,6 +118,10 @@ export function visualReviewPacket(witness){
       c.viewport.height+" | "+(c.passed?"pass":"REFUSED: "+c.errors.join("; "))+ 
       " | ["+c.screenshot+"]("+c.screenshot+") | "+c.sha256+" |"),
     "",
+    "The accompanying [offline reader-study worksheet](READER-STUDY.html) prepares",
+    "voluntary first-impression and stated-feeling observations without transmission.",
+    "It is NOT human testimony until someone consents, completes and returns it.",
+    "",
     "## Independent reader/visual-review task",
     "",
     "Inspect each image without treating implementation tickets as evidence",
@@ -223,6 +228,7 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
     };
     await writeFile(join(output,"witness.json"),JSON.stringify(witness,null,2)+"\n");
     await writeFile(join(output,"REVIEW.md"),visualReviewPacket(witness));
+    await writeFile(join(output,"READER-STUDY.html"),readerStudyPacket(witness));
     const failing=cases.filter(x=>!x.passed);
     if(failing.length)throw Error("Rendered brand did not conform: "+
       failing.map(x=>x.name+": "+x.errors.join("; ")).join(" | "));
