@@ -49,7 +49,7 @@ test("source-qualified service hints reduce buyer retyping without sending inqui
     assert.equal(item.called.length,1);
   }
   assert.match(page,/Preparing the draft does not send it/u);
-  assert.match(page,/An inquiry is not an order/u);
+  assert.match(page,/we will not treat an inquiry as an order/u);
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
