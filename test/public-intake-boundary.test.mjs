@@ -221,7 +221,7 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
   await nodes["copy-email-body"].onclick();
   assert.equal(copied.at(-1),nodes["email-text"].value,
     "the short message is copied exactly, with reply scope intact");
-  assert.ok(nodes["email-text"].value.includes("reply-permission\\ninquiry-only"));
+  assert.ok(nodes["email-text"].value.includes("reply-permission\ninquiry-only"));
   assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
 });
 
