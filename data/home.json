@@ -2,7 +2,7 @@
   "origin": "https://561.group",
   "name": "The 561 Group",
   "established": "2018",
-  "description": "The 561 Group researches Indigenous-grounded federated governance beyond settler colonialism, artificial abiogenesis and silica-rich adaptive matter, and builds practical software, operational systems and public services.",
+  "description": "The 561 Group brings together research, engineering, operations and public services. Explore the companies, inspect current projects and publications, or inquire about work.",
   "masthead": [
     "Private organization",
     "Est. MMXVIII",
@@ -210,12 +210,12 @@
   ],
   "public": {
     "materialApproach": {
-      "headline": "Design for a world that does not hold still.",
-      "body": "Climate breakdown can change the conditions under which infrastructure and institutions work. Aggregated averages can obscure the losses and possibilities along one lived path. Energy and connected water systems expose material dependencies that an organizational chart can miss.",
-      "scope": "We study stationarity, ergodicity, energy-denominated economic proposals, and water-cycle-informed governance to guide research, engineering, operations, and public services. Proposed currencies are not issued money; watershed connections grant no jurisdiction or override Indigenous and treaty rights."
+      "headline": "Energy and coordination are governing questions.",
+      "body": "Work depends on energy, material resources, time and the ability to coordinate people and systems. Our institutional research and operating methods examine how autonomous teams make commitments, share resources, check outcomes and remain accountable to the people affected.",
+      "scope": "This includes energy accounting, environmental constraints and water-system dependencies where relevant. Our proposals do not establish a new jurisdiction, issued currency or community authority. Technical access to data never substitutes for rights-holder permission."
     },
-    "headline": "Building for a different civilization.",
-    "intro": "Our long-term work asks whether autonomous federations can offer a better way to govern—and whether a second, mineral-rich lineage of life might one day coexist with carbon life. We believe these futures are worth trying to make real.",
+    "headline": "Four companies, connected by work.",
+    "intro": "Projects differ in maturity. A research hypothesis, working demonstration and available service are not the same thing.",
     "aim": "We build research, engineering, operational capability and public services for autonomy, collective intelligence and prosperity through economic, political, and ecological volatility.",
     "contactIntro": "Tell us what you need—no technical vocabulary or organizational chart required.",
     "featured": [
