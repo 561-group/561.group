@@ -144,6 +144,55 @@ export function visualReviewPacket(witness){
   ].join("\n");
 }
 
+
+/**
+ * Exercise the actual generated offline participant worksheet in the SAME
+ * Chromium job that received the original screenshots. This checks local
+ * interaction, not artistic quality, human response or acceptance.
+ */
+async function verifyOfflineStudyInteraction(browser,html){
+  const context=await browser.newContext({javaScriptEnabled:true,acceptDownloads:true});
+  try{
+    const page=await context.newPage();
+    const errors=[];
+    page.on("pageerror",error=>errors.push(error.message));
+    await page.setContent(html,{waitUntil:"load"});
+    const scenes=page.locator("[data-reader-case]");
+    if(await scenes.count()!==pages.length)
+      throw Error("Offline study lost an original witnessed scene");
+    const first=scenes.first();
+    await first.locator("[data-reveal]").click();
+    if(await first.locator("[data-view]").isVisible())
+      throw Error("Offline study displayed a specimen before participant consent");
+    await page.locator("#consent").check();
+    await first.locator("[data-reveal]").click();
+    if(!await first.locator("[data-view]").isVisible())
+      throw Error("Consented source specimen did not reveal");
+    await first.locator("[data-hide]").click();
+    if(!await first.locator("[data-questions]").isVisible()||
+       await first.locator("[data-view]").isVisible())
+      throw Error("Source remained exposed during first-impression reporting");
+    await first.locator('textarea[name="case-0.firstImpression"]')
+      .fill("READER-STUDY-BROWSER-TEST-ONLY");
+    await first.locator('select[name="case-0.reportedValence"]')
+      .selectOption("3 — neither / mixed");
+    const [download]=await Promise.all([
+      page.waitForEvent("download",{timeout:8000}),
+      page.locator('button[type="submit"]').click()
+    ]);
+    const report=JSON.parse(await readFile(await download.path(),"utf8"));
+    if(download.suggestedFilename()!=="561-reader-observation.json"||
+       report.schema!=="561.group/reader-observation-candidate/v1"||
+       report.independentAcceptance!==false||
+       report.declaredConsent!==true||
+       report.responses?.["case-0.firstImpression"]!=="READER-STUDY-BROWSER-TEST-ONLY"||
+       !report.responses?.["case-0.visibleSeconds"])
+      throw Error("Offline study browser export lost provenance, recorded observation or unreceived state");
+    if(errors.length)throw Error("Offline study browser script error: "+errors.join("; "));
+    return {result:"local-reader-study-interaction-conformant",sceneCount:await scenes.count()};
+  }finally{await context.close()}
+}
+
 export async function receiveBrowserVisuals({output="artifacts/brand-visual",sourceCommit=process.env.GITHUB_SHA??null}={}) {
   const {chromium}=await import("playwright");
   const host=await servedOriginalApplication();
@@ -226,9 +275,12 @@ export async function receiveBrowserVisuals({output="artifacts/brand-visual",sou
       acceptance:"CANDIDATE: machine browser conformance; golden-baseline and independent human approval NOT established",
       playwrightVersion:"1.62.1",recordedAt:new Date().toISOString(),cases
     };
+    const studyHtml=readerStudyPacket(witness);
+    const studyAssay=await verifyOfflineStudyInteraction(browser,studyHtml);
+    console.log(JSON.stringify(studyAssay));
     await writeFile(join(output,"witness.json"),JSON.stringify(witness,null,2)+"\n");
     await writeFile(join(output,"REVIEW.md"),visualReviewPacket(witness));
-    await writeFile(join(output,"READER-STUDY.html"),readerStudyPacket(witness));
+    await writeFile(join(output,"READER-STUDY.html"),studyHtml);
     const failing=cases.filter(x=>!x.passed);
     if(failing.length)throw Error("Rendered brand did not conform: "+
       failing.map(x=>x.name+": "+x.errors.join("; ")).join(" | "));
