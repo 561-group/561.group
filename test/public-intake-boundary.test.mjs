@@ -1,7 +1,9 @@
 import test from "node:test";
 import {runInNewContext} from "node:vm";
 import assert from "node:assert/strict";
-import {readFileSync,readdirSync} from "node:fs";
+import {readFileSync,readdirSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {spawnSync} from "node:child_process";
 import {dirname,join} from "node:path";
 import {fileURLToPath} from "node:url";
 
@@ -189,6 +191,59 @@ test("a production deploy has a main-ref and predeploy safety boundary",()=>{
     /npm run build/u.test(before) && /source-revision\.json/u.test(before);
   assert.ok(legacyInterlock||qualifiedRelease,
     "production needs a fail-closed legacy interlock or an exact-source build, test and receipt before Wrangler");
+});
+
+test("production Group content admission executes main-pinned normal, alternate and refusal cases",()=>{
+  const workflow=read(".github/workflows/deploy.yml");
+  const checkout=workflow.indexOf("Read reviewed Group front-door main");
+  const guard=workflow.indexOf("Refuse an unmerged or superseded Group source before production");
+  const bind=workflow.indexOf("Bind front-door content",guard);
+  const publish=workflow.indexOf("cloudflare/wrangler-action");
+  assert.ok(checkout>0 && checkout<guard && guard<bind && bind<publish,
+    "Group main source must be checked before any production provider write");
+  const source=workflow.slice(checkout,guard);
+  assert.match(source,/repository: 561-group\\/561-group-frontdoor-services-section/u);
+  assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
+  assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
+  const admission=workflow.slice(guard,bind);
+  assert.match(admission,/QUALIFIED_FRONTDOOR_SHA: 081d9e51a288e447e27f315f349eff2a6831bdc9/u);
+  assert.match(admission,/git -C content rev-parse HEAD/u);
+  const runBlock=admission.split("        run: |\\n")[1];
+  assert.ok(runBlock,"exercise the actual installed deploy gate, not a test-only replacement");
+  const shell=runBlock.split("\\n").filter(line=>line.startsWith("          "))
+    .map(line=>line.slice(10)).join("\\n");
+  const temp=mkdtempSync(join(tmpdir(),"original-group-content-admission-"));
+  try {
+    mkdirSync(join(temp,"content"));
+    const git=(...args)=>{
+      const result=spawnSync("git",args,{cwd:temp,encoding:"utf8"});
+      assert.equal(result.status,0,result.stderr);
+      return result.stdout.trim();
+    };
+    git("init","-q","content");
+    const commit=(body,label)=>{
+      writeFileSync(join(temp,"content","fixture.txt"),body);
+      git("-C","content","add","fixture.txt");
+      git("-C","content","-c","user.name=Receiving Fixture",
+        "-c","user.email=fixture@example.invalid","commit","-qm",label);
+      return git("-C","content","rev-parse","HEAD");
+    };
+    const first=commit("accepted source","normal");
+    const run=expected=>spawnSync("bash",["-c",shell],{
+      cwd:temp,encoding:"utf8",
+      env:{...process.env,QUALIFIED_FRONTDOOR_SHA:expected}
+    });
+    assert.equal(run(first).status,0,"accepted Group main pin admits its exact commit");
+    const second=commit("newly reviewed source","alternate");
+    assert.notEqual(first,second);
+    assert.notEqual(run(first).status,0,"old pin refuses a superseded Group main");
+    assert.equal(run(second).status,0,"repinned alternate main commit is admissible");
+    assert.notEqual(run("f".repeat(40)).status,0,"an unmerged candidate must not publish");
+    rmSync(join(temp,"content"),{recursive:true,force:true});
+    assert.notEqual(run(second).status,0,"missing Group source must fail closed");
+  } finally {
+    rmSync(temp,{recursive:true,force:true});
+  }
 });
 
 test("ordinary buyer and supplier opportunities use the same private intake without becoming orders",()=>{
