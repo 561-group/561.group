@@ -100,6 +100,20 @@ test("actual CARE intake asks about roles, collective benefit, refusal and harm 
   assert.doesNotMatch(html,/autocomplete="on"[^>]*data-authority/u);
 });
 
+test("actual work intake asks who receives and about material/energy and coordination constraints",()=>{
+  const html=read("public/contact/index.html");
+  const start=html.indexOf('<label for="conditions">');
+  const end=html.indexOf('<label for="evidence">',start);
+  assert.ok(start>0&&end>start);
+  const conditions=html.slice(start,end);
+  for(const expected of ["independently check or refuse","coordination","energy",
+    "material","time","operating constraints","do not paste sensitive records"]){
+    assert.ok(conditions.includes(expected),expected);
+  }
+  assert.ok(conditions.includes('name="conditions"'));
+  assert.match(html,/Preparing the draft does not send it/u);
+});
+
 test("sales contact consent is an explicit buyer-owned field, not inferred from a reply address",()=>{
   const page=read("public/contact/index.html");
   const start=page.indexOf('<label for="reply-permission">');
