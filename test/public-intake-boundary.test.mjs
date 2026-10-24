@@ -1,4 +1,5 @@
 import test from "node:test";
+import {runInNewContext} from "node:vm";
 import assert from "node:assert/strict";
 import {readFileSync,readdirSync} from "node:fs";
 import {dirname,join} from "node:path";
@@ -18,6 +19,37 @@ test("public contact offers reporting, not media commission or executable author
   assert.doesNotMatch(page,/causeway-services\/public-media-services-section\/issues\/new/u);
   assert.match(page,/<form id="private-intake" action="mailto:/u);
   assert.match(page,/event\.preventDefault\(\)/u);
+});
+
+test("source-qualified service hints reduce buyer retyping without sending inquiries",()=>{
+  const page=read("public/contact/index.html");
+  const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
+  assert.ok(script,"the same original public contact form owns the visitor prefill");
+  const simulate=search=>{
+    const called=[];
+    const elements={"submission-type":{value:"Issue"},"affected":{value:""}};
+    const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
+    const document={getElementById:id=>{
+      assert.equal(id,"private-intake","no other consumer should be touched before review");
+      return form;
+    }};
+    runInNewContext(script,{document,location:{search},URLSearchParams},{timeout:1000});
+    return {elements,called};
+  };
+  const actual=simulate("?service="+encodeURIComponent("Research and formal methods"));
+  assert.equal(actual.elements["submission-type"].value,"Paid service inquiry");
+  assert.equal(actual.elements.affected.value,"Research and formal methods");
+  assert.equal(actual.called.length,1);
+  assert.equal(actual.called[0][0],"submit");
+  // No input in the URL becomes a sent message or asserted legitimate order.
+  for(const bad of ["", "?service=%3Cscript%3E", "?service="+encodeURIComponent("x".repeat(150))]){
+    const item=simulate(bad);
+    assert.equal(item.elements.affected.value,"");
+    assert.equal(item.elements["submission-type"].value,"Issue");
+    assert.equal(item.called.length,1);
+  }
+  assert.match(page,/Preparing the draft does not send it/u);
+  assert.match(page,/An inquiry is not an order/u);
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
