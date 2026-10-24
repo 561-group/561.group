@@ -54,30 +54,6 @@
       }
     },
     {
-      "id": "green-web-pilot",
-      "title": "Website performance and resource audits",
-      "provider": "services",
-      "scope": "Evaluate specific public website tasks, load, accessibility, images and honest environmental claims. Delivery and price depend on a separately agreed scope.",
-      "example": "Causeway's existing Green Web resource audit and lightweight retrofit pilots",
-      "paidProposal": {
-        "href": "https://services.561.group/green-web-service-pilot/",
-        "label": "See actual Green Web pilot scopes and indicative fees",
-        "qualification": "Causeway source-approved discussion prices, not binding quotes or an active checkout. The competent seller must confirm capacity, terms and payee before money is due."
-      }
-    },
-    {
-      "id": "evidence-marketing-pilot",
-      "title": "Source-backed marketing and public communication",
-      "provider": "services",
-      "scope": "Turn one verifiable industry event into a useful customer answer, with an original article, distinct short-form drafts and an approved distribution plan.",
-      "example": "Causeway's existing one-event Signal-to-Service marketing pilot",
-      "paidProposal": {
-        "href": "https://services.561.group/signal-to-service-marketing-pilot/",
-        "label": "See actual Signal-to-Service pilot scope and indicative fee",
-        "qualification": "An editorial and seller-side price hypothesis, not guaranteed placement, ranking, sales, approved capacity or a payment request."
-      }
-    },
-    {
       "id": "indigenous-data",
       "title": "Indigenous data governance",
       "provider": "services",
@@ -118,6 +94,30 @@
         "href": "https://561.group/source-revision.json",
         "label": "Inspect our deployed release identity",
         "qualification": "First-party release testimony, separately checked by the publisher; not proof of customer acceptance."
+      }
+    },
+    {
+      "id": "green-web-pilot",
+      "title": "Website performance and resource audits",
+      "provider": "services",
+      "scope": "Evaluate specific public website tasks, load, accessibility, images and honest environmental claims. Delivery and price depend on a separately agreed scope.",
+      "example": "Causeway's existing Green Web resource audit and lightweight retrofit pilots",
+      "paidProposal": {
+        "href": "https://services.561.group/green-web-service-pilot/",
+        "label": "See actual Green Web pilot scopes and indicative fees",
+        "qualification": "Causeway source-approved discussion prices, not binding quotes or an active checkout. The competent seller must confirm capacity, terms and payee before money is due."
+      }
+    },
+    {
+      "id": "evidence-marketing-pilot",
+      "title": "Source-backed marketing and public communication",
+      "provider": "services",
+      "scope": "Turn one verifiable industry event into a useful customer answer, with an original article, distinct short-form drafts and an approved distribution plan.",
+      "example": "Causeway's existing one-event Signal-to-Service marketing pilot",
+      "paidProposal": {
+        "href": "https://services.561.group/signal-to-service-marketing-pilot/",
+        "label": "See actual Signal-to-Service pilot scope and indicative fee",
+        "qualification": "An editorial and seller-side price hypothesis, not guaranteed placement, ranking, sales, approved capacity or a payment request."
       }
     }
   ],
