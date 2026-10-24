@@ -46,20 +46,33 @@ test("wrong colors and website-owned substitutions fail before publishing",()=>{
   assert.throws(()=>verifyApexBrand({...c,siteStyles:SITE_STYLES+
     "\n.panel{background:linear-gradient(90deg,#aaccee,#fff)}"}),/decorative brand palette/u);
 });
-test("wrong font, removed giant mark or folio and deleted focus behavior fail",()=>{
+test("wrong font, missing compact ink mark or missing focus behavior fail",()=>{
   const c=candidate();
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
     '--house-sans:"Space Grotesk"','--house-sans:"Generic Startup"')}),/display type channel/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
     'font-family:"Space Grotesk"','font-family:"Generic Startup"')}),/missing self-hosted/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
-    ".tufte-masthead::before{",".lost-visual-house-mark{")}),/giant 561 folio mark/u);
+    ".tufte-masthead::before{",".lost-visual-house-mark{")}),/original 561 ink mark/u);
+  assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
+    "color:var(--house-ink);user-select:none","color:var(--house-alarm);user-select:none")}),
+    /source-default ink/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replace(
     "border-top:8px solid var(--house-ink)","border-top:1px solid var(--house-ink)")}),
-    /institutional folio bar/u);
+    /original 561 bracket rule/u);
   assert.throws(()=>verifyApexBrand({...c,houseStyles:HOUSE_STYLES.replaceAll(
     "focus-visible","focus-lost")}),/keyboard focus/u);
 });
+test("alarm-red stays a reserved functional signal, not a giant masthead or normal button",()=>{
+  const c=candidate();
+  const replacedSite=SITE_STYLES+"\n.site-action{background:var(--house-alarm)}";
+  assert.throws(()=>verifyApexBrand({...c,siteStyles:replacedSite,
+    head:c.head.replace(SITE_STYLES,replacedSite)}),/Alarm red was used/u);
+  const replacedHouse=HOUSE_STYLES+"\n.site-display{color:var(--house-alarm)}";
+  assert.throws(()=>verifyApexBrand({...c,houseStyles:replacedHouse,
+    head:c.head.replace(HOUSE_STYLES,replacedHouse)}),/Alarm red was used/u);
+});
+
 test("a style string merely declared in a file cannot pass unless TUFTE actually emits it",()=>{
   const c=candidate();
   assert.throws(()=>verifyApexBrand({...c,head:"<style></style>"}),
@@ -67,10 +80,14 @@ test("a style string merely declared in a file cannot pass unless TUFTE actually
   assert.throws(()=>verifyApexBrand({...c,head:c.head.replace(
     "data-561-house=","data-anonymous-house=")}),/actual HTML head/u);
   const missing=structuredClone(c.home);
-  missing.tiles=missing.tiles.filter(tile=>tile.id!=="physical-world");
-  assert.throws(()=>verifyApexBrand({...c,home:missing}),/lost its material-world position/u);
-  missing.tiles.push({id:"physical-world",html:"Lakota-founded: adopt our identity"});
-  assert.throws(()=>verifyApexBrand({...c,home:missing}),/identity-first copy/u);
+  missing.tiles=missing.tiles.filter(tile=>tile.id!=="paths");
+  assert.throws(()=>verifyApexBrand({...c,home:missing}),/five practical visitor journeys/u);
+  const takeover=structuredClone(c.home);
+  takeover.tiles[0].html+='<p>Indigenous-grounded artificial abiogenesis is the brand.</p>';
+  assert.throws(()=>verifyApexBrand({...c,home:takeover}),/promoted culture/u);
+  const heroic=structuredClone(c.home);
+  heroic.tiles.push({id:"frontiers",html:"The universe is full of potential!"});
+  assert.throws(()=>verifyApexBrand({...c,home:heroic}),/five practical visitor journeys/u);
 });
 test("a different edition or an unauthenticated source checkout never certifies the Group",async()=>{
   const c=candidate();

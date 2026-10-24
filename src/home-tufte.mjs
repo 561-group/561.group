@@ -101,6 +101,17 @@ function checkedSources(home, estate, frontdoor) {
       }
       publicHref(item.href);
     }
+    if (offer.id === "indigenous-data" && !offer.framework)
+      throw new TypeError("Data stewardship must expose its applicable CARE Principles and authority boundary");
+    if (offer.framework !== undefined) {
+      const framework=offer.framework;
+      if (!framework || !["href","label","qualification"].every(key=>
+          typeof framework[key]==="string" && framework[key].trim()) ||
+          framework.href!=="https://www.gida-global.org/careprinciples" ||
+          offer.id!=="indigenous-data")
+        throw new TypeError("Data-rights practice must cite the original CARE Principles, not claim a group compliance badge");
+      publicHref(framework.href);
+    }
     if (offer.paidProposal !== undefined) {
       const proposal = offer.paidProposal;
       if (offer.provider !== "services" ||
@@ -132,10 +143,18 @@ function checkedSources(home, estate, frontdoor) {
 function structure(home, pathname, frontdoor) {
   const org = {
     "@type":"Organization","@id":home.origin + "/#organization",
-    name:home.name,url:home.origin + "/",description:home.description,
+    name:home.name,alternateName:home.name.replace(/^The\s+/u,""),
+    url:home.origin + "/",description:home.description,
     foundingDate:String(home.established),
+    logo:{"@type":"ImageObject",url:home.origin + "/logo.png",width:512,height:512},
     sameAs:[home.group.githubOrg,home.group.actor],
-    knowsAbout:home.group.knowsAbout,
+    // Metadata describes THIS page's useful task. Reserve the complete
+    // research and cultural topics for the source-owned About context;
+    // otherwise bots receive the very speculative homepage billboard
+    // that the visible navigation correctly refuses.
+    knowsAbout:pathname==="/about/" ? home.group.knowsAbout :
+      ["research","software engineering","operational coordination",
+       "energy and resource management","public services"],
     subOrganization:home.group.companies.map(company => ({
       "@type":"Organization","@id":company.url + "#organization",
       name:company.name,url:company.url,sameAs:[company.github,company.actor]
@@ -164,6 +183,7 @@ function structure(home, pathname, frontdoor) {
   return {"@context":"https://schema.org","@graph":[
     org,
     {"@type":"WebSite","@id":home.origin + "/#website",name:home.name,
+      alternateName:home.name.replace(/^The\s+/u,""),
       url:home.origin + "/",description:home.description,
       publisher:{"@id":home.origin + "/#organization"},inLanguage:["en","zh-Hans","lkt"]},
     page
@@ -205,21 +225,32 @@ function projects(home, estate, nodes) {
   }).join("") + "</ul>";
 }
 function serviceEntries(frontdoor, providers, items = frontdoor.offers) {
+  // Service discovery belongs here, not the corporate homepage.
+  // Native details let a phone reader scan the real service/owner list
+  // without burying links under eight complete legal and evidence records.
+  // No script, implicit acceptance, service activation or form collection.
   return '<ul class="site-service-grid">' + items.map(service => {
-    const company = providers.get(service.provider);
+    const company=providers.get(service.provider);
     return '<li class="site-service" id="' + esc(service.id) + '">' +
-      '<span class="site-provider">' + esc(company.name) + "</span>" +
-      "<h3>" + esc(service.title) + "</h3>" +
+      '<span class="site-provider">' + esc(company.name) + '</span>' +
+      '<h3>' + esc(service.title) + '</h3>' +
+      '<details class="site-service-detail"><summary>Scope, examples and source evidence</summary>' +
+      '<div class="site-service-detail-body">' +
       para(service.scope) +
-      para("Possible requests: " + service.example, "site-example") +
-      (service.evidence ? anchor(service.evidence.href, service.evidence.label) +
-        para(service.evidence.qualification, "site-evidence-limit") : "") +
-      (service.paidProposal ? anchor(service.paidProposal.href, service.paidProposal.label) +
-        para(service.paidProposal.qualification, "site-evidence-limit") : "") +
-      anchor("/contact/?service=" + encodeURIComponent(service.title) + "#work", "Ask about this work") +
-      "</li>";
-  }).join("") + "</ul>";
+      para("Possible requests: " + service.example,"site-example") +
+      (service.framework ? anchor(service.framework.href,service.framework.label,"site-framework-link") +
+        para(service.framework.qualification,"site-evidence-limit") : "") +
+      (service.evidence ? anchor(service.evidence.href,service.evidence.label) +
+        para(service.evidence.qualification,"site-evidence-limit") : "") +
+      (service.paidProposal ? anchor(service.paidProposal.href,service.paidProposal.label) +
+        para(service.paidProposal.qualification,"site-evidence-limit") : "") +
+      '</div></details>' +
+      anchor("/contact/?service="+encodeURIComponent(service.title)+"#work",
+        "Ask about this work","site-service-inquiry") +
+      '</li>';
+  }).join("") + '</ul>';
 }
+
 function processSteps(frontdoor) {
   return '<ol class="site-steps">' + frontdoor.steps.map(step =>
     '<li class="site-step"><span class="site-step-number">' + esc(step.number) +
@@ -263,43 +294,27 @@ function endpoints(estate, limit = Infinity) {
 }
 
 function homepage(home, estate, frontdoor, source) {
+  // The homepage is an entrance, not a constitution, research index,
+  // fashion campaign, sales catalog or anthology of every recent idea.
+  // All deeper content stays with its actual public Work/Projects/About owner.
   return [
-    panel("introduction",home.public.headline,
-      lead("561 GROUP / RESEARCH · TECHNOLOGY · PRACTICE",
+    panel("introduction","What the Group does",
+      lead("561 GROUP / FOUR COMPANIES",
         frontdoor.proposition,frontdoor.promise,
-        [{href:"/work/",label:"Bring us a problem"},{href:"/projects/",label:"Explore what we build"}]) +
+        [{href:"/work/",label:"Explore services"},
+         {href:"/contact/#work",label:"Discuss a project"}]) +
       para(home.public.intro,"site-hero-note"),12,"rail"),
-    panel("frontiers",frontdoor.vision.headline,frontiers(frontdoor,true),12),
-    panel("paths","What brings you here?",pathways(frontdoor),12),
-    panel("services","Work you can ask us to do",
-      para("We can scope actual research, technical and public-service work with an accountable company.","site-section-lead") +
-      serviceEntries(frontdoor,source.providers,frontdoor.offers.slice(0,4)) +
-      actions([{href:"/work/",label:"See all service areas"},
-               {href:"/work/#green-web-pilot",label:"Discuss an existing paid pilot"}]),8),
-    panel("method","From idea to outcome",
-      para("Science → Engineering → Operations → Public Services","site-quote") +
-      para("We distinguish an idea, a model, a working demonstration, a real service and a result the customer has accepted.") +
-      note(frontdoor.readers.availability) +
-      anchor("/about/", "How the Group works"),4),
-    panel("physical-world",home.public.materialApproach.headline,
-      para(home.public.materialApproach.body,"site-quote") +
-      para(home.public.materialApproach.scope) +
-      anchor("/about/", "How material constraints shape our work"),12),
-    panel("explore","Places, publications and tools",
-      para("These are public entry points, not a blanket promise that every project is production-ready.","site-section-lead") +
+    panel("paths","Find what you need",pathways(frontdoor),12),
+    panel("companies","The four companies",houses(home),12),
+    panel("explore","Public projects and publications",
+      para("A few real places to begin. Each has its own purpose and current scope.","site-section-lead") +
       projects(home,estate,source.nodes) +
-      actions([{href:"/projects/",label:"Browse the full public estate"}]),12),
-    panel("trade","Choose how to buy or use",trade(home),12),
-    panel("companies","Four companies with distinct responsibilities",houses(home),12),
-    panel("agents","Interfaces for software agents",
-      para("A readable endpoint does not grant permission to purchase, publish or run a private action.") +
-      endpoints(estate,3) +
-      anchor("/for-agents/","Find the machine-readable entries"),6),
-    panel("support","Keep the public work public",
-      para(source.support.summary) +
-      para("Recurring monthly until canceled. Support grants no privileged access, editorial influence or customer-settlement rights.") +
-      actions([{href:source.support.url,label:"Support the Group — $" + source.support.monthlyUsd + "/month"}]) +
-      anchor(source.support.billingHelp,"Billing and cancellation help"),6)
+      anchor("/projects/","Browse the full project directory"),12),
+    panel("contact","Get in touch",
+      para(frontdoor.firstStep) +
+      actions([{href:"/contact/#work",label:"Contact the Group"},
+               {href:"/about/",label:"How the Group is organized"}]) +
+      note("A message is an inquiry, not authorization, an order or an accepted outcome."),12)
   ];
 }
 function workPage(home, frontdoor, source) {
@@ -309,7 +324,7 @@ function workPage(home, frontdoor, source) {
         frontdoor.firstStep,[{href:"/contact/#work",label:"Request a scope and quote"},
           {href:"/projects/",label:"See what we make"}]),12),
     panel("services","Areas we can scope",
-      para(frontdoor.vision.throughline,"site-section-lead") +
+      para("Every service is scoped through its accountable provider and the rights appropriate to the work.","site-section-lead") +
       para("These are service capabilities for inquiry and qualification, not a catalog of pre-approved fixed-price orders.","site-section-lead") +
       serviceEntries(frontdoor,source.providers),12),
     panel("process","How an engagement moves",processSteps(frontdoor),12),
@@ -343,27 +358,34 @@ function projectsPage(home, estate, frontdoor, source) {
   ];
 }
 function aboutPage(home, frontdoor) {
+  const support=home.group.sustainingSupport;
   return [
     panel("lead","About the 561 Group",
-      lead("ESTABLISHED 2018 / RESEARCH · TECHNOLOGY · PRACTICE",
-        "An institution built around useful work.",
-        "The 561 Group brings research, engineering, operations and public services together without pretending that a proposal is a finished product.",
-        [{href:"/work/",label:"Work with the Group"},{href:"/projects/",label:"Explore the public estate"}]),12),
-    panel("frontiers","What we are trying to make real",frontiers(frontdoor,false),12),
-    panel("companies","The four accountable companies",houses(home),12),
-    panel("process","How work moves",processSteps(frontdoor) +
-      note("An accepted outcome is checked independently of supplier activity."),12),
-    panel("principles","What our claims mean",
+      lead("FOUNDED 2018 / FOUR COMPANIES",
+        "Independent responsibilities. Shared coordination.",
+        "The 561 Group connects research, engineering, operations and public services. Energy, resources, authority and the people receiving the work matter as much as its stated goals.",
+        [{href:"/work/",label:"Work with us"},
+         {href:"/projects/",label:"Explore our work"}]),12),
+    panel("companies","The companies",houses(home),12),
+    panel("principles","Energy and coordination",
       para(home.public.materialApproach.headline,"site-quote") +
       para(home.public.materialApproach.body) +
       para(home.public.materialApproach.scope) +
-      para("A mathematical proof, a research model, an engineering demonstration, a deployed service, and a paid customer outcome are different kinds of evidence. They must not be substituted for one another.") +
-      anchor("/estate.json","Check public service connectivity"),8),
-    panel("source","Read the sources",
-      para("The original public websites, company repositories, feeds and machine descriptions are linked from this site.") +
+      para("Research models, production tests, operational effects and independent acceptance are separate claims. When community data are involved, rights holders' authority governs its use.") +
+      anchor("/work/#indigenous-data","See our data-stewardship inquiry"),12),
+    panel("process","From request to result",processSteps(frontdoor) +
+      note("A real receiving party checks the result separately from the producer."),12),
+    panel("frontiers","Long-horizon research",frontiers(frontdoor,false),12),
+    panel("source","Sources and public records",
+      para("Read the four companies' research and code directly; compare a claim to its original evidence.") +
       anchor(home.group.githubOrg,"Group source on GitHub") +
       '<p>' + anchor("/llms.txt","Plain-text site guide") + "</p>" +
-      anchor(home.group.actor,"Federated Group actor"),4)
+      anchor(home.group.actor,"Federated Group actor"),8),
+    panel("support","Optional sustaining support",
+      para(support.summary) +
+      para("Recurring monthly until canceled. Supporting public work does not grant editorial control, access to private records or a claim on any customer's payment.") +
+      anchor(support.url,"Support the Group — $" + support.monthlyUsd + "/month") +
+      '<p>' + anchor(support.billingHelp,"Billing and cancellation help") + "</p>",4)
   ];
 }
 function agentPage(home, estate, frontdoor) {
@@ -387,11 +409,16 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
   if (!PUBLIC_ROUTES.includes(path)) throw new RangeError("Unadmitted Group public route");
   const source = checkedSources(home,estate,frontdoor);
   const page = {
-    "/": {title:home.name,subtitle:"Indigenous-grounded governance · Artificial abiogenesis · Practical services"},
-    "/work/": {title:"Work with the 561 Group",subtitle:"Capabilities, scoping, providers and actual terms"},
-    "/projects/": {title:"Explore the 561 Group",subtitle:"Public projects, commerce, worlds and publications"},
-    "/about/": {title:"About the 561 Group",subtitle:"Four companies, one accountable source of work"},
-    "/for-agents/": {title:"For agents · 561 Group",subtitle:"Public machine endpoints and authorization boundaries"}
+    "/": {title:home.name,subtitle:"Research · Engineering · Operations · Public services",
+      description:home.description},
+    "/work/": {title:"Work with the 561 Group",subtitle:"Capabilities, scoping, providers and actual terms",
+      description:"Explore 561 Group services in AI systems, software engineering, website discovery, research and data stewardship. See evidence and inquire about a scoped project."},
+    "/projects/": {title:"Explore the 561 Group",subtitle:"Public projects, commerce, worlds and publications",
+      description:"Explore 561 Group publications, software, games and public worlds, and find the separate Shop, Bazaar and Market destinations with their own terms."},
+    "/about/": {title:"About the 561 Group",subtitle:"Four companies, energy, coordination and accountable work",
+      description:"Meet the 561 Group's four companies and how research, engineering, operations and public services coordinate under material and energy constraints."},
+    "/for-agents/": {title:"For agents · 561 Group",subtitle:"Public machine endpoints and authorization boundaries",
+      description:"Read 561 Group public machine endpoints, source feeds, service-discovery links and authorization boundaries before using any interface or payment venue."}
   }[path];
   const tiles = path === "/" ? homepage(home,estate,frontdoor,source) :
     path === "/work/" ? workPage(home,frontdoor,source) :
@@ -402,7 +429,7 @@ export function project561GroupPage({home,estate,frontdoor,path = "/"}) {
     title:page.title,subtitle:page.subtitle,
     eyebrow:"561 Group · A working public institution",
     metadata:{
-      title:page.title,description:path === "/" ? home.description : page.subtitle,
+      title:page.title,description:page.description,
       language:"en",canonical:ORIGIN + path,image:ORIGIN + "/card.png",
       type:"website",siteName:home.name,structuredData:structure(home,path,frontdoor)
     },

@@ -25,28 +25,28 @@ export const HOUSE_STYLES = String.raw`
 html{scroll-behavior:smooth;scroll-padding-top:1.2rem}
 body{
   background-color:var(--house-bone);
-  background-image:radial-gradient(color-mix(in srgb,var(--house-ink) 4%,transparent) 1px,transparent 1px);
-  background-size:4px 4px;
+  background-image:none;
   color:var(--house-ink);font-family:var(--house-slab);
   line-height:1.6;overflow-wrap:break-word;
 }
-::selection{background:var(--house-alarm);color:#0A0A0A}
+::selection{background:var(--house-witness);color:#fff}
 .tufte-shell{width:min(1320px,100%);max-width:1320px;padding:clamp(1rem,3.6vw,3.5rem);margin-inline:auto}
 .tufte-masthead{
   display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
-  gap:.8rem 2rem;border-top:8px solid var(--house-ink);
-  border-bottom:2px solid var(--house-ink);padding:clamp(1.2rem,3vw,2.5rem) 0 1.2rem;
-  margin-bottom:clamp(2rem,4vw,3.5rem);background:transparent;
+  gap:.6rem 1.3rem;border-top:1px solid var(--house-rule);
+  border-bottom:1px solid var(--house-rule);padding:1rem 0;
+  margin-bottom:clamp(1rem,2vw,2rem);background:transparent;
 }
 .tufte-masthead::before{
-  content:"561";display:block;flex-basis:100%;width:100%;order:-1;
-  font:700 clamp(8rem,29vw,26rem)/.72 var(--house-sans);
-  letter-spacing:-.09em;margin:0 0 clamp(.7rem,2vw,1.7rem) -.035em;
-  color:var(--house-alarm);user-select:none;pointer-events:none;
+  content:"561";display:block;flex-basis:auto;width:auto;order:-1;
+  font:700 clamp(3rem,5.6vw,4.75rem)/1 var(--house-sans);
+  letter-spacing:-.075em;margin:0 1rem 0 0;padding:.16rem 0 0;
+  border-top:8px solid var(--house-ink);
+  color:var(--house-ink);user-select:none;pointer-events:none;
 }
 .tufte-masthead h1{
-  font:700 clamp(1.5rem,3.8vw,3.3rem)/.98 var(--house-sans);
-  letter-spacing:-.06em;text-transform:uppercase;color:var(--house-ink);
+  font:650 clamp(1.1rem,1.65vw,1.55rem)/1.2 var(--house-sans);
+  letter-spacing:-.025em;text-transform:none;color:var(--house-ink);
 }
 .tufte-eyebrow,.tufte-subtitle{
   font-family:var(--house-mono);font-size:clamp(.66rem,.83vw,.8rem);
@@ -56,7 +56,7 @@ body{
 [data-tufte-navigation]{
   display:flex;flex-wrap:wrap;gap:.3rem 1.1rem;
   justify-content:flex-end;align-items:center;
-  font:600 clamp(.72rem,.9vw,.88rem)/1.5 var(--house-mono);
+  font:600 clamp(.72rem,.85vw,.84rem)/1.5 var(--house-mono);
   text-transform:uppercase;letter-spacing:.025em;
 }
 [data-tufte-navigation] a{
@@ -89,16 +89,16 @@ body{
 .tufte-tile-body li{padding:.15rem 0}
 .tufte-tile-body a{color:var(--house-witness);text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:1px}
 .tufte-grid>#introduction{
-  grid-column:span 8;min-height:21rem;background:var(--house-ink);color:var(--house-bone);
-  border-top:8px solid var(--house-alarm);
-  padding:clamp(1.3rem,2.8vw,3rem);
+  grid-column:span 12;min-height:0;background:transparent;color:var(--house-ink);
+  border-top:1px solid var(--house-rule);
+  padding:clamp(.75rem,1.5vw,1.5rem) 0;
 }
-#introduction h2{font:700 clamp(1.7rem,4.2vw,4rem)/1 var(--house-sans);letter-spacing:-.052em}
-#introduction header{border-bottom-color:#494742}
+#introduction h2{font:650 .81rem/1.5 var(--house-mono);letter-spacing:.02em}
+#introduction header{border-bottom-color:var(--house-rule)}
 #introduction .tufte-tile-body p:first-child{
-  font:400 clamp(1.24rem,2vw,1.8rem)/1.35 var(--house-slab);max-width:38rem;
+  font:650 .74rem/1.5 var(--house-mono);max-width:38rem;
 }
-#introduction a{color:var(--house-bone)}
+#introduction a{color:var(--house-ink)}
 .tufte-grid>#contact{grid-column:span 4;border-top:8px solid var(--house-witness)}
 .tufte-grid>#explore,.tufte-grid>#physical-world{grid-column:span 12}
 #explore .tufte-tile-body ul{
@@ -110,44 +110,55 @@ body{
   border-bottom:1px solid var(--house-rule);padding:clamp(.8rem,2vw,1.5rem) 1rem;
 }
 #explore .tufte-tile-body li a{
-  display:block;font:700 clamp(1.2rem,2.1vw,2rem)/1.18 var(--house-sans);
+  display:block;font:650 clamp(1.02rem,1.45vw,1.24rem)/1.32 var(--house-sans);
   color:var(--house-ink);text-decoration:none;letter-spacing:-.03em;
 }
 #explore .tufte-tile-body li a:hover{text-decoration:underline;text-decoration-thickness:2px}
 #explore .tufte-tile-body li p{font:400 .95rem/1.5 var(--house-slab);color:var(--house-soft);margin:.65rem 0 0}
 #physical-world{
-  border-top:8px solid var(--house-ink);
-  border-bottom:2px solid var(--house-ink);padding:clamp(1.5rem,3vw,3rem) 0;
+  border-top:1px solid var(--house-rule);
+  border-bottom:1px solid var(--house-rule);padding:clamp(1rem,2vw,2rem) 0;
 }
 #physical-world h2{
-  max-width:21ch;font:700 clamp(2.1rem,5.1vw,5.1rem)/.99 var(--house-sans);
-  letter-spacing:-.055em;text-transform:none;
+  max-width:46ch;font:650 clamp(1.5rem,2.5vw,2.25rem)/1.17 var(--house-sans);
+  letter-spacing:-.025em;text-transform:none;
 }
 #physical-world .tufte-tile-body p:first-child{
-  font:400 clamp(1.2rem,2.2vw,2rem)/1.3 var(--house-slab);max-width:46rem;
+  font:400 clamp(1.04rem,1.4vw,1.24rem)/1.48 var(--house-slab);max-width:46rem;
 }
 #physical-world .tufte-tile-body p:last-child{
   font:400 .82rem/1.65 var(--house-mono);max-width:62rem;color:var(--house-soft);
 }
 .tufte-grid>#support,.tufte-grid>#companies{grid-column:span 6}
 .tufte-footer{
-  margin-top:clamp(2rem,4vw,4rem);padding:clamp(1rem,2vw,2rem);
-  border-top:8px solid var(--house-alarm);background:var(--house-ink);
-  color:var(--house-bone);border-radius:0;
+  margin-top:clamp(1.5rem,3vw,3rem);padding:1.2rem 0;
+  border-top:1px solid var(--house-rule);background:transparent;
+  color:var(--house-ink);border-radius:0;
   font:400 .75rem/1.7 var(--house-mono);
 }
-.tufte-footer a{color:var(--house-bone)}
+.tufte-footer a{color:var(--house-witness)}
 :where(a,button,input,select,textarea):focus-visible{
   outline:3px solid var(--house-witness)!important;outline-offset:4px!important;
 }
 @media(max-width:780px){
   .tufte-masthead{align-items:flex-start}
-  .tufte-masthead::before{font-size:clamp(6rem,35vw,17rem)}
+  .tufte-masthead::before{font-size:clamp(2.7rem,10vw,4rem)}
   [data-tufte-navigation]{justify-content:flex-start}
   .tufte-grid>.tufte-tile{grid-column:span 12!important}
   #introduction{min-height:unset!important}
   .tufte-shell{padding:1rem}
   #explore .tufte-tile-body ul{grid-template-columns:1fr}
+}
+/* The six real visitor paths should form two intentional rows on phones,
+   not strand Contact by itself after five tiny navigation links. */
+@media(max-width:430px){
+  [data-tufte-navigation]{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%;column-gap:.7rem;row-gap:.15rem;justify-content:stretch;
+  }
+  [data-tufte-navigation] a{
+    display:inline-flex;align-items:center;min-height:2.5rem;
+  }
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -159,11 +170,12 @@ body{
     --tufte-bg:var(--house-bone);--tufte-surface:var(--house-bone);
     --tufte-ink:var(--house-ink);--tufte-muted:var(--house-soft);
     --tufte-line:var(--house-rule);--tufte-accent:var(--house-witness)}
-  #introduction{background:#F2EAD8;color:#120C02}
-  #introduction header{border-bottom-color:#999}
-  #introduction a{color:#120C02}
-  .tufte-footer{background:#F2EAD8;color:#120C02}
-  .tufte-footer a{color:#120C02}
+  ::selection{background:#A4B8EF;color:#120C02}
+  #introduction{background:transparent;color:var(--house-ink)}
+  #introduction header{border-bottom-color:var(--house-rule)}
+  #introduction a{color:var(--house-ink)}
+  .tufte-footer{background:transparent;color:var(--house-ink)}
+  .tufte-footer a{color:var(--house-witness)}
 }
 @media print{
   html{color-scheme:light}

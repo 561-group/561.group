@@ -5,12 +5,16 @@ import {qualifyRenderedBrand,visualReviewPacket} from "../scripts/assay-rendered
 const good=()=>({
   viewportWidth:1440,houseStyle:true,tufte:true,
   bodyBackground:"rgb(242, 234, 216)",
-  mastheadTop:"8px",markContent:'"561"',
-  markColor:"rgb(255, 69, 48)",markSize:416,
+  mastheadTop:"1px",markContent:'"561"',markBracket:"8px",
+  markColor:"rgb(10, 10, 10)",markSize:76,
   markFamily:'"Space Grotesk", "Helvetica Neue", Arial, sans-serif',
   readingFamily:'"Roboto Slab", Rockwell, Georgia, serif',
   metadataFamily:'"JetBrains Mono", ui-monospace, "Courier New", monospace',
-  introBackground:"rgb(10, 10, 10)",
+  introBackground:"rgba(0, 0, 0, 0)",heroSize:49.6,
+  mainTileIds:["introduction","paths","companies","explore","contact"],
+  companyCount:4,pathCount:4,ordinaryActionColor:"rgb(10, 10, 10)",
+  introActionTextColor:"rgb(242, 234, 216)",contactWidthRatio:1,
+  prohibitedTopicLabels:false,
   fontFaces:[
     {family:"Space Grotesk",status:"loaded"},
     {family:"Roboto Slab",status:"loaded"},
@@ -47,14 +51,50 @@ test("the original user-visible regression is independently rejected",()=>{
   for(const fragment of ["Lakota-founded","horizontally","Keyboard focus","navigation","content tiles"])
     assert.ok(result.errors.some(x=>x.includes(fragment)),fragment);
 });
-test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
-  const mobile={...good(),viewportWidth:390,markSize:136.5};
+test("the browser refuses the giant red mark, red general-purpose action and billboard introduction",()=>{
+  const old={...good(),markSize:416,markColor:"rgb(255, 69, 48)",
+    introBackground:"rgb(10, 10, 10)",heroSize:104,
+    ordinaryActionColor:"rgb(255, 69, 48)"};
+  const x=qualifyRenderedBrand(old);
+  assert.equal(x.passed,false);
+  for(const term of ["ink-on-bone","oversized","black billboard","giant display","hazard red"])
+    assert.ok(x.errors.some(err=>err.includes(term)),term);
+});
+
+test("the real user-facing primary CTA and contact must be readable, not dark-on-dark or stranded in a narrow side tile",()=>{
+  const unreadable={...good(),introActionTextColor:"rgb(10, 10, 10)"};
+  assert.ok(qualifyRenderedBrand(unreadable).errors.some(x=>x.includes("button text is invisible")));
+  const cramped={...good(),contactWidthRatio:.32};
+  assert.ok(qualifyRenderedBrand(cramped).errors.some(x=>x.includes("crammed")));
+});
+
+test("the browser refuses culture-as-homepage-advertising and missing visitor journeys",()=>{
+  const x=qualifyRenderedBrand({...good(),mainTileIds:["introduction","frontiers","paths","services","support"],
+    prohibitedTopicLabels:true,companyCount:0,pathCount:3});
+  assert.equal(x.passed,false);
+  assert.ok(x.errors.some(e=>e.includes("topic-of-the-day")));
+  assert.ok(x.errors.some(e=>e.includes("Identity labels")));
+  assert.ok(x.errors.some(e=>e.includes("accountable companies")));
+});
+
+test("phone navigation is balanced, keyboard-reachable and has actual usable touch targets",()=>{
+  const mobile={...good(),viewportWidth:390,markSize:43.2,heroSize:32,
+    navRowSizes:[3,3],navMinHitHeight:36};
   assert.equal(qualifyRenderedBrand(mobile).passed,true);
+  const orphaned={...mobile,navRowSizes:[5,1]};
+  assert.ok(qualifyRenderedBrand(orphaned).errors.some(x=>x.includes("orphaned action")));
+  const tiny={...mobile,navMinHitHeight:22};
+  assert.ok(qualifyRenderedBrand(tiny).errors.some(x=>x.includes("touch targets")));
 });
 
 test("a real secondary visitor page uses its own lead and independent tile count",()=>{
-  const work={...good(),tileCount:4,hasLead:true,introBackground:""};
+  const work={...good(),tileCount:4,hasLead:true,introBackground:"",
+    serviceDetails:Array.from({length:8},()=>({hasSummary:true,open:false,hasInquiry:true}))};
   assert.equal(qualifyRenderedBrand(work,{path:"/work/"}).passed,true);
+  const expanded={...work,serviceDetails:work.serviceDetails.map((x,i)=>
+    i===0?{...x,open:true}:x)};
+  assert.ok(qualifyRenderedBrand(expanded,{path:"/work/"}).errors.some(x=>
+    x.includes("native compact scanning")));
   const noLead={...work,hasLead:false};
   assert.ok(qualifyRenderedBrand(noLead,{path:"/work/"}).errors.some(x=>
     x.includes("own lead section")));

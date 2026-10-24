@@ -60,45 +60,57 @@ test("public contact offers reporting, not media commission or executable author
   assert.match(page,/event\.preventDefault\(\)/u);
 });
 
-test("source-qualified service hints reduce buyer retyping without sending inquiries",()=>{
+test("source-qualified service hints prefill only editable fields, never authorization or transmission",()=>{
   const page=read("public/contact/index.html");
   const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
-  assert.ok(script,"the same original public contact form owns the visitor prefill");
+  assert.ok(script,"the same original private form owns this source");
   const simulate=search=>{
     const called=[];
-    const elements={"submission-type":{value:"Issue"},"affected":{value:""},"reply-permission":{value:"not-specified"}};
+    const elements={"submission-type":{value:"Issue"},"affected":{value:""},
+      "reply-permission":{value:"not-specified"}};
+    const scope={hidden:true,disabled:true};
+    const preparedDraft={hidden:true};
     const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
-    const rightsScope={hidden:false,disabled:false};
     const document={getElementById:id=>{
       if(id==="private-intake")return form;
-      if(id==="data-stewardship-scope")return rightsScope;
-      assert.fail("unrecognized source-qualified contact control: "+id);
+      if(id==="data-stewardship-scope")return scope;
+      if(id==="email-draft")return preparedDraft;
+      assert.fail("unknown or duplicate intake authority: "+id);
     }};
     runInNewContext(script,{document,location:{search},URLSearchParams},{timeout:1000});
-    return {elements,called};
+    return {elements,called,scope};
   };
   const actual=simulate("?service="+encodeURIComponent("Research and formal methods"));
   assert.equal(actual.elements["submission-type"].value,"Paid service inquiry");
-  assert.equal(actual.elements["reply-permission"].value,"not-specified",
-    "a service URL hint does not establish permission to contact");
+  assert.equal(actual.elements["reply-permission"].value,"not-specified");
   assert.equal(actual.elements.affected.value,"Research and formal methods");
-  assert.ok(actual.called.some(([event])=>event==="submit"),
-    "source-qualified hint preserves an explicit user-controlled submit");
-  // Group PR #1 and its rights-scoped successor PR #2 are legitimate
-  // original content producers. Extra input/change handlers only update
-  // field visibility; they grant neither contact permission nor work.
-  const events=actual.called.map(([event])=>event).sort();
-  assert.ok(JSON.stringify(events)===JSON.stringify(["submit"]) ||
-    JSON.stringify(events)===JSON.stringify(["change","input","submit"]),
-    "the public URL hint cannot add unsolicited actions");
-  assert.equal(actual.called[0][0],"submit");
-  // No input in the URL becomes a sent message or asserted legitimate order.
-  for(const bad of ["", "?service=%3Cscript%3E", "?service="+encodeURIComponent("x".repeat(150))]){
+  assert.equal(actual.scope.disabled,true,"unrelated visitors never supply data-governance assessments");
+  assert.equal(actual.scope.hidden,true);
+  assert.deepEqual(actual.called.map(([event])=>event),["input","change","submit"]);
+  const rights=simulate("?service="+encodeURIComponent("Data rights and stewardship"));
+  assert.equal(rights.elements["submission-type"].value,"Paid service inquiry");
+  assert.equal(rights.elements["reply-permission"].value,"not-specified");
+  assert.equal(rights.scope.disabled,false);
+  assert.equal(rights.scope.hidden,false);
+  // The visitor can change their mind without leaking formerly relevant fields.
+  rights.elements.affected.value="Software and agent engineering";
+  rights.called.find(([event])=>event==="input")[1]();
+  assert.equal(rights.scope.disabled,true);
+  assert.equal(rights.scope.hidden,true);
+  rights.elements.affected.value="Data rights and stewardship";
+  rights.called.find(([event])=>event==="change")[1]();
+  assert.equal(rights.scope.disabled,false);
+  rights.elements["submission-type"].value="Idea";
+  rights.called.find(([event])=>event==="input")[1]();
+  assert.equal(rights.scope.disabled,true,"the service hint is not independent authority to collect data");
+  for(const bad of ["","?service=%3Cscript%3E",
+      "?service="+encodeURIComponent("x".repeat(150))]){
     const item=simulate(bad);
     assert.equal(item.elements.affected.value,"");
     assert.equal(item.elements["submission-type"].value,"Issue");
     assert.equal(item.elements["reply-permission"].value,"not-specified");
-    assert.deepEqual(item.called.map(([event])=>event).sort(),events);
+    assert.equal(item.scope.disabled,true);
+    assert.deepEqual(item.called.map(([event])=>event),["input","change","submit"]);
   }
   assert.match(page,/Preparing the draft does not send it/u);
   assert.match(page,/we will not treat an inquiry as an order/u);
@@ -138,7 +150,7 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
   const nodes={
     "email-subject":{value:""},
     "email-text":{value:"",focus(){this.focused=true;},select(){this.selected=true;}},
-    "open-email":{href:""},
+    "open-email":{href:"",removeAttribute(name){assert.equal(name,"href");delete this.href;}},
     "copy-email":{hidden:true},
     "email-draft":{hidden:true},
     "copy-email-body":{onclick:null},
@@ -223,6 +235,34 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
     "the short message is copied exactly, with reply scope intact");
   assert.ok(nodes["email-text"].value.includes("reply-permission\ninquiry-only"));
   assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
+  // An edit to the *live form*, including changed consent, invalidates a
+  // previously prepared mailto immediately; requiring a second submit is not
+  // sufficient because buyers can still click the stale Open email link.
+  let resolveStaleCopy;
+  navigator.clipboard={writeText:()=>new Promise(resolve=>{resolveStaleCopy=resolve;})};
+  const inflight=nodes["copy-email-body"].onclick();
+  fields[4][1]="no-contact";
+  handlers.change();
+  assert.equal(nodes["email-draft"].hidden,true,
+    "a revised contact-permission choice must hide the old outbound draft");
+  assert.equal(nodes["email-text"].value,"",
+    "a stale message claiming outdated consent must not remain copyable");
+  assert.equal(nodes["email-subject"].value,"");
+  assert.equal(Object.hasOwn(nodes["open-email"],"href"),false,
+    "the outdated mailto link is removed, not merely superseded");
+  assert.equal(nodes["copy-email-body"].onclick,null);
+  resolveStaleCopy();await inflight;
+  assert.equal(nodes["copy-email-status"].textContent,"",
+    "an in-flight old copy cannot confirm a draft after form revision");
+  handlers.submit({preventDefault(){}});
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.match(nodes["email-text"].value,/reply-permission\nno-contact/u,
+    "new buyer-authored consent is incorporated only after explicit regeneration");
+  assert.doesNotMatch(nodes["email-text"].value,/reply-permission\ninquiry-only/u);
+  fields[2][1]="Buyer revised the scope after seeing the drafted email";
+  handlers.input();
+  assert.equal(nodes["email-draft"].hidden,true,
+    "ordinary scope changes also invalidate the old emailed offer");
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
@@ -305,7 +345,18 @@ test("production Group content admission verifies reviewed trees across merge an
   assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
   assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
   const admission=workflow.slice(guard,bind);
-  assert.match(admission,/QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5/u);
+  // Test the installed source acceptance rule against the actual CI
+  // checkout, not a revision-dependent literal copied from an older PR.
+  const declaration=/QUALIFIED_FRONTDOOR_TREE: ([a-f0-9]{40})/u.exec(admission);
+  assert.ok(declaration,"release must declare a specific accepted Group tree");
+  if(process.env.GITHUB_ACTIONS==="true") {
+    const candidate=spawnSync("git",["-C",join(root,"content"),"rev-parse","HEAD^{tree}"],
+      {encoding:"utf8"});
+    assert.equal(candidate.status,0,
+      "native CI must checkout original Group source: "+candidate.stderr);
+    assert.equal(candidate.stdout.trim(),declaration[1],
+      "CI must qualify exactly the Group tree that production will admit");
+  }
   assert.match(admission,/git -C content rev-parse 'HEAD\^\{tree\}'/u);
   const newline=String.fromCharCode(10);
   const runBlock=admission.split("        run: |"+newline)[1];
@@ -386,20 +437,27 @@ test("production deployment consumes the exact dependency lock before provider w
   }
 });
 
-test("the production receiver verifies source-owned editorial copy without freezing an obsolete slogan",()=>{
+test("production release keeps homepage useful and receives culture, real support and CARE at the right routes",()=>{
   const workflow=read(".github/workflows/deploy.yml");
   const editorial=JSON.parse(read("data/frontdoor.json"));
-  assert.equal(typeof editorial.proposition,"string");
-  assert.ok(editorial.proposition.trim().length>0,"the Group publisher owns meaningful editorial copy");
-  assert.deepEqual(editorial.vision.frontiers.map(f=>f.id),["union-of-harmonious-colonies","bicameral-biology"]);
+  assert.ok(editorial.proposition.includes("Research, engineering, operations"));
+  assert.deepEqual(editorial.vision.frontiers.map(f=>f.id),
+    ["union-of-harmonious-colonies","bicameral-biology"],
+    "culture and long-horizon research remain source-owned without homepage promotion");
   assert.ok(workflow.includes("html.includes(frontdoor.proposition)"));
-  assert.ok(workflow.includes("frontdoor.vision.frontiers.map"));
-  assert.ok(!workflow.includes("!html.includes('Research you can use.')"),
-    "a retired promotional line may not veto an accepted present-purpose homepage");
-  assert.ok(workflow.includes("html.includes('buy.stripe.com')"),
-    "original genuine support receipt and visitor access must survive the copy correction");
+  assert.ok(workflow.includes("frontdoor.vision.frontiers.every"));
+  for(const sourceGate of ["homeSignals.journeys","homeSignals.companies",
+    "homeSignals.projects","homeSignals.inquiry","homeSignals.mythologized"]){
+    assert.ok(workflow.includes(sourceGate),"actual public source must keep "+sourceGate);
+  }
+  assert.ok(workflow.includes("aboutHtml.includes('buy.stripe.com')"),
+    "original genuine optional support remains accessible on About rather than hijacking homepage");
+  assert.ok(workflow.includes("workHtml.includes('CARE Principles')"),
+    "real data-rights inquiry must reference the actual CARE source");
   assert.ok(workflow.includes("receipt.artifactDigests"),
-    "editorial relevance must not weaken original release byte verification");
+    "correcting what is published cannot weaken original release byte verification");
+  assert.ok(!workflow.includes("homeSignals.frontiers.some"),
+    "speculative science and constitutional plans cannot be required as homepage advertising");
 });
 
 test("production independently reads human HTML using browser content negotiation, not an ambiguous default",()=>{
@@ -418,4 +476,66 @@ test("manual source release independently binds generated artifacts, not source 
   assert.match(workflow,/sourceCommit!==process\.env\.GITHUB_SHA/u);
   assert.match(workflow,/SITE_PUBLICATION_DATE/u);
   assert.match(workflow,/cloudflare\/wrangler-action/u);
+});
+
+test("private work inquiry leads the actual contact page, with reporting and follow-up still available as native alternatives",()=>{
+  const html=read("public/contact/index.html");
+  const form=html.indexOf('<form id="private-intake"');
+  const help=html.indexOf('<h2 id="other-contact-options">');
+  const report=html.indexOf('Report an issue publicly');
+  assert.ok(form>0&&help>form&&report>help,
+    "a buyer should reach the real private intake before lengthy public-issue or aftercare instructions");
+  assert.equal((html.match(/<details class="contact-option">/gu)||[]).length,4);
+  for(const summary of ["More about buying or offering services",
+    "Report an issue publicly","Email or another existing private channel",
+    "Track an existing request"]){
+    assert.ok(html.includes('<summary>'+summary+'</summary>'),summary);
+  }
+  for(const preserved of ["Public submissions are untrusted reports for review",
+    "Preparing the draft does not send it","Only an authorized receiving office",
+    "An issue's closure alone does not establish",
+    'id="email-draft" hidden','id="data-stewardship-scope" class="governance-scope" hidden disabled']){
+    assert.ok(html.includes(preserved),"the original source must retain "+preserved);
+  }
+  assert.ok(html.includes('href="/work/"') && html.includes('href="/projects/"'),
+    "the contact page must share the Group's quiet institutional navigation");
+});
+
+test("actual CARE intake asks about roles, collective benefit, refusal and harm without collecting protected data automatically",()=>{
+  const html=read("public/contact/index.html");
+  const block=/<fieldset id="data-stewardship-scope"[^>]*>([\s\S]*?)<\/fieldset>/u.exec(html);
+  assert.ok(block,"the exact original contact page has a rights-governance gate");
+  assert.match(block[0],/hidden disabled/u,"no unrelated inquiry receives these questions");
+  assert.match(block[1],/https:\/\/www\.gida-global\.org\/careprinciples/u,
+    "link to the Global Indigenous Data Alliance, not our own invented badge");
+  for(const term of ["Collective benefit","Authority to control","Responsibility and ethics",
+    "who can restrict, correct, withhold or withdraw permission","rights holder"]){
+    assert.ok(block[1].toLowerCase().includes(term.toLowerCase()),term);
+  }
+  for(const name of ["data-peoples","data-authority","data-benefit",
+    "data-refusal","data-responsibility"]){
+    assert.ok(block[1].includes('name="'+name+'"'),name);
+  }
+  assert.match(block[1],/Not yet assessed/u);
+  assert.match(block[1],/No review or transfer is authorized by this form/u);
+  assert.match(block[1],/not proof that a rights holder has consented/u);
+  assert.match(html,/dataScope\.disabled = !selected/u,
+    "the same original form must disable out-of-scope governance fields");
+  assert.match(html,/refreshDataScope\(\);\s*const fields = \[\.\.\.new FormData\(intake\)\]/u,
+    "actual email construction checks scope before collecting relevant fields");
+  assert.doesNotMatch(html,/autocomplete="on"[^>]*data-authority/u);
+});
+
+test("actual work intake asks who receives and about material/energy and coordination constraints",()=>{
+  const html=read("public/contact/index.html");
+  const start=html.indexOf('<label for="conditions">');
+  const end=html.indexOf('<label for="evidence">',start);
+  assert.ok(start>0&&end>start);
+  const conditions=html.slice(start,end);
+  for(const expected of ["independently check or refuse","coordination","energy",
+    "material","time","operating constraints","do not paste sensitive records"]){
+    assert.ok(conditions.includes(expected),expected);
+  }
+  assert.ok(conditions.includes('name="conditions"'));
+  assert.match(html,/Preparing the draft does not send it/u);
 });

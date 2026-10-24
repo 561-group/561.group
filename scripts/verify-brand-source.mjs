@@ -74,10 +74,12 @@ export function verifyApexBrand({
   }
   if(values.get("--tufte-radius")!=="0")
     throw new Error("Apex replaced square-corner institutional geometry");
-  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{\s*content:"561";/u,"giant 561 folio mark");
+  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{\s*content:"561";/u,"original 561 ink mark");
   requireStyle(houseStyles,/content:"561";/u,"unaltered 561 mark");
-  requireStyle(houseStyles,/\.tufte-masthead\s*\{[^}]*border-top:8px solid var\(--house-ink\)/su,
-    "institutional folio bar");
+  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{[^}]*border-top:8px solid var\(--house-ink\)/su,
+    "original 561 bracket rule belongs to the compact ink mark, not a giant banner");
+  requireStyle(houseStyles,/\.tufte-masthead::before\s*\{[^}]*color:var\(--house-ink\)/su,
+    "561 mark must use source-default ink, not alarm red");
   requireStyle(houseStyles,/\.tufte-footer\s*\{/u,"inked source-owned colophon");
   requireStyle(houseStyles,/focus-visible/u,"keyboard focus");
   requireStyle(houseStyles,/@media\s*\(prefers-reduced-motion:reduce\)/u,
@@ -101,11 +103,16 @@ export function verifyApexBrand({
       !head.includes('data-561-house="visual-design-bible-v0.4-candidate"') ||
       !head.includes(houseStyles) || !head.includes(siteStyles))
     throw new Error("TUFTE's actual HTML head does not consume BOTH validated house and page CSS");
-  if(!home || home.tiles?.length<5 ||
-      home.tiles.some(tile=>typeof tile.html==="string"&&
-        /Lakota-founded/i.test(tile.html)) ||
-      !home.tiles.some(tile=>tile.id==="physical-world"))
-    throw new Error("Homepage regressed to identity-first copy or lost its material-world position");
+  const expected=["introduction","paths","companies","explore","contact"];
+  if(!home || !Array.isArray(home.tiles) ||
+      JSON.stringify(home.tiles.map(tile=>tile.id))!==JSON.stringify(expected))
+    throw new Error("Homepage became a catalog of research/culture/marketing instead of the five practical visitor journeys");
+  const homepageText=home.tiles.map(tile=>tile.html??"").join(" ");
+  if(/Lakota-founded|Indigenous-grounded|Artificial Abiogenesis|silica-rich|settler-colonial|SHRIMP|FOAM|404.to.200/iu.test(homepageText))
+    throw new Error("Homepage promoted culture, identity or a research/technical vignette as its selling proposition");
+  if(/--house-alarm\)/u.test(houseStyles.replace(/:root\{[^}]*\}/su,"")) ||
+     /--house-alarm\)/u.test(siteStyles))
+    throw new Error("Alarm red was used for ordinary visual hierarchy instead of an actual hazard");
   return Object.freeze({
     source:profile.source,
     sourceEdition:profile.edition,
