@@ -46,7 +46,7 @@ check("the published site guides humans and agents to every real public page",()
     assert.ok(before["llms.txt"].includes("https://561.group"+route),
       "machine guide must expose practical site entry "+route);
   }
-  for(const name of ["Persistent AI systems","Indigenous data governance","Operational reliability"])
+  for(const name of ["Persistent AI systems","Data rights and stewardship","Operational reliability"])
     assert.ok(before["llms.txt"].includes(name),"source-backed service "+name);
 });
 const generated=JSON.parse(before["estate-records.json"]);
