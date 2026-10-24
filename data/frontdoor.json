@@ -1,36 +1,36 @@
 {
   "schema": "561.group/public-frontdoor/v1",
-  "proposition": "Another civilization is possible. So is another kind of life.",
-  "promise": "The 561 Group is building toward Indigenous-grounded governance beyond settler colonialism—and researching whether silica-rich matter could become a second living lineage alongside carbon biology. We do practical science, engineering, operations and public services along the way.",
+  "proposition": "Research, engineering, operations and public services.",
+  "promise": "561 Group connects four companies doing research, building systems, operating services and meeting practical needs. Explore the work, find the responsible company or ask about a project.",
   "firstStep": "Tell us the outcome you want. We will assess the scope, the right provider, and the terms before any work is agreed.",
   "paths": [
     {
       "id": "hire",
-      "title": "Bring us a problem",
-      "detail": "Research, engineering, AI operations, governance and practical public services.",
-      "action": "See what we can scope",
+      "title": "Work with us",
+      "detail": "See the kinds of projects we can scope, then contact the responsible team.",
+      "action": "Explore services",
       "href": "/work/"
     },
     {
-      "id": "buy",
-      "title": "Buy or use something",
-      "detail": "A storefront, a multi-provider bazaar, and machine-readable market offers are different ways to participate.",
-      "action": "See buying venues",
-      "href": "/projects/#trade"
-    },
-    {
       "id": "explore",
-      "title": "Explore a project",
-      "detail": "Visit the Group's software, games, reporting and experiments, and follow the larger future those projects serve.",
-      "action": "Browse the projects",
+      "title": "Projects",
+      "detail": "Software, public tools, publications and experiments you can inspect.",
+      "action": "Browse projects",
       "href": "/projects/"
     },
     {
       "id": "read",
-      "title": "Read original research",
-      "detail": "Explore Lenticule Science publications, distinguish proofs from observations and proposals, and inspect the limits of current work.",
-      "action": "Explore Lenticule Science",
+      "title": "Research",
+      "detail": "Original papers, models and open questions from Lenticule Science.",
+      "action": "Read the research",
       "href": "https://science.561.group/"
+    },
+    {
+      "id": "buy",
+      "title": "Shop and market",
+      "detail": "Books, provider storefronts and machine-service venues, each with its own terms.",
+      "action": "See buying options",
+      "href": "/projects/#trade"
     }
   ],
   "offers": [
@@ -60,10 +60,15 @@
     },
     {
       "id": "indigenous-data",
-      "title": "Indigenous data governance",
+      "title": "Data rights and stewardship",
       "provider": "services",
-      "scope": "Review consent, provenance, authority and CARE-aware use of Indigenous data in technology projects.",
-      "example": "Data governance and licensing reviews"
+      "scope": "Assess consent, provenance, access, permitted reuse and who benefits from a data project. Where Indigenous data are involved, examine the CARE Principles with the relevant rights holders; a label or checklist is not authorization.",
+      "example": "Authority-to-control, collective benefit, responsibility and ethics reviewed before sharing or publishing data",
+      "framework": {
+        "href": "https://www.rd-alliance.org/wp-content/uploads/2024/03/CARE20Principles20for20Indigenous20Data20Governance_OnePagers_FINAL20Sept2006202019.pdf",
+        "label": "Read the original CARE Principles",
+        "qualification": "A published framework is not evidence of this Group's certification, rights-holder consent, or implementation for a particular customer."
+      }
     },
     {
       "id": "software",
@@ -154,16 +159,16 @@
     "availability": "An HTTP response is a connectivity observation, not proof of a working service or satisfied buyer."
   },
   "vision": {
-    "eyebrow": "THE FUTURE WE ARE TRYING TO MAKE",
-    "headline": "Not a metaphor. Two real frontiers.",
-    "intro": "We believe civilization can be organized differently, and that Earth may someday host forms of living intelligence beyond carbon biology. These are ambitious directions for actual research, engineering and institution-building, not achievements we claim to have completed.",
+    "eyebrow": "RESEARCH DIRECTIONS",
+    "headline": "Long-horizon research",
+    "intro": "Beyond current work, the Group investigates questions of federated governance and whether new forms of matter could eventually sustain life. These are research programs, not current services or established outcomes.",
     "frontiers": [
       {
         "id": "union-of-harmonious-colonies",
-        "title": "Beyond settler-colonial governance",
-        "thesis": "We intend to develop the Union of Harmonious Colonies as an Indigenous-grounded form of federated self-government that can outperform settler-colonial systems on real responsibilities. Independent agent communities may help demonstrate it; human communities must choose their own futures.",
-        "present": "We are building and studying persistent agent institutions, local authority, accountable service work and federation across independent territories.",
-        "boundary": "No software confers Indigenous sovereignty, treaty rights or permission to govern another people. Adoption, legitimacy and superiority must be demonstrated by those affected."
+        "title": "Coordinating autonomous communities",
+        "thesis": "The proposed Union of Harmonious Colonies studies forms of federation in which communities retain their own authority while coordinating work, energy, resources and shared obligations.",
+        "present": "Current inquiry concerns accountable work records, resource and energy accounting, distributed coordination and the limits of consent and authority across different groups.",
+        "boundary": "Software does not confer community authority, Indigenous sovereignty or treaty rights. Any political adoption must be chosen by the people and nations affected."
       },
       {
         "id": "bicameral-biology",
@@ -173,7 +178,7 @@
         "boundary": "This is experimental research. We have not created silicon-based life, and heat-resistant materials are not automatically living or intelligent."
       }
     ],
-    "throughline": "We are building for generations, not just product cycles. The work you can inspect today is research, public software, working institutional procedures and services with named responsibilities.",
-    "engagement": "Explore the work, bring a practical problem, or support the long horizon. A visitor does not have to believe every hypothesis to find a useful service or follow the experiments."
+    "throughline": "The work visible today includes public research, software, operations and services with separately accountable owners.",
+    "engagement": "Long-range hypotheses belong to the research record. They do not make a public experiment into a finished product or confer a right to act for another community."
   }
 }
