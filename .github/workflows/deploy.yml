@@ -48,14 +48,28 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Read the pinned Group front-door content (Public data repository)
+      - name: Read reviewed Group front-door main (Public data repository)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: 561-group/561-group-frontdoor-services-section
-          ref: c1bde60dd07ddfd3e35cb509872cbd85f13206c0
+          ref: main
           path: content
           ssh-key: ${{ secrets.SITE_CONTENT_DEPLOY_KEY }}
           persist-credentials: false
+      - name: Refuse an unmerged or superseded Group source before production
+        env:
+          # Pin reviewed bytes, not commit metadata: merge commits may change
+          # the commit ID while retaining the exact qualified content tree.
+          QUALIFIED_FRONTDOOR_TREE: fe4cd2eefa80480af2854ef18afd8232797ba8b5
+        run: |
+          set -euo pipefail
+          selected_commit="$(git -C content rev-parse HEAD)"
+          selected_tree="$(git -C content rev-parse 'HEAD^{tree}')"
+          if test "$selected_tree" != "$QUALIFIED_FRONTDOOR_TREE"; then
+            echo "::error::Group main content differs from the qualified tree; obtain source review and repin before publication"
+            exit 1
+          fi
+          echo "Exact reviewed Group tree $selected_tree admitted from Group main commit $selected_commit."
       - name: Bind front-door content (data/, locales/, authored public/ assets) into the application
         run: node scripts/bind-content.mjs
       - name: Select one source-qualified UTC publication day
