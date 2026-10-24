@@ -18,7 +18,9 @@ const good=()=>({
     {family:"JetBrains Mono",status:"loaded"}
   ],
   tileCount:11,hasLead:false,hasNavigation:true,hasContact:true,focusWidth:3,
-  overflowX:false,identityAppeal:false
+  overflowX:false,identityAppeal:false,
+  folioLabels:["THE QUESTION","THE FORM","THE RESISTANCE","THE OTHER PERSON"]
+    .map(text=>({text,whiteSpace:"nowrap",fits:true}))
 });
 test("rendered Chromium observation has a passable explicit conformance shape",()=>{
   assert.deepEqual(qualifyRenderedBrand(good()),{passed:true,errors:[]});
@@ -48,6 +50,16 @@ test("the original user-visible regression is independently rejected",()=>{
   for(const fragment of ["Lakota-founded","horizontally","Keyboard focus","navigation","content tiles"])
     assert.ok(result.errors.some(x=>x.includes(fragment)),fragment);
 });
+test("a fragmented or overflowing movement label is a real rendered regression",()=>{
+  const broken={...good(),folioLabels:good().folioLabels.map((item,index)=>
+    index===2?{...item,whiteSpace:"normal",fits:false}:item)};
+  const observed=qualifyRenderedBrand(broken);
+  assert.equal(observed.passed,false);
+  assert.ok(observed.errors.some(e=>e.includes("work-folio editorial registers")));
+  const missing={...good(),folioLabels:good().folioLabels.slice(0,3)};
+  assert.equal(qualifyRenderedBrand(missing).passed,false);
+});
+
 test("a narrow supported viewport with unchanged visual hierarchy is admissible",()=>{
   const mobile={...good(),viewportWidth:390,markSize:136.5};
   assert.equal(qualifyRenderedBrand(mobile).passed,true);
