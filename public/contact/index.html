@@ -23,6 +23,9 @@
       input, select, textarea { width: 100%; padding: .5rem; color: inherit; background: transparent; border: 1px solid; }
       textarea { min-height: 7rem; resize: vertical; }
       button { color: inherit; background: transparent; cursor: pointer; }
+      fieldset.governance-scope { border: 1px solid currentColor; margin: 1.3rem 0; padding: 1rem; }
+      fieldset.governance-scope legend { font: 650 1.06rem/1.35 "Helvetica Neue", Arial, sans-serif; padding: 0 .45rem; }
+      fieldset.governance-scope label { font-weight: 600; }
       [hidden] { display: none; }
       .hint { margin-top: .3rem; font-size: .95rem; }
     </style>
@@ -58,6 +61,29 @@
         <p class="hint">A name, link, location, or description is enough.</p>
         <label for="need">What happened or what do you need?</label>
         <textarea id="need" name="need" required></textarea>
+        <fieldset id="data-stewardship-scope" class="governance-scope" hidden disabled>
+          <legend>Data stewardship: authority before access</legend>
+          <p>These are scoping questions, not a request for the data itself. The
+             <a href="https://www.gida-global.org/careprinciples">CARE Principles</a>
+             require attention to collective benefit, authority to control, responsibility and ethics when Indigenous data are involved. They do not give the Group authority over another community's data.</p>
+          <p class="hint">Answer in general terms only. Do not include people's names, protected cultural knowledge, sensitive locations, datasets, access credentials, or client records. Unknown is a valid answer. No review or transfer is authorized by this form.</p>
+          <label for="data-peoples">Could this work involve data about Indigenous Peoples, lands, resources or knowledge?</label>
+          <select id="data-peoples" name="data-peoples">
+            <option value="not-assessed">Not yet assessed</option>
+            <option value="yes">Yes — a rights-holder review will be necessary</option>
+            <option value="uncertain">Uncertain — help identify applicable rights and permissions</option>
+            <option value="no">No, as currently scoped</option>
+          </select>
+          <label for="data-authority">Authority to control — who decides collection, access, reuse and publication? (optional)</label>
+          <textarea id="data-authority" name="data-authority" placeholder="Identify the decision-making role or process, not people's identities or protected data."></textarea>
+          <label for="data-benefit">Collective benefit — who should benefit and who decides what counts as a benefit? (optional)</label>
+          <textarea id="data-benefit" name="data-benefit"></textarea>
+          <label for="data-refusal">Consent and refusal — who can restrict, correct, withhold or withdraw permission for use? (optional)</label>
+          <textarea id="data-refusal" name="data-refusal"></textarea>
+          <label for="data-responsibility">Responsibility and ethics — who will answer for harm, future reuse and stewardship? (optional)</label>
+          <textarea id="data-responsibility" name="data-responsibility"></textarea>
+          <p class="hint"><strong>Review boundary:</strong> This information is a self-reported starting point, not proof that a rights holder has consented. A responsible office must independently assess authority and agree to the permitted work before collecting, analyzing or publishing any protected data.</p>
+        </fieldset>
         <label for="budget">Budget range or pricing basis (optional)</label>
         <input id="budget" name="budget" placeholder="Approximate range, rate, or not yet known">
         <label for="timing">Desired timing or availability (optional)</label>
@@ -111,8 +137,21 @@
         intake.elements['submission-type'].value = 'Paid service inquiry';
         intake.elements['affected'].value = proposedService;
       }
+      // A visitor's service hint activates relevant scoping prompts, not
+      // access to, transfer of, or permission over any cultural dataset.
+      const dataScope = document.getElementById('data-stewardship-scope');
+      const refreshDataScope = () => {
+        const selected = intake.elements['submission-type'].value === 'Paid service inquiry' &&
+          intake.elements['affected'].value.trim() === 'Data rights and stewardship';
+        dataScope.hidden = !selected;
+        dataScope.disabled = !selected;
+      };
+      intake.addEventListener('input', refreshDataScope);
+      intake.addEventListener('change', refreshDataScope);
+      refreshDataScope();
       intake.addEventListener('submit', event => {
         event.preventDefault();
+        refreshDataScope();
         const fields = [...new FormData(intake)];
         const kind = intake.elements['submission-type'].value;
         const subject = kind === 'Paid service inquiry'
