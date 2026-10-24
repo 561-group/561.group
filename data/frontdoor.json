@@ -65,8 +65,8 @@
       "scope": "Assess consent, provenance, access, permitted reuse and who benefits from a data project. Where Indigenous data are involved, examine the CARE Principles with the relevant rights holders; a label or checklist is not authorization.",
       "example": "Authority-to-control, collective benefit, responsibility and ethics reviewed before sharing or publishing data",
       "framework": {
-        "href": "https://www.rd-alliance.org/wp-content/uploads/2024/03/CARE20Principles20for20Indigenous20Data20Governance_OnePagers_FINAL20Sept2006202019.pdf",
-        "label": "Read the original CARE Principles",
+        "href": "https://www.gida-global.org/careprinciples",
+        "label": "CARE Principles — Global Indigenous Data Alliance",
         "qualification": "A published framework is not evidence of this Group's certification, rights-holder consent, or implementation for a particular customer."
       }
     },
