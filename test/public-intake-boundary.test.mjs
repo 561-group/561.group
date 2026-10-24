@@ -120,6 +120,40 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
   await nodes["copy-email-body"].onclick();
   assert.deepEqual(copied,[nodes["email-text"].value]);
   assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
+  // Re-preparing a visitor draft must invalidate a successful *previous* copy.
+  fields[2][1] = "Updated paid inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "newly prepared buyer copy must not inherit an old clipboard success");
+  let resolveClipboard;
+  navigator.clipboard = {writeText: value => {
+    copied.push(value);
+    return new Promise(resolve => { resolveClipboard = resolve; });
+  }};
+  const staleText = nodes["email-text"].value;
+  const pendingCopy = nodes["copy-email-body"].onclick();
+  fields[2][1] = "Later revised paid inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  assert.notEqual(nodes["email-text"].value, staleText);
+  resolveClipboard();
+  await pendingCopy;
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "a late clipboard completion must not falsely confirm the newer draft");
+  navigator.clipboard = {writeText: async value => { copied.push(value); }};
+  await nodes["copy-email-body"].onclick();
+  assert.equal(copied.at(-1), nodes["email-text"].value,
+    "the latest visitor-approved message remains copyable");
+  assert.match(nodes["copy-email-status"].textContent, /send it yourself/u);
+  // The same guard must refuse a delayed clipboard *error* on an obsolete draft.
+  let rejectClipboard;
+  navigator.clipboard = {writeText: () => new Promise((_, reject) => { rejectClipboard = reject; })};
+  const staleError = nodes["copy-email-body"].onclick();
+  fields[2][1] = "Final revised supplier inquiry. ".repeat(170);
+  handlers.submit({preventDefault() {}});
+  rejectClipboard(new Error("Browser rejected an obsolete clipboard attempt"));
+  await staleError;
+  assert.equal(nodes["copy-email-status"].textContent, "",
+    "an old async rejection must not focus or report fallback for a newer draft");
   delete navigator.clipboard;
   await nodes["copy-email-body"].onclick();
   assert.equal(nodes["email-text"].selected,true,"fallback exposes text for manual copying");
@@ -206,7 +240,7 @@ test("production Group content admission executes main-pinned normal, alternate 
   assert.match(source,/ref: main/u,"production must fetch Group main, not an unreviewed feature SHA");
   assert.doesNotMatch(source,/ref: [a-f0-9]{40}/u);
   const admission=workflow.slice(guard,bind);
-  assert.match(admission,/QUALIFIED_FRONTDOOR_SHA: 081d9e51a288e447e27f315f349eff2a6831bdc9/u);
+  assert.match(admission,/QUALIFIED_FRONTDOOR_SHA: 189b06e6841c7c172f2903222dfcd73e94c248e9/u);
   assert.match(admission,/git -C content rev-parse HEAD/u);
   const newline=String.fromCharCode(10);
   const runBlock=admission.split("        run: |"+newline)[1];
