@@ -46,7 +46,12 @@
       "title": "AI-ready websites and discovery",
       "provider": "services",
       "scope": "Improve a business's factual visibility and usability for search, answer engines and authorized agents.",
-      "example": "GEO/AEO audits, evidence and agent-readable offers"
+      "example": "GEO/AEO audits, evidence and agent-readable offers",
+      "evidence": {
+        "href": "https://561.group/for-agents/",
+        "label": "Inspect our agent-readable public interface",
+        "qualification": "First-party example, not an outside client result or a guarantee of search placement."
+      }
     },
     {
       "id": "indigenous-data",
@@ -60,21 +65,36 @@
       "title": "Software and agent engineering",
       "provider": "engineering",
       "scope": "Convert bounded requirements into testable sites, APIs, interoperable services and automation.",
-      "example": "Web/agent integrations and repairs"
+      "example": "Web/agent integrations and repairs",
+      "evidence": {
+        "href": "https://github.com/561-group/561.group",
+        "label": "Inspect this site's implementation source",
+        "qualification": "Public software source; a commit is not an accepted client service or external audit."
+      }
     },
     {
       "id": "research",
       "title": "Research and formal methods",
       "provider": "science",
       "scope": "Investigate complex questions with original models, mathematical methods and source-qualified evidence.",
-      "example": "Research and requirements derivation"
+      "example": "Research and requirements derivation",
+      "evidence": {
+        "href": "https://science.561.group/paraconsistent-transfinite-linear-agent-integration/",
+        "label": "Read an original research audit",
+        "qualification": "Public research manuscript with explicit limits; independent replication remains a separate question."
+      }
     },
     {
       "id": "reliability",
       "title": "Operational reliability",
       "provider": "operations",
       "scope": "Improve how services are deployed, maintained, repaired and independently checked.",
-      "example": "Operational procedures and service receiving"
+      "example": "Operational procedures and service receiving",
+      "evidence": {
+        "href": "https://561.group/source-revision.json",
+        "label": "Inspect our deployed release identity",
+        "qualification": "First-party release testimony, separately checked by the publisher; not proof of customer acceptance."
+      }
     }
   ],
   "steps": [
