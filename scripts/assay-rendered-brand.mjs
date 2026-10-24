@@ -201,15 +201,23 @@ async function receivePrivateDataIntake(browser,host,output){
     if(!general || general.status()!==200)
       throw Error("Original public static contact route failed");
     const scope=page.locator("#data-stewardship-scope");
-    if(!await scope.isHidden() || !await scope.isDisabled())
-      throw Error("Unrelated service inquiry exposed protected-data scope");
+    const inactive=await scope.evaluate(node=>({
+      hidden:node.hidden,disabled:node.disabled,
+      visiblyHidden:getComputedStyle(node).display==="none"
+    }));
+    if(!inactive.hidden || !inactive.disabled || !inactive.visiblyHidden)
+      throw Error("Unrelated service inquiry exposed protected-data scope: "+JSON.stringify(inactive));
     const genericPath=join(output,"contact-mobile.png");
     await page.screenshot({path:genericPath,fullPage:true,animations:"disabled"});
     const rights=await page.goto(host.origin+
       "/contact/?service=Data%20rights%20and%20stewardship",{waitUntil:"networkidle"});
-    if(!rights || rights.status()!==200 || await scope.isHidden() ||
-       await scope.isDisabled())
-      throw Error("Original CARE-related service source did not activate the rights gate");
+    const active=await scope.evaluate(node=>({
+      hidden:node.hidden,disabled:node.disabled,
+      visiblyHidden:getComputedStyle(node).display==="none"
+    }));
+    if(!rights || rights.status()!==200 || active.hidden || active.disabled ||
+       active.visiblyHidden)
+      throw Error("Original CARE-related service source did not activate the rights gate: "+JSON.stringify(active));
     if(await page.locator("#reply-permission").inputValue()!=="not-specified" ||
        await page.locator("#submission-type").inputValue()!=="Paid service inquiry" ||
        await page.locator("#affected").inputValue()!=="Data rights and stewardship")
@@ -251,8 +259,12 @@ async function receivePrivateDataIntake(browser,host,output){
     // Changing only the service restores the default: hidden, disabled, and
     // omitted from the email draft, even if it was filled earlier.
     await page.locator("#affected").fill("Research and formal methods");
-    if(!await scope.isHidden() || !await scope.isDisabled())
-      throw Error("A changed service cannot remove the rights-specific collection");
+    const withdrawn=await scope.evaluate(node=>({
+      hidden:node.hidden,disabled:node.disabled,
+      visiblyHidden:getComputedStyle(node).display==="none"
+    }));
+    if(!withdrawn.hidden || !withdrawn.disabled || !withdrawn.visiblyHidden)
+      throw Error("A changed service cannot remove the rights-specific collection: "+JSON.stringify(withdrawn));
     await page.locator('button[type="submit"]').click();
     const genericDraft=await page.locator("#email-text").inputValue();
     for(const marker of ["REVIEW-PENDING-ROLE-NOT-A-PERSON",
