@@ -95,6 +95,15 @@
     </main>
     <script>
       const intake = document.getElementById('private-intake');
+      // The selected service name is a public, untrusted URL hint, not a
+      // customer identity, accepted order, or authorization to contact anyone.
+      // It only pre-fills an editable field; no form is submitted automatically.
+      const proposedService = new URLSearchParams(location.search).get('service');
+      if (proposedService && proposedService.length <= 96 &&
+          /^[A-Za-z][A-Za-z0-9 ,.'()-]*$/u.test(proposedService)) {
+        intake.elements['submission-type'].value = 'Paid service inquiry';
+        intake.elements['affected'].value = proposedService;
+      }
       intake.addEventListener('submit', event => {
         event.preventDefault();
         const fields = [...new FormData(intake)];

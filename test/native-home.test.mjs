@@ -88,6 +88,20 @@ test("each substantive source-owned page renders different useful HTML AND JSON"
     assert.equal(data.kind,"tufte.projection");
     assert.equal(data.metadata.canonical,"https://561.group"+path);
     assert.ok(data.tiles.some(t=>t.id===id),path+" relevant TUFTE model");
+    if(path==="/work/"){
+      const services=data.tiles.find(t=>t.id==="services").html;
+      for(const offer of frontdoor.offers.filter(s=>s.evidence)){
+        assert.ok(services.includes('href="'+offer.evidence.href+'"'),
+          "public TUFTE source evidence link: "+offer.id);
+        assert.ok(services.includes(offer.evidence.qualification),
+          "public evidence is visibly qualified: "+offer.id);
+      }
+      const listings=data.metadata.structuredData["@graph"][2].mainEntity;
+      assert.equal(listings["@type"],"ItemList");
+      assert.equal(listings.itemListElement.length,frontdoor.offers.length);
+      assert.ok(listings.itemListElement.every(x=>x.item["@type"]==="Service" &&
+        !("offers" in x.item)),"no unauthorized checkout terms");
+    }
   }
   assert.equal(f.reads.length,3*cells.length*2);
 });

@@ -69,7 +69,38 @@ test("services are tied to an existing accountable company, and only inquiry is 
     assert.ok(list.includes(expected));
     assert.ok(list.includes(home.group.companies.find(c=>c.id===item.provider).name));
   }
-  assert.ok(list.includes('href="/contact/#work"'));
+  for(const service of frontdoor.offers){
+    const href="/contact/?service="+encodeURIComponent(service.title)+"#work";
+    assert.ok(list.includes('href="'+href+'"'),
+      "each service can open its own existing intake context: "+service.id);
+  }
+  assert.equal((list.match(/Ask about this work/g)||[]).length,frontdoor.offers.length,
+    "do not duplicate the existing inquiry destination or invent an order path");
+  for(const item of frontdoor.offers.filter(x=>x.evidence)){
+    assert.ok(list.includes('href="'+item.evidence.href+'"'),
+      "a reader can inspect directly related public material: "+item.id);
+    const escapedLabel=item.evidence.label.replace(/&/gu,"&amp;")
+      .replace(/</gu,"&lt;").replace(/>/gu,"&gt;")
+      .replace(/"/gu,"&quot;").replace(/'/gu,"&#39;");
+    assert.ok(list.includes(escapedLabel),
+      "visible links retain escaped HTML labels: "+item.id);
+    assert.ok(list.includes(item.evidence.qualification));
+  }
+  assert.equal(frontdoor.offers.filter(x=>x.evidence).length,4,
+    "unverified service areas do not invent client proof");
+  const structured=work.metadata.structuredData["@graph"][2].mainEntity;
+  assert.equal(structured["@type"],"ItemList");
+  assert.deepEqual(structured.itemListElement.map(x=>x.item.name),
+    frontdoor.offers.map(x=>x.title));
+  for(const [i,x] of structured.itemListElement.entries()){
+    const service=frontdoor.offers[i];
+    const provider=home.group.companies.find(comp=>comp.id===service.provider);
+    assert.equal(x.item.provider["@id"],provider.url+"#organization");
+    assert.equal(x.item.url,"https://561.group/work/#"+service.id);
+    assert.equal(x.item["@type"],"Service");
+    assert.ok(!("offers" in x.item) && !("aggregateRating" in x.item),
+      "an inquiry must not silently become a priced or independently reviewed service");
+  }
   assert.ok(tile(work,"process").html.includes("An inquiry is not an order"));
   assert.doesNotMatch(list,/Buy now|guaranteed revenue|instant acceptance/u);
 });
@@ -170,6 +201,13 @@ test("public editorial records are data, escaped and checked at the original bou
   const improper=structuredClone(frontdoor);
   improper.offers[0].provider="nonexistent";
   assert.throws(()=>project561GroupPage({home,estate,frontdoor:improper}),/no original accountable company/);
+  const unsafeEvidence=structuredClone(frontdoor);
+  unsafeEvidence.offers[0].evidence={href:"javascript:alert(1)",label:"Fake proof",qualification:"No"};
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:unsafeEvidence}),/Only public HTTPS/);
+  const unqualifiedEvidence=structuredClone(frontdoor);
+  unqualifiedEvidence.offers[0].evidence={href:"https://science.561.group/",label:"Unverified",qualification:""};
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:unqualifiedEvidence}),
+    /Inspectable service evidence/);
   const poisoned=structuredClone(home);
   poisoned.group.sustainingSupport.url="data:text/html,x";
   assert.throws(()=>project561GroupPage({home:poisoned,estate,frontdoor}),/Only public HTTPS/);
