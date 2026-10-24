@@ -149,6 +149,17 @@ body{
   .tufte-shell{padding:1rem}
   #explore .tufte-tile-body ul{grid-template-columns:1fr}
 }
+/* The six real visitor paths should form two intentional rows on phones,
+   not strand Contact by itself after five tiny navigation links. */
+@media(max-width:430px){
+  [data-tufte-navigation]{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%;column-gap:.7rem;row-gap:.15rem;justify-content:stretch;
+  }
+  [data-tufte-navigation] a{
+    display:inline-flex;align-items:center;min-height:2.25rem;
+  }
+}
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
