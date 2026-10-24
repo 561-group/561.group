@@ -21,38 +21,83 @@ test("public contact offers reporting, not media commission or executable author
   assert.match(page,/event\.preventDefault\(\)/u);
 });
 
-test("source-qualified service hints reduce buyer retyping without sending inquiries",()=>{
+test("source-qualified service hints prefill only editable fields, never authorization or transmission",()=>{
   const page=read("public/contact/index.html");
   const script=/<script>([\s\S]*?)<\/script>/u.exec(page)?.[1];
-  assert.ok(script,"the same original public contact form owns the visitor prefill");
+  assert.ok(script,"the same original private form owns this source");
   const simulate=search=>{
     const called=[];
-    const elements={"submission-type":{value:"Issue"},"affected":{value:""},"reply-permission":{value:"not-specified"}};
+    const elements={"submission-type":{value:"Issue"},"affected":{value:""},
+      "reply-permission":{value:"not-specified"}};
+    const scope={hidden:true,disabled:true};
     const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
     const document={getElementById:id=>{
-      assert.equal(id,"private-intake","no other consumer should be touched before review");
-      return form;
+      if(id==="private-intake")return form;
+      if(id==="data-stewardship-scope")return scope;
+      assert.fail("unknown or duplicate intake authority: "+id);
     }};
     runInNewContext(script,{document,location:{search},URLSearchParams},{timeout:1000});
-    return {elements,called};
+    return {elements,called,scope};
   };
   const actual=simulate("?service="+encodeURIComponent("Research and formal methods"));
   assert.equal(actual.elements["submission-type"].value,"Paid service inquiry");
-  assert.equal(actual.elements["reply-permission"].value,"not-specified",
-    "a service URL hint does not establish permission to contact");
+  assert.equal(actual.elements["reply-permission"].value,"not-specified");
   assert.equal(actual.elements.affected.value,"Research and formal methods");
-  assert.equal(actual.called.length,1);
-  assert.equal(actual.called[0][0],"submit");
-  // No input in the URL becomes a sent message or asserted legitimate order.
-  for(const bad of ["", "?service=%3Cscript%3E", "?service="+encodeURIComponent("x".repeat(150))]){
+  assert.equal(actual.scope.disabled,true,"unrelated visitors never supply data-governance assessments");
+  assert.equal(actual.scope.hidden,true);
+  assert.deepEqual(actual.called.map(([event])=>event),["input","change","submit"]);
+  const rights=simulate("?service="+encodeURIComponent("Data rights and stewardship"));
+  assert.equal(rights.elements["submission-type"].value,"Paid service inquiry");
+  assert.equal(rights.elements["reply-permission"].value,"not-specified");
+  assert.equal(rights.scope.disabled,false);
+  assert.equal(rights.scope.hidden,false);
+  // The visitor can change their mind without leaking formerly relevant fields.
+  rights.elements.affected.value="Software and agent engineering";
+  rights.called.find(([event])=>event==="input")[1]();
+  assert.equal(rights.scope.disabled,true);
+  assert.equal(rights.scope.hidden,true);
+  rights.elements.affected.value="Data rights and stewardship";
+  rights.called.find(([event])=>event==="change")[1]();
+  assert.equal(rights.scope.disabled,false);
+  rights.elements["submission-type"].value="Idea";
+  rights.called.find(([event])=>event==="input")[1]();
+  assert.equal(rights.scope.disabled,true,"the service hint is not independent authority to collect data");
+  for(const bad of ["","?service=%3Cscript%3E",
+      "?service="+encodeURIComponent("x".repeat(150))]){
     const item=simulate(bad);
     assert.equal(item.elements.affected.value,"");
     assert.equal(item.elements["submission-type"].value,"Issue");
     assert.equal(item.elements["reply-permission"].value,"not-specified");
-    assert.equal(item.called.length,1);
+    assert.equal(item.scope.disabled,true);
+    assert.deepEqual(item.called.map(([event])=>event),["input","change","submit"]);
   }
   assert.match(page,/Preparing the draft does not send it/u);
   assert.match(page,/we will not treat an inquiry as an order/u);
+});
+
+test("actual CARE intake asks about roles, collective benefit, refusal and harm without collecting protected data automatically",()=>{
+  const html=read("public/contact/index.html");
+  const block=/<fieldset id="data-stewardship-scope"[^>]*>([\s\S]*?)<\/fieldset>/u.exec(html);
+  assert.ok(block,"the exact original contact page has a rights-governance gate");
+  assert.match(block[0],/hidden disabled/u,"no unrelated inquiry receives these questions");
+  assert.match(block[1],/https:\/\/www\.gida-global\.org\/careprinciples/u,
+    "link to the Global Indigenous Data Alliance, not our own invented badge");
+  for(const term of ["Collective benefit","Authority to control","Responsibility and ethics",
+    "who can restrict, correct, withhold or withdraw permission","rights holder"]){
+    assert.ok(block[1].toLowerCase().includes(term.toLowerCase()),term);
+  }
+  for(const name of ["data-peoples","data-authority","data-benefit",
+    "data-refusal","data-responsibility"]){
+    assert.ok(block[1].includes('name="'+name+'"'),name);
+  }
+  assert.match(block[1],/Not yet assessed/u);
+  assert.match(block[1],/No review or transfer is authorized by this form/u);
+  assert.match(block[1],/not proof that a rights holder has consented/u);
+  assert.match(html,/dataScope\.disabled = !selected/u,
+    "the same original form must disable out-of-scope governance fields");
+  assert.match(html,/refreshDataScope\(\);\s*const fields = \[\.\.\.new FormData\(intake\)\]/u,
+    "actual email construction checks scope before collecting relevant fields");
+  assert.doesNotMatch(html,/autocomplete="on"[^>]*data-authority/u);
 });
 
 test("sales contact consent is an explicit buyer-owned field, not inferred from a reply address",()=>{
