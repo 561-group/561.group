@@ -69,10 +69,12 @@ test("source-qualified service hints prefill only editable fields, never authori
     const elements={"submission-type":{value:"Issue"},"affected":{value:""},
       "reply-permission":{value:"not-specified"}};
     const scope={hidden:true,disabled:true};
+    const preparedDraft={hidden:true};
     const form={elements,addEventListener:(event,callback)=>called.push([event,callback])};
     const document={getElementById:id=>{
       if(id==="private-intake")return form;
       if(id==="data-stewardship-scope")return scope;
+      if(id==="email-draft")return preparedDraft;
       assert.fail("unknown or duplicate intake authority: "+id);
     }};
     runInNewContext(script,{document,location:{search},URLSearchParams},{timeout:1000});
@@ -148,7 +150,7 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
   const nodes={
     "email-subject":{value:""},
     "email-text":{value:"",focus(){this.focused=true;},select(){this.selected=true;}},
-    "open-email":{href:""},
+    "open-email":{href:"",removeAttribute(name){assert.equal(name,"href");delete this.href;}},
     "copy-email":{hidden:true},
     "email-draft":{hidden:true},
     "copy-email-body":{onclick:null},
@@ -233,6 +235,34 @@ test("long private buyer inquiries have a user-activated clipboard fallback with
     "the short message is copied exactly, with reply scope intact");
   assert.ok(nodes["email-text"].value.includes("reply-permission\ninquiry-only"));
   assert.match(nodes["copy-email-status"].textContent,/send it yourself/u);
+  // An edit to the *live form*, including changed consent, invalidates a
+  // previously prepared mailto immediately; requiring a second submit is not
+  // sufficient because buyers can still click the stale Open email link.
+  let resolveStaleCopy;
+  navigator.clipboard={writeText:()=>new Promise(resolve=>{resolveStaleCopy=resolve;})};
+  const inflight=nodes["copy-email-body"].onclick();
+  fields[4][1]="no-contact";
+  handlers.change();
+  assert.equal(nodes["email-draft"].hidden,true,
+    "a revised contact-permission choice must hide the old outbound draft");
+  assert.equal(nodes["email-text"].value,"",
+    "a stale message claiming outdated consent must not remain copyable");
+  assert.equal(nodes["email-subject"].value,"");
+  assert.equal(Object.hasOwn(nodes["open-email"],"href"),false,
+    "the outdated mailto link is removed, not merely superseded");
+  assert.equal(nodes["copy-email-body"].onclick,null);
+  resolveStaleCopy();await inflight;
+  assert.equal(nodes["copy-email-status"].textContent,"",
+    "an in-flight old copy cannot confirm a draft after form revision");
+  handlers.submit({preventDefault(){}});
+  assert.equal(nodes["email-draft"].hidden,false);
+  assert.match(nodes["email-text"].value,/reply-permission\nno-contact/u,
+    "new buyer-authored consent is incorporated only after explicit regeneration");
+  assert.doesNotMatch(nodes["email-text"].value,/reply-permission\ninquiry-only/u);
+  fields[2][1]="Buyer revised the scope after seeing the drafted email";
+  handlers.input();
+  assert.equal(nodes["email-draft"].hidden,true,
+    "ordinary scope changes also invalidate the old emailed offer");
 });
 
 test("public form labels submission as untrusted, not an executable requirement",()=>{
