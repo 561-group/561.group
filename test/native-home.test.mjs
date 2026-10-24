@@ -91,6 +91,20 @@ test("each substantive source-owned page renders different useful HTML AND JSON"
     const data=await machine.json();
     assert.equal(data.kind,"tufte.projection");
     assert.equal(data.metadata.canonical,"https://561.group"+path);
+    const discoveryText=data.metadata.description;
+    assert.ok(discoveryText.length>=95 && discoveryText.length<=185,
+      path+" has a useful bounded search and social preview description");
+    assert.ok(discoveryText.includes("561 Group"),path+" names its responsible institution");
+    assert.notEqual(discoveryText,data.subtitle,
+      path+" page-specific description should answer the external reader's actual question");
+    const metaDescription=[...html.matchAll(/<meta\\b[^>]*>/giu)].map(match=>match[0])
+      .find(tag=>/\\bname=["']description["']/iu.test(tag));
+    assert.ok(metaDescription,path+" emits original HTML description metadata");
+    const escapedDescription=discoveryText.replaceAll("&","&amp;")
+      .replaceAll("'","&#39;").replaceAll('"',"&quot;");
+    assert.ok(metaDescription.includes(discoveryText) ||
+      metaDescription.includes(escapedDescription),
+      path+" emitted HTML and JSON description must describe the same actual page");
     assert.ok(data.tiles.some(t=>t.id===id),path+" relevant TUFTE model");
     if(path==="/work/"){
       const services=data.tiles.find(t=>t.id==="services").html;
