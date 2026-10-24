@@ -11,7 +11,7 @@ const home=read("data/home.json"),estate=read("data/estate.json"),
 const model=path=>project561GroupPage({home,estate,frontdoor,path});
 const tile=(page,id)=>page.tiles.find(t=>t.id===id);
 
-test("a visitor can tell what the Group is, what they can hire, and where to go immediately",()=>{
+test("the homepage is an economical, useful institutional entrance—not a culture or research billboard",()=>{
   const root=project561GroupHome({home,estate,frontdoor});
   assert.equal(root.title,home.name);
   assert.equal(root.metadata.description,home.description);
@@ -20,53 +20,50 @@ test("a visitor can tell what the Group is, what they can hire, and where to go 
   assert.deepEqual(root.navigation.map(x=>x.href),
     ["/","/work/","/projects/","/about/","/for-agents/","/contact/"]);
   assert.deepEqual(root.tiles.map(x=>x.id),
-    ["introduction","frontiers","paths","services","method","physical-world","explore","trade","companies","agents","support"]);
+    ["introduction","paths","companies","explore","contact"],
+    "Culture, governance theory, speculative biology, merchant terms and machines have their own pages");
   const hero=tile(root,"introduction").html;
   assert.ok(hero.includes(frontdoor.proposition));
   assert.ok(hero.includes(frontdoor.promise));
   assert.ok(hero.includes(home.public.intro));
   assert.ok(hero.includes('href="/work/"'));
-  assert.ok(hero.includes('href="/projects/"'));
-  assert.doesNotMatch(hero,/conurbanized|Huidu Guanli|type-theoretic/u);
-  const horizon=tile(root,"frontiers").html;
-  assert.ok(horizon.includes("Union of Harmonious Colonies"));
-  assert.ok(horizon.includes("settler-colonial"));
-  assert.ok(horizon.includes("silica"));
-  assert.ok(horizon.includes("carbon"));
-  assert.ok(horizon.includes('href="/about/"'));
-  assert.ok(horizon.includes('href="/work/"'));
-  assert.ok(!horizon.includes("has already replaced") && !horizon.includes("we created living silica"));
+  assert.ok(hero.includes('href="/contact/#work"'));
   const wayfinding=tile(root,"paths").html;
-  for(const path of frontdoor.paths) {
-    assert.ok(wayfinding.includes(path.title));
-    assert.ok(wayfinding.includes('href="'+path.href+'"'));
+  for(const route of frontdoor.paths){
+    assert.ok(wayfinding.includes(route.title));
+    assert.ok(wayfinding.includes('href="'+route.href+'"'));
   }
-  // The first research-reading path must reach the independently published
-  // original Science resource, rather than silently treating news as research.
-  assert.equal(frontdoor.paths.find(p=>p.id==="read").href,"https://science.561.group/");
-  assert.ok(wayfinding.includes('href="https://science.561.group/"'));
-  assert.ok(tile(root,"explore").html.includes('href="https://koios.news/"'),
-    "independent newsroom discovery remains a separate, live homepage affordance");
-  assert.equal(tile(root,"physical-world").title,home.public.materialApproach.headline);
-  assert.ok(tile(root,"physical-world").html.includes(home.public.materialApproach.body));
-  assert.ok(tile(root,"physical-world").html.includes(home.public.materialApproach.scope));
-  assert.match(tile(root,"physical-world").html,/water-cycle-informed governance/u);
-  assert.match(tile(root,"physical-world").html,/Indigenous and treaty rights/u);
-  assert.ok(root.tiles.findIndex(t=>t.id==="services")<root.tiles.findIndex(t=>t.id==="support"),
-    "public sales and use are not hidden behind a donation pitch");
+  for(const company of home.group.companies)
+    assert.ok(tile(root,"companies").html.includes(company.name));
+  for(const feature of home.public.featured){
+    const node=estate.nodes.find(x=>x.host===feature.host);
+    assert.ok(tile(root,"explore").html.includes(node.name));
+    assert.ok(tile(root,"explore").html.includes(feature.action));
+  }
+  assert.ok(tile(root,"contact").html.includes('href="/contact/#work"'));
+  assert.ok(tile(root,"contact").html.includes('href="/about/"'));
+  const humanVisible=root.tiles.map(x=>x.title+" "+x.html).join(" ");
+  assert.doesNotMatch(humanVisible,/Indigenous-grounded|Indigenous data governance|settler-colonial|silica-rich|Artificial Abiogenesis|Union of Harmonious Colonies|SHRIMP|Jiangshi|404→200/iu,
+    "none of the Group's real culture or speculative research becomes homepage advertising merely by being discussed");
+  assert.ok(!humanVisible.includes("Buy now"));
 });
 
 test("services are tied to an existing accountable company, and only inquiry is offered",()=>{
-  const root=model("/");
-  const services=tile(root,"services").html;
-  assert.ok(services.includes("Persistent AI systems"));
-  assert.ok(services.includes("Indigenous data governance"));
-  assert.ok(!services.includes("Website performance and resource audits"),
-    "the original first four homepage service invitations remain in place");
-  assert.ok(services.includes('href="/work/#green-web-pilot"'),
-    "buyers can reach already-authored paid pilot proposals in one click");
+  assert.equal(tile(model("/"),"services"),undefined,
+    "Homepage service menu is not a second entire client-contract catalog");
   const work=model("/work/");
   const list=tile(work,"services").html;
+  assert.ok(list.includes("Persistent AI systems"));
+  assert.ok(list.includes("Data rights and stewardship"));
+  assert.ok(!list.includes("Indigenous data governance"),
+    "identity is not a substitute for real data-governance methods");
+  const data=frontdoor.offers.find(x=>x.id==="indigenous-data");
+  assert.ok(data.scope.includes("CARE Principles"));
+  assert.ok(data.scope.includes("relevant rights holders"));
+  assert.ok(data.example.includes("Authority-to-control"));
+  assert.ok(list.includes('href="'+data.framework.href+'"'));
+  assert.ok(list.includes(data.framework.qualification));
+
   for(const item of frontdoor.offers) {
     assert.ok(list.includes('id="'+item.id+'"'));
     const expected=item.scope.replace(/&/gu,"&amp;").replace(/'/gu,"&#39;");
@@ -133,11 +130,11 @@ test("real named projects and distinct buying venues are prominent, not inferred
     assert.ok(featured.includes(entry.action));
     assert.ok(featured.includes("https://"+node.host+"/"));
   }
-  for(const venue of home.group.storefronts) {
-    assert.ok(tile(root,"trade").html.includes(venue.name));
-    assert.ok(tile(root,"trade").html.includes(venue.url));
-  }
   const projects=model("/projects/");
+  for(const venue of home.group.storefronts) {
+    assert.ok(tile(projects,"trade").html.includes(venue.name));
+    assert.ok(tile(projects,"trade").html.includes(venue.url));
+  }
   const listing=tile(projects,"directory").html;
   for(const node of estate.nodes) {
     assert.ok(listing.includes(node.name));
@@ -157,7 +154,7 @@ test("about and agent pages give real source identities and safe action boundari
     assert.ok(vision.includes(frontier.present));
     assert.ok(vision.includes(frontier.boundary));
   }
-  assert.ok(vision.includes("No software confers Indigenous sovereignty"));
+  assert.ok(vision.includes("Software does not confer community authority"));
   assert.ok(vision.includes("We have not created silicon-based life"));
   assert.ok(vision.includes("science.561.group"));
   assert.ok(tile(about,"principles").html.includes(home.public.materialApproach.scope.replace(/&/gu,"&amp;")));
@@ -173,6 +170,24 @@ test("about and agent pages give real source identities and safe action boundari
   assert.ok(protocols.includes('class="site-method">POST</span><code>'),
     "the website lists but never automatically invokes POST endpoints");
   assert.ok(tile(agent,"boundaries").html.includes("authorization"));
+});
+
+test("data stewardship refuses a counterfeit CARE framework and loss of owner authority",()=>{
+  const counterfeit=structuredClone(frontdoor);
+  counterfeit.offers.find(x=>x.id==="indigenous-data").framework.href=
+    "https://unrelated.example/indigenous-certified";
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:counterfeit,path:"/work/"}),
+    /CARE Principles/);
+  const labelOnly=structuredClone(frontdoor);
+  delete labelOnly.offers.find(x=>x.id==="indigenous-data").framework;
+  assert.throws(()=>project561GroupPage({home,estate,frontdoor:labelOnly,path:"/work/"}),
+    /Data stewardship must expose its applicable CARE/u);
+  const inspected=model("/about/");
+  const practice=tile(inspected,"principles").html;
+  assert.ok(practice.includes(home.public.materialApproach.headline));
+  assert.ok(practice.includes("Energy")||practice.includes("energy"));
+  assert.ok(practice.includes("rights holders"));
+  assert.ok(!tile(model("/"),"introduction").html.includes("Indigenous"));
 });
 
 test("a single original TUFTE application has only exact known public routes",()=>{
@@ -215,7 +230,7 @@ test("public editorial records are data, escaped and checked at the original bou
     /Two complete, distinct/u);
   const injectedVision=structuredClone(frontdoor);
   injectedVision.vision.frontiers[0].thesis='<script>alert(1)</script>';
-  const rendered=tile(project561GroupPage({home,estate,frontdoor:injectedVision}),"frontiers").html;
+  const rendered=tile(project561GroupPage({home,estate,frontdoor:injectedVision,path:"/about/"}),"frontiers").html;
   assert.ok(rendered.includes("&lt;script&gt;"));
   assert.ok(!rendered.includes("<script>"));
   const improper=structuredClone(frontdoor);
@@ -267,7 +282,7 @@ test("the genuine TUFTE document keeps discoverability, responsive design, keybo
   assert.ok(head.includes('data-561-house="visual-design-bible-v0.4-candidate"'));
   for(const value of ["#F2EAD8","#0A0A0A","#FF4530","#3D5588","Space Grotesk","Roboto Slab","JetBrains Mono"])
     assert.ok(head.includes(value),"original 561 house visual token must survive: "+value);
-  assert.ok(head.includes(".tufte-masthead::before"),"preserve the original giant 561 numeral");
+  assert.ok(head.includes(".tufte-masthead::before"),"preserve the original compact ink 561 mark");
   assert.ok(head.includes("#frontiers"),"integrate civilizational vision into the source-owned house design");
   assert.ok(!home.description.startsWith("The Lakota-founded"),"lead with the work, not a founding-identity appeal");
   const modified=structuredClone(home);
@@ -287,9 +302,9 @@ test("original paid Work-receiving pilot exposes an honest, bounded customer inq
   assert.match(service.example,/up to 20 source Work records/u);
   assert.match(service.example,/no-purchase recommendation/u);
   assert.match(service.example,/Do not send tokens or private records/u);
-  const homepage=tile(model("/"),"services").html;
   const work=tile(model("/work/"),"services").html;
-  for(const html of [homepage,work]){
+  assert.equal(tile(model("/"),"services"),undefined);
+  for(const html of [work]){
     assert.ok(html.includes("Provisional $200 pilot estimate"),
       "the actual source-owned service pitch must be visible to prospective customers");
     assert.ok(html.includes("customer-authorized, redacted Asana/Jira export"));
@@ -315,7 +330,7 @@ test("first-party GitHub audit evidence gives a paying prospect a bounded exampl
  assert.match(service.evidence.qualification,/First-party source inspection/u);
  assert.match(service.evidence.qualification,/Not an outside customer audit/u);
  assert.match(service.evidence.qualification,/earned sale or Asana\/Jira parity evidence/u);
- for(const page of ["/","/work/"]){
+ for(const page of ["/work/"]){
   const markup=tile(model(page),"services").html;
   assert.ok(markup.includes('href="'+source+'"'),
     "real first-party Work source can be reached from the original service card");
