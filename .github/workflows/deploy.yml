@@ -60,7 +60,7 @@ jobs:
         env:
           # Pin reviewed bytes, not commit metadata: merge commits may change
           # the commit ID while retaining the exact qualified content tree.
-          QUALIFIED_FRONTDOOR_TREE: 820308bc78bf53aa0f35de28f8f8c68126bfd38a
+          QUALIFIED_FRONTDOOR_TREE: c39b55e37379fd972f63f29c63d7d828ff0d610a
         run: |
           set -euo pipefail
           selected_commit="$(git -C content rev-parse HEAD)"
