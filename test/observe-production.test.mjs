@@ -147,23 +147,23 @@ test('the independent public witness rejects an alpha placeholder for a real vis
 });
 
 
-test('read-only public witness runs after a successful qualified release, not prematurely on a source push',()=>{
+test('read-only public witness is executed after an accepted production release, not on main push',()=>{
   const witness=readFileSync(new URL('../.github/workflows/public-delivery-witness.yml',import.meta.url),'utf8');
   const producer=readFileSync(new URL('../.github/workflows/deploy.yml',import.meta.url),'utf8');
   assert.match(producer,/^name: Publish and receive 561\.group \(TUFTE \+ LivingWebServer\)$/mu);
-  assert.match(witness,/^\s{2}workflow_run:\s*$/mu);
-  assert.match(witness,/workflows:\s*\n\s+- "Publish and receive 561\.group \(TUFTE \+ LivingWebServer\)"/u);
-  assert.match(witness,/types: \[completed\]/u);
-  assert.match(witness,/github\.event\.workflow_run\.conclusion == 'success'/u);
-  assert.match(witness,/github\.event\.workflow_run\.head_branch == 'main'/u);
-  assert.match(witness,/github\.event\.workflow_run\.head_sha/u,
-    'the observed revision must be the completed release, not the latest branch ref');
-  assert.doesNotMatch(witness,/^\s{2}push:\s*$/mu,
-    'the old main-push observer races the release and invents an outage/mismatch');
-  assert.doesNotMatch(witness,/inputs\.expected_source_sha\s*\|\|\s*github\.sha/u,
-    'workflow_run GITHUB_SHA is not the source the deployment ran');
+  assert.doesNotMatch(witness,/^\s{2}(?:push|workflow_run):\s*$/mu,
+    'there is no premature push witness or unobserved chained workflow after release');
   assert.match(witness,/^\s{2}pull_request:\s*$/mu);
   assert.match(witness,/^\s{2}workflow_dispatch:\s*$/mu);
-  assert.match(witness,/if:\s*>-\s*\n\s+github\.event_name == 'workflow_dispatch'/u,
-    'manual diagnostics and PR-only fixture tests retain their original boundaries');
+  assert.match(witness,/if: github\.event_name == 'workflow_dispatch'/u,
+    'standalone provider diagnostics are manual and cannot reach PR secrets');
+  const released=producer.indexOf("Received deployed Group source '+receipt.sourceCommit");
+  const recheck=producer.indexOf("name: Record original public delivery observation after release");
+  assert.ok(released>0 && recheck>released,
+    'actual public/source/provider release readback must precede the original HTTP witness');
+  assert.match(producer,/EXPECTED_SOURCE_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/u,
+    'source identity must be the checked and deployed original source');
+  assert.match(producer,/run: node scripts\/observe-production\.mjs/u);
+  assert.match(producer,/name: 561-group-post-release-public-observation/u);
+  assert.match(producer,/observations\/561\.group-public-delivery\.json/u);
 });
