@@ -16,7 +16,20 @@ test("the homepage is an economical, useful institutional entrance—not a cultu
   assert.equal(root.title,home.name);
   assert.equal(root.metadata.description,home.description);
   assert.equal(root.metadata.canonical,"https://561.group/");
-  assert.equal(root.metadata.structuredData["@graph"][0].subOrganization.length,4);
+  const entityGraph=root.metadata.structuredData["@graph"];
+  assert.equal(entityGraph[0].name,home.name);
+  assert.equal(entityGraph[0].alternateName,"561 Group");
+  assert.equal(entityGraph[1].alternateName,entityGraph[0].alternateName,
+    "The original institutional alias must be consistent across Organization and WebSite");
+  assert.equal(entityGraph[0].logo.url,home.origin+"/logo.png",
+    "Project the real source-owned original logo, not a remote brand-imposter image");
+  const sourceLogo=readFileSync(new URL("../public/logo.png",import.meta.url));
+  assert.equal(sourceLogo.subarray(0,8).toString("hex"),"89504e470d0a1a0a");
+  assert.equal(sourceLogo.readUInt32BE(16),512);
+  assert.equal(sourceLogo.readUInt32BE(20),512);
+  assert.equal(entityGraph[0].logo.width,512);
+  assert.equal(entityGraph[0].logo.height,512);
+  assert.equal(entityGraph[0].subOrganization.length,4);
   assert.deepEqual(root.navigation.map(x=>x.href),
     ["/","/work/","/projects/","/about/","/for-agents/","/contact/"]);
   assert.deepEqual(root.tiles.map(x=>x.id),
